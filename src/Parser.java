@@ -4,6 +4,7 @@
 
 import ast.*;
 import jdk.nashorn.api.scripting.ScriptUtils;
+import jdk.nashorn.internal.ir.Block;
 import jdk.nashorn.internal.runtime.Context;
 import jdk.nashorn.internal.runtime.ErrorManager;
 import jdk.nashorn.internal.runtime.options.Options;
@@ -93,13 +94,51 @@ public class Parser {
             Statement body = parseStatement(ele2);
             return new WithStatement(obj, body);
         } else if (type.equals("SwitchStatement")) {
-
+            JsonElement ele1 = object.get("discriminant");
+            JsonArray array = object.get("cases").getAsJsonArray();
+            boolean lexical = object.get("lexical").getAsBoolean();
+            Expression discriminant = parseExpression(ele1);
+            ArrayList<SwitchCase> cases = new ArrayList<>();
+            for (JsonElement ele : array) {
+                cases.add(parseSwitchCase(ele));
+            }
+            return new SwitchStatement(discriminant, cases, lexical);
         } else if (type.equals("ReturnStatement")) {
-
+            JsonElement ele = object.get("argument");
+            Expression argument;
+            if (ele.isJsonNull()) {
+                argument = null;
+            } else {
+                argument = parseExpression(ele);
+            }
+            return new ReturnStatement(argument);
         } else if (type.equals("ThrowStatement")) {
-
+            JsonElement ele = object.get("argument");
+            Expression argument = parseExpression(ele);
+            return new ThrowStatement(argument);
         } else if (type.equals("TryStatement")) {
-
+            JsonElement ele1 = object.get("block");
+            JsonElement ele2 = object.get("handler");
+            JsonArray array = object.get("guardedHandlers").getAsJsonArray();
+            JsonElement ele4 = object.get("finalizer");
+            BlockStatement block = (BlockStatement)parseStatement(ele1);
+            CatchClause handler;
+            if (ele2.isJsonNull()) {
+                handler = null;
+            } else {
+                handler = parseCatchClause(ele2);
+            }
+            ArrayList<CatchClause> guardedHandler = new ArrayList<>();
+            for (JsonElement ele : array) {
+                guardedHandler.add(parseCatchClause(ele));
+            }
+            BlockStatement finalizer;
+            if (ele4.isJsonNull()) {
+                finalizer = null;
+            } else {
+                finalizer = (BlockStatement)parseStatement(ele4);
+            }
+            return new TryStatement(block, handler, guardedHandler, finalizer);
         } else if (type.equals("WhileStatement")) {
 
         } else if (type.equals("DoWhileStatement")) {
@@ -120,8 +159,14 @@ public class Parser {
     private static Expression parseExpression(JsonElement element) {
     }
 
+    private static SwitchCase parseSwitchCase(JsonElement element) {
+    }
+
     private static String parseIdentifier(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         return object.get("name").getAsString();
+    }
+
+    private static CatchClause parseCatchClause(JsonElement element) {
     }
 }
