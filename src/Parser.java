@@ -87,7 +87,11 @@ public class Parser {
             String label = parseIdentifier(ele);
             return new ContinueStatement(label);
         } else if (type.equals("WithStatement")) {
-
+            JsonElement ele1 = object.get("object");
+            JsonElement ele2 = object.get("body");
+            Expression obj = parseExpression(ele1);
+            Statement body = parseStatement(ele2);
+            return new WithStatement(obj, body);
         } else if (type.equals("SwitchStatement")) {
 
         } else if (type.equals("ReturnStatement")) {
