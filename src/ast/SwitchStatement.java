@@ -9,10 +9,8 @@ import java.util.ArrayList;
 public class SwitchStatement extends Statement {
     Expression discriminant;
     ArrayList<SwitchCase> cases;
-    boolean lexical;
-    public SwitchStatement(Expression discrinimant, ArrayList<SwitchCase> cases, boolean lexical) {
+    public SwitchStatement(Expression discrinimant, ArrayList<SwitchCase> cases) {
         this.discriminant = discrinimant;
         this.cases = cases;
-        this.lexical = lexical;
     }
 }

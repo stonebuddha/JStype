@@ -81,11 +81,21 @@ public class Parser {
             return new LabeledStatement(label);
         } else if (type.equals("BreakStatement")) {
             JsonElement ele = object.get("label");
-            String label = parseIdentifier(ele);
+            String label;
+            if (ele.isJsonNull()) {
+                label = null;
+            } else {
+                label = parseIdentifier(ele);
+            }
             return new BreakStatement(label);
         } else if (type.equals("ContinueStatement")) {
             JsonElement ele = object.get("label");
-            String label = parseIdentifier(ele);
+            String label;
+            if (ele.isJsonNull()) {
+                label = null;
+            } else {
+                label = parseIdentifier(ele);
+            }
             return new ContinueStatement(label);
         } else if (type.equals("WithStatement")) {
             JsonElement ele1 = object.get("object");
@@ -96,13 +106,12 @@ public class Parser {
         } else if (type.equals("SwitchStatement")) {
             JsonElement ele1 = object.get("discriminant");
             JsonArray array = object.get("cases").getAsJsonArray();
-            boolean lexical = object.get("lexical").getAsBoolean();
             Expression discriminant = parseExpression(ele1);
             ArrayList<SwitchCase> cases = new ArrayList<>();
             for (JsonElement ele : array) {
                 cases.add(parseSwitchCase(ele));
             }
-            return new SwitchStatement(discriminant, cases, lexical);
+            return new SwitchStatement(discriminant, cases);
         } else if (type.equals("ReturnStatement")) {
             JsonElement ele = object.get("argument");
             Expression argument;
@@ -152,28 +161,135 @@ public class Parser {
             Expression test = parseExpression(ele2);
             return new DoWhileStatement(body, test);
         } else if (type.equals("ForStatement")) {
-
-        } else if (type.equals("ForInStatement")) {
-
-        } else if (type.equals("ForOfStatement")) {
-        } else if (type.equals("LetStatement")) {
-            JsonArray array = object.get("head").getAsJsonArray();
-            JsonElement ele1 = object.get("body");
-            ArrayList<VariableDeclarator> head = new ArrayList<>();
-            for (JsonElement ele : array) {
-                head.add(parseVariableDeclarator(ele));
+            JsonElement ele1 = object.get("init");
+            Object init;
+            if (ele1.isJsonNull()) {
+                init = null;
+            } else {
+                String type1 = ele1.getAsJsonObject().get("type").getAsString();
+                if (type1.equals("VariableDeclaration")) {
+                    init = parseDeclaration(ele1);
+                } else {
+                    init = parseExpression(ele1);
+                }
             }
-            Statement body = parseStatement(ele1);
-            return new LetStatement(head, body);
+            JsonElement ele2 = object.get("test");
+            Expression test;
+            if (ele2.isJsonNull()) {
+                test = null;
+            } else {
+                test = parseExpression(ele2);
+            }
+            JsonElement ele3 = object.get("update");
+            Expression update;
+            if (ele3.isJsonNull()) {
+                update = null;
+            } else {
+                update = parseExpression(ele3);
+            }
+            JsonElement ele4 = object.get("body");
+            Statement body = parseStatement(ele4);
+            return new ForStatement(init, test, update, body);
+        } else if (type.equals("ForInStatement")) {
+            JsonElement ele1 = object.get("left");
+            String type1 = ele1.getAsJsonObject().get("type").getAsString();
+            Object left;
+            if (type1.equals("VariableDeclaration")) {
+                left = parseDeclaration(ele1);
+            } else {
+                left = parseExpression(ele1);
+            }
+            JsonElement ele2 = object.get("right");
+            Expression right = parseExpression(ele2);
+            JsonElement ele3 = object.get("body");
+            Statement body = parseStatement(ele3);
+            return new ForInStatement(left, right, body);
         } else if (type.equals("DebuggerStatement")) {
             return new DebuggerStatement();
+        } else {
+            return parseDeclaration(element);
         }
     }
 
     private static Expression parseExpression(JsonElement element) {
+        JsonObject object = element.getAsJsonObject();
+        String type = object.get("type").getAsString();
+        if (type.equals("ThisExpression")) {
+
+        } else if (type.equals("ArrayExpression")) {
+
+        } else if (type.equals("ObjectExpression")) {
+
+        } else if (type.equals("FunctionExpression")) {
+
+        } else if (type.equals("SequenceExpression")) {
+
+        } else if (type.equals("UnaryExpression")) {
+
+        } else if (type.equals("BinaryExpression")) {
+
+        } else if (type.equals("AssignmentExpression")) {
+
+        } else if (type.equals("UpdateExpression")) {
+
+        } else if (type.equals("LogicalExpression")) {
+
+        } else if (type.equals("ConditionalExpression")) {
+
+        } else if (type.equals("CallExpression")) {
+
+        } else if (type.equals("NewExpression")) {
+
+        } else if (type.equals("MemberExpression")) {
+
+        } else if (type.equals("Identifier")) {
+            String name = parseIdentifier(element);
+            return new IdentifierExpression(name);
+        } else {
+            throw new RuntimeException("cannot parse Expression");
+        }
+    }
+
+    private static Declaration parseDeclaration(JsonElement element) {
+        JsonObject object = element.getAsJsonObject();
+        String type = object.get("type").getAsString();
+        if (type.equals("FunctionDeclaration")) {
+            JsonElement ele1 = object.get("id");
+            String id = parseIdentifier(ele1);
+            ArrayList<String> params = new ArrayList<>();
+            JsonElement ele2 = object.get("params");
+            for (JsonElement ele: ele2.getAsJsonArray()) {
+                params.add(parseIdentifier(ele));
+            }
+            JsonElement ele3 = object.get("body");
+            BlockStatement body = (BlockStatement)parseStatement(ele3);
+            return new FunctionDeclaration(id, params, body);
+        } else if (type.equals("VariableDeclaration")) {
+            ArrayList<VariableDeclarator> declarations = new ArrayList<>();
+            for (JsonElement ele : object.get("declarations").getAsJsonArray()) {
+                declarations.add(parseVariableDeclarator(ele));
+            }
+            return new VariableDeclaration(declarations);
+        } else {
+            throw new RuntimeException("cannot parse Declaration");
+        }
     }
 
     private static SwitchCase parseSwitchCase(JsonElement element) {
+        JsonObject object = element.getAsJsonObject();
+        JsonElement ele1 = object.get("test");
+        Expression test;
+        if (ele1.isJsonNull()) {
+            test = null;
+        } else {
+            test = parseExpression(ele1);
+        }
+        ArrayList<Statement> consequent = new ArrayList<>();
+        JsonElement ele2 = object.get("consequent");
+        for (JsonElement ele : ele2.getAsJsonArray()) {
+            consequent.add(parseStatement(ele));
+        }
+        return new SwitchCase(test, consequent);
     }
 
     private static String parseIdentifier(JsonElement element) {
@@ -182,8 +298,24 @@ public class Parser {
     }
 
     private static CatchClause parseCatchClause(JsonElement element) {
+        JsonObject object = element.getAsJsonObject();
+        JsonElement ele1 = object.get("param");
+        String param = parseIdentifier(ele1);
+        JsonElement ele2 = object.get("body");
+        BlockStatement body = (BlockStatement)parseStatement(ele2);
+        return new CatchClause(param, body);
     }
 
     private static VariableDeclarator parseVariableDeclarator(JsonElement element) {
+        JsonObject object = element.getAsJsonObject();
+        String id = parseIdentifier(object.get("id"));
+        Expression init;
+        JsonElement ele = object.get("init");
+        if (ele.isJsonNull()) {
+            init = null;
+        } else {
+            init = parseExpression(ele);
+        }
+        return new VariableDeclarator(id, init);
     }
 }

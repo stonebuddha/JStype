@@ -8,4 +8,8 @@ import java.util.ArrayList;
 public class SwitchCase extends Node {
     Expression test;
     ArrayList<Statement> consequent;
+    public SwitchCase(Expression test, ArrayList<Statement> consequent) {
+        this.test = test;
+        this.consequent = consequent;
+    }
 }
