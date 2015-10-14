@@ -156,11 +156,17 @@ public class Parser {
         } else if (type.equals("ForInStatement")) {
 
         } else if (type.equals("ForOfStatement")) {
-
         } else if (type.equals("LetStatement")) {
-
+            JsonArray array = object.get("head").getAsJsonArray();
+            JsonElement ele1 = object.get("body");
+            ArrayList<VariableDeclarator> head = new ArrayList<>();
+            for (JsonElement ele : array) {
+                head.add(parseVariableDeclarator(ele));
+            }
+            Statement body = parseStatement(ele1);
+            return new LetStatement(head, body);
         } else if (type.equals("DebuggerStatement")) {
-
+            return new DebuggerStatement();
         }
     }
 
@@ -176,5 +182,8 @@ public class Parser {
     }
 
     private static CatchClause parseCatchClause(JsonElement element) {
+    }
+
+    private static VariableDeclarator parseVariableDeclarator(JsonElement element) {
     }
 }
