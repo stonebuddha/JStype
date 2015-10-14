@@ -36,104 +36,88 @@ public class Parser {
     }
 
     private static Program parseProgram(JsonElement element) {
-        if (element.isJsonObject()) {
-            JsonObject object = element.getAsJsonObject();
-            if (object.get("type").getAsString().equals("Program")) {
-                if (object.get("body").isJsonArray()) {
-                    JsonArray array = object.get("body").getAsJsonArray();
-                    ArrayList<Statement> body = new ArrayList<>();
-                    for (JsonElement ele : array) {
-                        body.add(parseStatement(ele));
-                    }
-                    return new Program(body);
-                }
-            }
+        JsonObject object = element.getAsJsonObject();
+        JsonArray array = object.get("body").getAsJsonArray();
+        ArrayList<Statement> body = new ArrayList<>();
+        for (JsonElement ele : array) {
+            body.add(parseStatement(ele));
         }
-        throw new RuntimeException("cannot parse Program");
+        return new Program(body);
     }
 
     private static Statement parseStatement(JsonElement element) {
-        if (element.isJsonObject()) {
-            JsonObject object = element.getAsJsonObject();
-            String type = object.get("type").getAsString();
-            if (type.equals("EmptyStatement")) {
-                return new EmptyStatement();
-            } else if (type.equals("BlockStatement")) {
-                JsonArray array = object.get("body").getAsJsonArray();
-                ArrayList<Statement> body = new ArrayList<>();
-                for (JsonElement ele : array) {
-                    body.add(parseStatement(ele));
-                }
-                return new BlockStatement(body);
-            } else if (type.equals("ExpressionStatement")) {
-                JsonElement ele = object.get("expression");
-                Expression expression = parseExpression(ele);
-                return new ExpressionStatement(expression);
-            } else if (type.equals("IfStatement")) {
-                JsonElement ele1 = object.get("test");
-                JsonElement ele2 = object.get("consequent");
-                JsonElement ele3 = object.get("alternate");
-                Expression test = parseExpression(ele1);
-                Statement consequent = parseStatement(ele2);
-                Statement alternate;
-                if (ele3.isJsonNull()) {
-                    alternate = null;
-                } else {
-                    alternate = parseStatement(ele3);
-                }
-                return new IfStatement(test, consequent, alternate);
-            } else if (type.equals("LabeledStatement")) {
-                JsonElement ele = object.get("label");
-                String label = parseIdentifier(ele);
-                return new LabeledStatement(label);
-            } else if (type.equals("BreakStatement")) {
-                JsonElement ele = object.get("label");
-                String label = parseIdentifier(ele);
-                return new BreakStatement(label);
-            } else if (type.equals("ContinueStatement")) {
-                JsonElement ele = object.get("label");
-                String label = parseIdentifier(ele);
-                return new ContinueStatement(label);
-            } else if (type.equals("WithStatement")) {
-
-            } else if (type.equals("SwitchStatement")) {
-
-            } else if (type.equals("ReturnStatement")) {
-
-            } else if (type.equals("ThrowStatement")) {
-
-            } else if (type.equals("TryStatement")) {
-
-            } else if (type.equals("WhileStatement")) {
-
-            } else if (type.equals("DoWhileStatement")) {
-
-            } else if (type.equals("ForStatement")) {
-
-            } else if (type.equals("ForInStatement")) {
-
-            } else if (type.equals("ForOfStatement")) {
-
-            } else if (type.equals("LetStatement")) {
-
-            } else if (type.equals("DebuggerStatement")) {
-
+        JsonObject object = element.getAsJsonObject();
+        String type = object.get("type").getAsString();
+        if (type.equals("EmptyStatement")) {
+            return new EmptyStatement();
+        } else if (type.equals("BlockStatement")) {
+            JsonArray array = object.get("body").getAsJsonArray();
+            ArrayList<Statement> body = new ArrayList<>();
+            for (JsonElement ele : array) {
+                body.add(parseStatement(ele));
             }
+            return new BlockStatement(body);
+        } else if (type.equals("ExpressionStatement")) {
+            JsonElement ele = object.get("expression");
+            Expression expression = parseExpression(ele);
+            return new ExpressionStatement(expression);
+        } else if (type.equals("IfStatement")) {
+            JsonElement ele1 = object.get("test");
+            JsonElement ele2 = object.get("consequent");
+            JsonElement ele3 = object.get("alternate");
+            Expression test = parseExpression(ele1);
+            Statement consequent = parseStatement(ele2);
+            Statement alternate;
+            if (ele3.isJsonNull()) {
+                alternate = null;
+            } else {
+                alternate = parseStatement(ele3);
+            }
+            return new IfStatement(test, consequent, alternate);
+        } else if (type.equals("LabeledStatement")) {
+            JsonElement ele = object.get("label");
+            String label = parseIdentifier(ele);
+            return new LabeledStatement(label);
+        } else if (type.equals("BreakStatement")) {
+            JsonElement ele = object.get("label");
+            String label = parseIdentifier(ele);
+            return new BreakStatement(label);
+        } else if (type.equals("ContinueStatement")) {
+            JsonElement ele = object.get("label");
+            String label = parseIdentifier(ele);
+            return new ContinueStatement(label);
+        } else if (type.equals("WithStatement")) {
+
+        } else if (type.equals("SwitchStatement")) {
+
+        } else if (type.equals("ReturnStatement")) {
+
+        } else if (type.equals("ThrowStatement")) {
+
+        } else if (type.equals("TryStatement")) {
+
+        } else if (type.equals("WhileStatement")) {
+
+        } else if (type.equals("DoWhileStatement")) {
+
+        } else if (type.equals("ForStatement")) {
+
+        } else if (type.equals("ForInStatement")) {
+
+        } else if (type.equals("ForOfStatement")) {
+
+        } else if (type.equals("LetStatement")) {
+
+        } else if (type.equals("DebuggerStatement")) {
+
         }
-        throw new RuntimeException("cannot parse Statement");
     }
 
     private static Expression parseExpression(JsonElement element) {
-        throw new RuntimeException("cannot parse Expression");
     }
 
     private static String parseIdentifier(JsonElement element) {
-        if (element.isJsonObject()) {
-            JsonObject object = element.getAsJsonObject();
-            if (object.get("type").getAsString().equals("Identifier")) {
-                return object.get("name").getAsString();
-            }
-        }
-        throw new RuntimeException("cannot parse Identifier");
+        JsonObject object = element.getAsJsonObject();
+        return object.get("name").getAsString();
     }
 }
