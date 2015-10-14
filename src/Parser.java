@@ -140,9 +140,17 @@ public class Parser {
             }
             return new TryStatement(block, handler, guardedHandler, finalizer);
         } else if (type.equals("WhileStatement")) {
-
+            JsonElement ele1 = object.get("test");
+            JsonElement ele2 = object.get("body");
+            Expression test = parseExpression(ele1);
+            Statement body = parseStatement(ele2);
+            return new WhileStatement(test, body);
         } else if (type.equals("DoWhileStatement")) {
-
+            JsonElement ele1 = object.get("body");
+            JsonElement ele2 = object.get("test");
+            Statement body = parseStatement(ele1);
+            Expression test = parseExpression(ele2);
+            return new DoWhileStatement(body, test);
         } else if (type.equals("ForStatement")) {
 
         } else if (type.equals("ForInStatement")) {
