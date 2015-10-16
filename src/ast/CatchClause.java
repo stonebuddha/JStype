@@ -11,4 +11,8 @@ public class CatchClause extends Node {
         this.param = param;
         this.body = body;
     }
+
+    Object accept(NodeVisitor ask) {
+        return ask.forCatchClause(param, body);
+    }
 }

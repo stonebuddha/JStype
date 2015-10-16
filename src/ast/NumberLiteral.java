@@ -8,4 +8,7 @@ public class NumberLiteral extends Literal {
     public NumberLiteral(Number value) {
         this.value = value;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forNumberLiteral(value);
+    }
 }

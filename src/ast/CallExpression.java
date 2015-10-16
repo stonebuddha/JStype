@@ -12,4 +12,7 @@ public class CallExpression extends Expression {
         this.callee = callee;
         this.arguments = arguments;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forCallExpression(callee, arguments);
+    }
 }

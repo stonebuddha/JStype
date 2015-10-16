@@ -9,4 +9,7 @@ public class ExpressionStatement extends Statement {
     public ExpressionStatement(Expression expression) {
         this.expression = expression;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forExpressionStatement(expression);
+    }
 }

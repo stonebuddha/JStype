@@ -14,4 +14,7 @@ public class FunctionDeclaration extends Declaration {
         this.params = params;
         this.body = body;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forFunctionDeclaration(id, params, body);
+    }
 }

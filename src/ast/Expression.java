@@ -4,5 +4,5 @@
 
 package ast;
 
-public class Expression extends Node {
+public abstract class Expression extends Node {
 }

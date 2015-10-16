@@ -12,4 +12,7 @@ public class MemberExpression extends Expression {
         this.property = property;
         this.computed = computed;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forMemberExpression(object, property, computed);
+    }
 }

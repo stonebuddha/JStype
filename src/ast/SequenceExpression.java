@@ -10,4 +10,7 @@ public class SequenceExpression extends Expression {
     public SequenceExpression(ArrayList<Expression> expressions) {
         this.expressions = expressions;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forSequenceExpression(expressions);
+    }
 }

@@ -12,4 +12,7 @@ public class AssignmentExpression extends Expression {
         this.left = left;
         this.right = right;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forAssignmentExpression(operator, left, right);
+    }
 }

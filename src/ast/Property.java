@@ -12,4 +12,7 @@ public class Property extends Node {
         this.value = value;
         this.kind = kind;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forProperty(key, value, kind);
+    }
 }

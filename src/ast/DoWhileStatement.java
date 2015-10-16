@@ -10,4 +10,7 @@ public class DoWhileStatement extends Statement {
         this.body = body;
         this.test = test;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forDoWhileStatement(body, test);
+    }
 }

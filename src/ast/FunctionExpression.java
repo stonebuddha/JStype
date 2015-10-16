@@ -7,11 +7,14 @@ import java.util.ArrayList;
  */
 public class FunctionExpression extends Expression {
     String id;
-    ArrayList<Expression> params;
+    ArrayList<String> params;
     BlockStatement body;
-    public FunctionExpression(String id, ArrayList<Expression> params, BlockStatement body) {
+    public FunctionExpression(String id, ArrayList<String> params, BlockStatement body) {
         this.id = id;
         this.params = params;
         this.body = body;
+    }
+    Object accept(NodeVisitor ask) {
+        return ask.forFunctionExpression(id, params, body);
     }
 }

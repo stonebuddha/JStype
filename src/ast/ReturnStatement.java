@@ -8,4 +8,7 @@ public class ReturnStatement extends Statement {
     public ReturnStatement(Expression argument) {
         this.argument = argument;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forReturnExpression(argument);
+    }
 }

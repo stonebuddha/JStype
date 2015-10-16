@@ -4,5 +4,6 @@
 
 package ast;
 
-public class Node {
+public abstract class Node {
+    abstract Object accept(NodeVisitor ask);
 }

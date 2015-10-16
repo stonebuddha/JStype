@@ -8,4 +8,7 @@ public class BooleanLiteral extends Literal {
     public BooleanLiteral(boolean value) {
         this.value = value;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forBooleanLiteral(value);
+    }
 }

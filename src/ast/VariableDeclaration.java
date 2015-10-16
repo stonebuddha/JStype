@@ -10,4 +10,7 @@ public class VariableDeclaration extends Declaration {
     public VariableDeclaration(ArrayList<VariableDeclarator> declarations) {
         this.declarations = declarations;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forVariableDeclaration(declarations);
+    }
 }

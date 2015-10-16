@@ -13,4 +13,7 @@ public class IfStatement extends Statement {
         this.consequent = consequent;
         this.alternate = alternate;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forIfStatement(test, consequent, alternate);
+    }
 }

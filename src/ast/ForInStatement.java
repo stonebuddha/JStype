@@ -12,4 +12,7 @@ public class ForInStatement extends Statement {
         this.right = right;
         this.body = body;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forForInStatement(left, right, body);
+    }
 }

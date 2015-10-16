@@ -14,4 +14,7 @@ public class ForStatement extends Statement {
         this.update = update;
         this.body = body;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forForStatement(init, test, update, body);
+    }
 }

@@ -9,13 +9,15 @@ import java.util.Calendar;
 public class TryStatement extends Statement {
     BlockStatement block;
     CatchClause handler;
-    ArrayList<CatchClause> guardedHandler;
     BlockStatement finalizer;
 
-    public TryStatement(BlockStatement block, CatchClause handler, ArrayList<CatchClause> guardedHandler, BlockStatement finalizer) {
+    public TryStatement(BlockStatement block, CatchClause handler, BlockStatement finalizer) {
         this.block = block;
         this.handler = handler;
-        this.guardedHandler = guardedHandler;
         this.finalizer = finalizer;
+    }
+
+    Object accept(NodeVisitor ask) {
+        return ask.forTryStatement(block, handler, finalizer);
     }
 }

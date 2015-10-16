@@ -9,4 +9,7 @@ public class LabeledStatement extends Statement {
     public LabeledStatement(String label) {
         this.label = label;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forLabeledStatement(label);
+    }
 }

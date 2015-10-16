@@ -127,7 +127,7 @@ public class Parser {
         } else if (type.equals("TryStatement")) {
             JsonElement ele1 = object.get("block");
             JsonElement ele2 = object.get("handler");
-            JsonArray array = object.get("guardedHandlers").getAsJsonArray();
+            //JsonArray array = object.get("guardedHandlers").getAsJsonArray();
             JsonElement ele4 = object.get("finalizer");
             BlockStatement block = (BlockStatement)parseStatement(ele1);
             CatchClause handler;
@@ -136,17 +136,17 @@ public class Parser {
             } else {
                 handler = parseCatchClause(ele2);
             }
-            ArrayList<CatchClause> guardedHandler = new ArrayList<>();
-            for (JsonElement ele : array) {
-                guardedHandler.add(parseCatchClause(ele));
-            }
+            //ArrayList<CatchClause> guardedHandler = new ArrayList<>();
+            //for (JsonElement ele : array) {
+            //    guardedHandler.add(parseCatchClause(ele));
+            //}
             BlockStatement finalizer;
             if (ele4.isJsonNull()) {
                 finalizer = null;
             } else {
                 finalizer = (BlockStatement)parseStatement(ele4);
             }
-            return new TryStatement(block, handler, guardedHandler, finalizer);
+            return new TryStatement(block, handler, /*guardedHandler,*/ finalizer);
         } else if (type.equals("WhileStatement")) {
             JsonElement ele1 = object.get("test");
             JsonElement ele2 = object.get("body");
@@ -244,9 +244,9 @@ public class Parser {
                 id = parseIdentifier(ele1);
             }
             JsonElement ele2 = object.get("params");
-            ArrayList<Expression> params = new ArrayList<>();
+            ArrayList<String> params = new ArrayList<>();
             for (JsonElement ele : ele2.getAsJsonArray()) {
-                params.add(parseExpression(ele));
+                params.add(parseIdentifier(ele));
             }
             JsonElement ele3 = object.get("body");
             BlockStatement body = (BlockStatement)parseStatement(ele3);

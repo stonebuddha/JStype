@@ -8,4 +8,7 @@ public class ThrowStatement extends Statement {
     public ThrowStatement(Expression argument) {
         this.argument = argument;
     }
+    Object accept(NodeVisitor ask) {
+        return ask.forThrowStatement(argument);
+    }
 }
