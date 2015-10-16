@@ -26,7 +26,7 @@ public interface NodeVisitor {
     Object forFunctionExpression(String id, ArrayList<String> params, BlockStatement body);
     Object forIdentifierExpression(String name);
     Object forIfStatement(Expression test, Statement consequent, Statement alternate);
-    Object forLabeledStatement(String label);
+    Object forLabeledStatement(String label, Statement body);
     Object forLiteralExpression(Literal literal);
     Object forLogicalExpression(String operator, Expression left, Expression right);
     Object forMemberExpression(Expression object, Expression property, boolean computed);

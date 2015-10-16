@@ -75,9 +75,11 @@ public class Parser {
             }
             return new IfStatement(test, consequent, alternate);
         } else if (type.equals("LabeledStatement")) {
-            JsonElement ele = object.get("label");
-            String label = parseIdentifier(ele);
-            return new LabeledStatement(label);
+            JsonElement ele1 = object.get("label");
+            String label = parseIdentifier(ele1);
+            JsonElement ele2 = object.get("body");
+            Statement body = parseStatement(ele2);
+            return new LabeledStatement(label, body);
         } else if (type.equals("BreakStatement")) {
             JsonElement ele = object.get("label");
             String label;
