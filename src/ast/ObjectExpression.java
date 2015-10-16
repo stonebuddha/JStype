@@ -10,7 +10,7 @@ public class ObjectExpression extends Expression {
     public ObjectExpression(ArrayList<Property> properties) {
         this.properties = properties;
     }
-    Object accept(ExpressionVisitor ask) {
+    public Object accept(ExpressionVisitor ask) {
         return ask.forObjectExpression(properties);
     }
 }

@@ -9,7 +9,7 @@ public class ContinueStatement extends Statement {
     public ContinueStatement(String label) {
         this.label = label;
     }
-    Object accept(StatementVisitor ask) {
+    public Object accept(StatementVisitor ask) {
         return ask.forContinueStatement(label);
     }
 }

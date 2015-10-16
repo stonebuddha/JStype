@@ -8,7 +8,7 @@ public class ReturnStatement extends Statement {
     public ReturnStatement(Expression argument) {
         this.argument = argument;
     }
-    Object accept(StatementVisitor ask) {
+    public Object accept(StatementVisitor ask) {
         return ask.forReturnStatement(argument);
     }
 }

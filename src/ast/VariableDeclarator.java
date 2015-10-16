@@ -10,7 +10,7 @@ public class VariableDeclarator extends Node {
         this.id = id;
         this.init = init;
     }
-    Object accept(VariableDeclaratorVisitor ask) {
+    public Object accept(VariableDeclaratorVisitor ask) {
         return ask.forVariableDeclarator(id, init);
     }
 }

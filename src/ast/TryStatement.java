@@ -17,7 +17,7 @@ public class TryStatement extends Statement {
         this.finalizer = finalizer;
     }
 
-    Object accept(StatementVisitor ask) {
+    public Object accept(StatementVisitor ask) {
         return ask.forTryStatement(block, handler, finalizer);
     }
 }

@@ -9,7 +9,7 @@ public class BreakStatement extends Statement {
     public BreakStatement(String label) {
         this.label = label;
     }
-    Object accept(StatementVisitor ask) {
+    public Object accept(StatementVisitor ask) {
         return ask.forBreakStatement(label);
     }
 }

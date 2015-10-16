@@ -5,7 +5,7 @@
 package ast;
 
 public class EmptyStatement extends Statement {
-    Object accept(StatementVisitor ask) {
+    public Object accept(StatementVisitor ask) {
         return ask.forEmptyStatement();
     }
 }

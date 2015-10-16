@@ -12,7 +12,7 @@ public class ForInStatement extends Statement {
         this.right = right;
         this.body = body;
     }
-    Object accept(StatementVisitor ask) {
+    public Object accept(StatementVisitor ask) {
         return ask.forForInStatement(left, right, body);
     }
 }

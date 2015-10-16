@@ -8,7 +8,7 @@ public class ThrowStatement extends Statement {
     public ThrowStatement(Expression argument) {
         this.argument = argument;
     }
-    Object accept(StatementVisitor ask) {
+    public Object accept(StatementVisitor ask) {
         return ask.forThrowStatement(argument);
     }
 }

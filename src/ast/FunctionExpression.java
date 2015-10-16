@@ -14,7 +14,7 @@ public class FunctionExpression extends Expression {
         this.params = params;
         this.body = body;
     }
-    Object accept(ExpressionVisitor ask) {
+    public Object accept(ExpressionVisitor ask) {
         return ask.forFunctionExpression(id, params, body);
     }
 }

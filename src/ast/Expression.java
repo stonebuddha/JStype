@@ -5,5 +5,5 @@
 package ast;
 
 public abstract class Expression extends Node {
-    abstract Object accept(ExpressionVisitor ask);
+    public abstract Object accept(ExpressionVisitor ask);
 }

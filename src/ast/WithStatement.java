@@ -11,7 +11,7 @@ public class WithStatement extends Statement {
         this.object = object;
         this.body = body;
     }
-    Object accept(StatementVisitor ask) {
+    public Object accept(StatementVisitor ask) {
         return ask.forWithStatement(object, body);
     }
 }

@@ -12,7 +12,7 @@ public class CatchClause extends Node {
         this.body = body;
     }
 
-    Object accept(CatchClauseVisitor ask) {
+    public Object accept(CatchClauseVisitor ask) {
         return ask.forCatchClause(param, body);
     }
 }

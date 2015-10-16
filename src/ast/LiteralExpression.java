@@ -8,7 +8,7 @@ public class LiteralExpression extends Expression {
     public LiteralExpression(Literal literal) {
         this.literal = literal;
     }
-    Object accept(ExpressionVisitor ask) {
+    public Object accept(ExpressionVisitor ask) {
         return ask.forLiteralExpression(literal);
     }
 }

@@ -8,7 +8,7 @@ public class IdentifierExpression extends Expression {
     public IdentifierExpression(String name) {
         this.name = name;
     }
-    Object accept(ExpressionVisitor ask) {
+    public Object accept(ExpressionVisitor ask) {
         return ask.forIdentifierExpression(name);
     }
 }
