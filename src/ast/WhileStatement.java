@@ -10,7 +10,7 @@ public class WhileStatement extends Statement {
         this.test = test;
         this.body = body;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(StatementVisitor ask) {
         return ask.forWhileStatement(test, body);
     }
 }

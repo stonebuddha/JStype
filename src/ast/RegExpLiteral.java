@@ -10,7 +10,7 @@ public class RegExpLiteral extends Literal {
         this.pattern = pattern;
         this.flags = flags;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(LiteralVisitor ask) {
         return ask.forRegExpLiteral(pattern, flags);
     }
 }

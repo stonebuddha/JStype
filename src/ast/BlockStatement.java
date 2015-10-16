@@ -11,7 +11,7 @@ public class BlockStatement extends Statement {
     public BlockStatement(ArrayList<Statement> body) {
         this.body = body;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(StatementVisitor ask) {
         return ask.forBlockStatement(body);
     }
 }

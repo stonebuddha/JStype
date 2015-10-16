@@ -12,7 +12,7 @@ public class BinaryExpression extends Expression {
         this.left = left;
         this.right = right;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(ExpressionVisitor ask) {
         return ask.forBinaryExpression(operator, left, right);
     }
 }

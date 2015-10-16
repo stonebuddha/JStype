@@ -12,7 +12,7 @@ public class SwitchCase extends Node {
         this.test = test;
         this.consequent = consequent;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(SwitchCaseVisitor ask) {
         return ask.forSwitchCase(test, consequent);
     }
 }

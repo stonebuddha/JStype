@@ -11,7 +11,7 @@ public class Program extends Node {
     public Program(ArrayList<Statement> body) {
         this.body = body;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(ProgramVisitor ask) {
         return ask.forProgram(body);
     }
 }

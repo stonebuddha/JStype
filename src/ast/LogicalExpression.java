@@ -12,7 +12,7 @@ public class LogicalExpression extends Expression {
         this.left = left;
         this.right = right;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(ExpressionVisitor ask) {
         return ask.forLogicalExpression(operator, left, right);
     }
 }

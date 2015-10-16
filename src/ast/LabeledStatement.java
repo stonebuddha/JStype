@@ -11,7 +11,7 @@ public class LabeledStatement extends Statement {
         this.label = label;
         this.body = body;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(StatementVisitor ask) {
         return ask.forLabeledStatement(label, body);
     }
 }

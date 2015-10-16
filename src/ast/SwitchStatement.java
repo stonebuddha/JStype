@@ -13,7 +13,7 @@ public class SwitchStatement extends Statement {
         this.discriminant = discriminant;
         this.cases = cases;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(StatementVisitor ask) {
         return ask.forSwitchStatement(discriminant, cases);
     }
 }

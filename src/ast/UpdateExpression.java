@@ -12,7 +12,7 @@ public class UpdateExpression extends Expression {
         this.argument = argument;
         this.prefix = prefix;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(ExpressionVisitor ask) {
         return ask.forUpdateExpression(operator, argument, prefix);
     }
 }

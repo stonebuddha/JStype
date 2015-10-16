@@ -12,7 +12,7 @@ public class UnaryExpression extends Expression {
         this.prefix = prefix;
         this.argument = argument;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(ExpressionVisitor ask) {
         return ask.forUnaryExpression(operator, prefix, argument);
     }
 }

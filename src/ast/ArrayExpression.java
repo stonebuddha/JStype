@@ -10,7 +10,7 @@ public class ArrayExpression extends Expression {
     public ArrayExpression(ArrayList<Expression> elements) {
         this.elements = elements;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(ExpressionVisitor ask) {
         return ask.forArrayExpression(elements);
     }
 }

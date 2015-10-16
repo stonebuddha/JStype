@@ -8,7 +8,7 @@ public class StringLiteral extends Literal {
     public StringLiteral(String value) {
         this.value = value;
     }
-    Object accept(NodeVisitor ask) {
+    Object accept(LiteralVisitor ask) {
         return ask.forStringLiteral(value);
     }
 }
