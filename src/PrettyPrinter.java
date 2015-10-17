@@ -344,9 +344,8 @@ public class PrettyPrinter {
         public Object forMemberExpression(Expression object, Expression property, boolean computed) {
             StringBuilder builder = new StringBuilder();
             builder.append((String)object.accept(formatExpression));
-            builder.append("[");
+            builder.append(".");
             builder.append((String)property.accept(formatExpression));
-            builder.append("]");
             return builder.toString();
         }
 
@@ -506,7 +505,15 @@ public class PrettyPrinter {
     static class FormatPropertyV implements PropertyVisitor {
         @Override
         public Object forProperty(Object key, Expression value, String kind) {
-            return null;
+            StringBuilder builder = new StringBuilder();
+            if (key instanceof String) {
+                builder.append(key);
+            } else {
+                builder.append((String)((Literal)key).accept(formatLiteral));
+            }
+            builder.append(" : ");
+            builder.append((String)value.accept(formatExpression));
+            return builder.toString();
         }
     }
 }
