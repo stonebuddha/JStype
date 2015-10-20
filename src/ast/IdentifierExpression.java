@@ -9,6 +9,6 @@ public class IdentifierExpression extends Expression {
         this.name = name;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forIdentifierExpression(name);
+        return ask.forIdentifierExpression(this, name);
     }
 }

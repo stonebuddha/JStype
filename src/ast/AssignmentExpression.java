@@ -5,14 +5,14 @@ package ast;
  */
 public class AssignmentExpression extends Expression {
     String operator;
-    Object left;
+    Expression left;
     Expression right;
-    public AssignmentExpression(String operator, Object left, Expression right) {
+    public AssignmentExpression(String operator, Expression left, Expression right) {
         this.operator = operator;
         this.left = left;
         this.right = right;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forAssignmentExpression(operator, left, right);
+        return ask.forAssignmentExpression(this, operator, left, right);
     }
 }

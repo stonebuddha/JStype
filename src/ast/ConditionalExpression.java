@@ -13,6 +13,6 @@ public class ConditionalExpression extends Expression {
         this.consequent = consequent;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forConditionalExpression(test, alternate, consequent);
+        return ask.forConditionalExpression(this, test, alternate, consequent);
     }
 }

@@ -5,9 +5,9 @@
 package ast;
 
 public class LabeledStatement extends Statement {
-    String label;
+    IdentifierExpression label;
     Statement body;
-    public LabeledStatement(String label, Statement body) {
+    public LabeledStatement(IdentifierExpression label, Statement body) {
         this.label = label;
         this.body = body;
     }

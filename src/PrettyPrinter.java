@@ -42,28 +42,28 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forBreakStatement(String label) {
+        public Object forBreakStatement(IdentifierExpression label) {
             StringBuilder builder = new StringBuilder();
             builder.append("break");
             if (label == null) {
                 builder.append(";");
             } else {
                 builder.append(" ");
-                builder.append(label);
+                builder.append((String)label.accept(formatExpression));
                 builder.append(";");
             }
             return builder.toString();
         }
 
         @Override
-        public Object forContinueStatement(String label) {
+        public Object forContinueStatement(IdentifierExpression label) {
             StringBuilder builder = new StringBuilder();
             builder.append("continue");
             if (label == null) {
                 builder.append(";");
             } else {
                 builder.append(" ");
-                builder.append(label);
+                builder.append((String)label.accept(formatExpression));
                 builder.append(";");
             }
             return builder.toString();
@@ -133,19 +133,19 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forFunctionDeclaration(String id, ArrayList<String> params, BlockStatement body) {
+        public Object forFunctionDeclaration(IdentifierExpression id, ArrayList<IdentifierExpression> params, BlockStatement body) {
             StringBuilder builder = new StringBuilder();
             builder.append("function ");
-            builder.append(id);
+            builder.append((String)id.accept(formatExpression));
             builder.append("(");
             boolean first = true;
-            for (String param : params) {
+            for (IdentifierExpression param : params) {
                 if (first) {
                     first = false;
                 } else {
                     builder.append(", ");
                 }
-                builder.append(param);
+                builder.append((String)param.accept(formatExpression));
             }
             builder.append(") ");
             builder.append((String)body.accept(formatStatement));
@@ -167,9 +167,9 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forLabeledStatement(String label, Statement body) {
+        public Object forLabeledStatement(IdentifierExpression label, Statement body) {
             StringBuilder builder = new StringBuilder();
-            builder.append(label);
+            builder.append((String)label.accept(formatExpression));
             builder.append(":\n");
             builder.append((String)body.accept(formatStatement));
             return builder.toString();
@@ -262,7 +262,7 @@ public class PrettyPrinter {
 
     static class FormatExpressionV implements ExpressionVisitor {
         @Override
-        public Object forArrayExpression(ArrayList<Expression> elements) {
+        public Object forArrayExpression(ArrayExpression arrayExpression, ArrayList<Expression> elements) {
             StringBuilder builder = new StringBuilder();
             builder.append("[");
             boolean first = true;
@@ -281,22 +281,7 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forAssignmentExpression(String operator, Object left, Expression right) {
-            StringBuilder builder = new StringBuilder();
-            if (left instanceof String) {
-                builder.append(left);
-            } else {
-                builder.append((String)((Expression)left).accept(formatExpression));
-            }
-            builder.append(" ");
-            builder.append(operator);
-            builder.append(" ");
-            builder.append((String)right.accept(formatExpression));
-            return builder.toString();
-        }
-
-        @Override
-        public Object forBinaryExpression(String operator, Expression left, Expression right) {
+        public Object forAssignmentExpression(AssignmentExpression assignmentExpression, String operator, Expression left, Expression right) {
             StringBuilder builder = new StringBuilder();
             builder.append((String)left.accept(formatExpression));
             builder.append(" ");
@@ -307,7 +292,18 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forCallExpression(Expression callee, ArrayList<Expression> arguments) {
+        public Object forBinaryExpression(BinaryExpression binaryExpression, String operator, Expression left, Expression right) {
+            StringBuilder builder = new StringBuilder();
+            builder.append((String)left.accept(formatExpression));
+            builder.append(" ");
+            builder.append(operator);
+            builder.append(" ");
+            builder.append((String)right.accept(formatExpression));
+            return builder.toString();
+        }
+
+        @Override
+        public Object forCallExpression(CallExpression callExpression, Expression callee, ArrayList<Expression> arguments) {
             StringBuilder builder = new StringBuilder();
             builder.append((String)callee.accept(formatExpression));
             builder.append("(");
@@ -325,7 +321,7 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forConditionalExpression(Expression test, Expression alternate, Expression consequent) {
+        public Object forConditionalExpression(ConditionalExpression conditionalExpression, Expression test, Expression alternate, Expression consequent) {
             StringBuilder builder = new StringBuilder();
             builder.append((String)test.accept(formatExpression));
             builder.append(" ? ");
@@ -336,21 +332,21 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forFunctionExpression(String id, ArrayList<String> params, BlockStatement body) {
+        public Object forFunctionExpression(FunctionExpression functionExpression, IdentifierExpression id, ArrayList<IdentifierExpression> params, BlockStatement body) {
             StringBuilder builder = new StringBuilder();
             builder.append("function ");
             if (id != null) {
-                builder.append(id);
+                builder.append((String)id.accept(formatExpression));
             }
             builder.append("(");
             boolean first = true;
-            for (String p : params) {
+            for (IdentifierExpression param : params) {
                 if (first) {
                     first = false;
                 } else {
                     builder.append(", ");
                 }
-                builder.append(p);
+                builder.append((String)param.accept(formatExpression));
             }
             builder.append(") ");
             builder.append((String)body.accept(formatStatement));
@@ -358,17 +354,17 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forIdentifierExpression(String name) {
+        public Object forIdentifierExpression(IdentifierExpression identifierExpression, String name) {
             return name;
         }
 
         @Override
-        public Object forLiteralExpression(Literal literal) {
+        public Object forLiteralExpression(LiteralExpression literalExpression, Literal literal) {
             return literal.accept(formatLiteral);
         }
 
         @Override
-        public Object forLogicalExpression(String operator, Expression left, Expression right) {
+        public Object forLogicalExpression(LogicalExpression logicalExpression, String operator, Expression left, Expression right) {
             StringBuilder builder = new StringBuilder();
             builder.append((String)left.accept(formatExpression));
             builder.append(" ");
@@ -379,7 +375,7 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forMemberExpression(Expression object, Expression property, boolean computed) {
+        public Object forMemberExpression(MemberExpression memberExpression, Expression object, Expression property, boolean computed) {
             StringBuilder builder = new StringBuilder();
             builder.append((String)object.accept(formatExpression));
             builder.append(".");
@@ -388,7 +384,7 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forNewExpression(Expression callee, ArrayList<Expression> arguments) {
+        public Object forNewExpression(NewExpression newExpression, Expression callee, ArrayList<Expression> arguments) {
             StringBuilder builder = new StringBuilder();
             builder.append("new ");
             builder.append((String)callee.accept(formatExpression));
@@ -407,7 +403,7 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forObjectExpression(ArrayList<Property> properties) {
+        public Object forObjectExpression(ObjectExpression objectExpression, ArrayList<Property> properties) {
             StringBuilder builder = new StringBuilder();
             builder.append("{");
             boolean first = true;
@@ -424,7 +420,7 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forSequenceExpression(ArrayList<Expression> expressions) {
+        public Object forSequenceExpression(SequenceExpression sequenceExpression, ArrayList<Expression> expressions) {
             StringBuilder builder = new StringBuilder();
             boolean first = true;
             for (Expression exp : expressions) {
@@ -439,12 +435,12 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forThisExpression() {
+        public Object forThisExpression(ThisExpression thisExpression) {
             return "this";
         }
 
         @Override
-        public Object forUnaryExpression(String operator, boolean prefix, Expression argument) {
+        public Object forUnaryExpression(UnaryExpression unaryExpression, String operator, boolean prefix, Expression argument) {
             StringBuilder builder = new StringBuilder();
             if (prefix) {
                 builder.append(operator);
@@ -457,7 +453,7 @@ public class PrettyPrinter {
         }
 
         @Override
-        public Object forUpdateExpression(String operator, Expression argument, boolean prefix) {
+        public Object forUpdateExpression(UpdateExpression updateExpression, String operator, Expression argument, boolean prefix) {
             StringBuilder builder = new StringBuilder();
             if (prefix) {
                 builder.append(operator);
@@ -517,10 +513,10 @@ public class PrettyPrinter {
 
     static class FormatCatchClauseV implements CatchClauseVisitor {
         @Override
-        public Object forCatchClause(String param, BlockStatement body) {
+        public Object forCatchClause(CatchClause catchClause, IdentifierExpression param, BlockStatement body) {
             StringBuilder builder = new StringBuilder();
             builder.append("catch (");
-            builder.append(param);
+            builder.append((String)param.accept(formatExpression));
             builder.append(") ");
             builder.append((String)body.accept(formatStatement));
             return builder.toString();
@@ -529,9 +525,9 @@ public class PrettyPrinter {
 
     static class FormatVariableDeclaratorV implements VariableDeclaratorVisitor {
         @Override
-        public Object forVariableDeclarator(String id, Expression init) {
+        public Object forVariableDeclarator(IdentifierExpression id, Expression init) {
             StringBuilder builder = new StringBuilder();
-            builder.append(id);
+            builder.append((String)id.accept(formatExpression));
             if (init != null) {
                 builder.append(" = ");
                 builder.append((String)init.accept(formatExpression));
@@ -542,10 +538,10 @@ public class PrettyPrinter {
 
     static class FormatPropertyV implements PropertyVisitor {
         @Override
-        public Object forProperty(Object key, Expression value, String kind) {
+        public Object forProperty(Node key, Expression value, String kind) {
             StringBuilder builder = new StringBuilder();
-            if (key instanceof String) {
-                builder.append(key);
+            if (key instanceof Expression) {
+                builder.append((String)((Expression)key).accept(formatExpression));
             } else {
                 builder.append((String)((Literal)key).accept(formatLiteral));
             }

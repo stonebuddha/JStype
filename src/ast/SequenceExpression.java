@@ -11,6 +11,6 @@ public class SequenceExpression extends Expression {
         this.expressions = expressions;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forSequenceExpression(expressions);
+        return ask.forSequenceExpression(this, expressions);
     }
 }

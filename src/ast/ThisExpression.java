@@ -5,6 +5,6 @@ package ast;
  */
 public class ThisExpression extends Expression {
     public Object accept(ExpressionVisitor ask) {
-        return ask.forThisExpression();
+        return ask.forThisExpression(this);
     }
 }

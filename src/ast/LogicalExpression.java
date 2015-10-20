@@ -13,6 +13,6 @@ public class LogicalExpression extends Expression {
         this.right = right;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forLogicalExpression(operator, left, right);
+        return ask.forLogicalExpression(this, operator, left, right);
     }
 }

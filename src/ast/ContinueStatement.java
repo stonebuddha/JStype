@@ -5,8 +5,8 @@
 package ast;
 
 public class ContinueStatement extends Statement {
-    String label;
-    public ContinueStatement(String label) {
+    IdentifierExpression label;
+    public ContinueStatement(IdentifierExpression label) {
         this.label = label;
     }
     public Object accept(StatementVisitor ask) {

@@ -13,6 +13,6 @@ public class MemberExpression extends Expression {
         this.computed = computed;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forMemberExpression(object, property, computed);
+        return ask.forMemberExpression(this, object, property, computed);
     }
 }

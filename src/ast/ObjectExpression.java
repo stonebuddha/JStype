@@ -11,6 +11,6 @@ public class ObjectExpression extends Expression {
         this.properties = properties;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forObjectExpression(properties);
+        return ask.forObjectExpression(this, properties);
     }
 }

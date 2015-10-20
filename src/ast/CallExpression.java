@@ -13,6 +13,6 @@ public class CallExpression extends Expression {
         this.arguments = arguments;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forCallExpression(callee, arguments);
+        return ask.forCallExpression(this, callee, arguments);
     }
 }

@@ -13,6 +13,6 @@ public class UnaryExpression extends Expression {
         this.argument = argument;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forUnaryExpression(operator, prefix, argument);
+        return ask.forUnaryExpression(this, operator, prefix, argument);
     }
 }

@@ -11,6 +11,6 @@ public class ArrayExpression extends Expression {
         this.elements = elements;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forArrayExpression(elements);
+        return ask.forArrayExpression(this, elements);
     }
 }

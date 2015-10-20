@@ -76,26 +76,26 @@ public class Parser {
             return new IfStatement(test, consequent, alternate);
         } else if (type.equals("LabeledStatement")) {
             JsonElement ele1 = object.get("label");
-            String label = parseIdentifier(ele1);
+            IdentifierExpression label = (IdentifierExpression)parseExpression(ele1);
             JsonElement ele2 = object.get("body");
             Statement body = parseStatement(ele2);
             return new LabeledStatement(label, body);
         } else if (type.equals("BreakStatement")) {
             JsonElement ele = object.get("label");
-            String label;
+            IdentifierExpression label = null;
             if (ele.isJsonNull()) {
                 label = null;
             } else {
-                label = parseIdentifier(ele);
+                label = (IdentifierExpression)parseExpression(ele);
             }
             return new BreakStatement(label);
         } else if (type.equals("ContinueStatement")) {
             JsonElement ele = object.get("label");
-            String label;
+            IdentifierExpression label;
             if (ele.isJsonNull()) {
                 label = null;
             } else {
-                label = parseIdentifier(ele);
+                label = (IdentifierExpression)parseExpression(ele);
             }
             return new ContinueStatement(label);
         } else if (type.equals("WithStatement")) {
@@ -234,16 +234,16 @@ public class Parser {
             return new ObjectExpression(properties);
         } else if (type.equals("FunctionExpression")) {
             JsonElement ele1 = object.get("id");
-            String id;
+            IdentifierExpression id;
             if (ele1.isJsonNull()) {
                 id = null;
             } else {
-                id = parseIdentifier(ele1);
+                id = (IdentifierExpression)parseExpression(ele1);
             }
             JsonElement ele2 = object.get("params");
-            ArrayList<String> params = new ArrayList<>();
+            ArrayList<IdentifierExpression> params = new ArrayList<>();
             for (JsonElement ele : ele2.getAsJsonArray()) {
-                params.add(parseIdentifier(ele));
+                params.add((IdentifierExpression)parseExpression(ele));
             }
             JsonElement ele3 = object.get("body");
             BlockStatement body = (BlockStatement)parseStatement(ele3);
@@ -275,12 +275,7 @@ public class Parser {
             JsonElement ele1 = object.get("operator");
             String operator = ele1.getAsString();
             JsonElement ele2 = object.get("left");
-            Object left;
-            if (ele2.getAsJsonObject().get("type").getAsString().equals("Identifier")) {
-                left = parseIdentifier(ele2);
-            } else {
-                left = parseExpression(ele2);
-            }
+            Expression left = parseExpression(ele2);
             JsonElement ele3 = object.get("right");
             Expression right = parseExpression(ele3);
             return new AssignmentExpression(operator, left, right);
@@ -335,7 +330,8 @@ public class Parser {
             boolean computed = ele3.getAsBoolean();
             return new MemberExpression(obj, property, computed);
         } else if (type.equals("Identifier")) {
-            String name = parseIdentifier(element);
+            JsonElement ele1 = object.get("name");
+            String name = ele1.getAsString();
             return new IdentifierExpression(name);
         } else if (type.equals("Literal")) {
             return new LiteralExpression(parseLiteral(element));
@@ -349,11 +345,11 @@ public class Parser {
         String type = object.get("type").getAsString();
         if (type.equals("FunctionDeclaration")) {
             JsonElement ele1 = object.get("id");
-            String id = parseIdentifier(ele1);
-            ArrayList<String> params = new ArrayList<>();
+            IdentifierExpression id = (IdentifierExpression)parseExpression(ele1);
+            ArrayList<IdentifierExpression> params = new ArrayList<>();
             JsonElement ele2 = object.get("params");
             for (JsonElement ele: ele2.getAsJsonArray()) {
-                params.add(parseIdentifier(ele));
+                params.add((IdentifierExpression)parseExpression(ele));
             }
             JsonElement ele3 = object.get("body");
             BlockStatement body = (BlockStatement)parseStatement(ele3);
@@ -386,15 +382,10 @@ public class Parser {
         return new SwitchCase(test, consequent);
     }
 
-    private static String parseIdentifier(JsonElement element) {
-        JsonObject object = element.getAsJsonObject();
-        return object.get("name").getAsString();
-    }
-
     private static CatchClause parseCatchClause(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         JsonElement ele1 = object.get("param");
-        String param = parseIdentifier(ele1);
+        IdentifierExpression param = (IdentifierExpression)parseExpression(ele1);
         JsonElement ele2 = object.get("body");
         BlockStatement body = (BlockStatement)parseStatement(ele2);
         return new CatchClause(param, body);
@@ -402,7 +393,7 @@ public class Parser {
 
     private static VariableDeclarator parseVariableDeclarator(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
-        String id = parseIdentifier(object.get("id"));
+        IdentifierExpression id = (IdentifierExpression)parseExpression(object.get("id"));
         Expression init;
         JsonElement ele = object.get("init");
         if (ele.isJsonNull()) {
@@ -416,9 +407,9 @@ public class Parser {
     private static Property parseProperty(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         JsonElement ele1 = object.get("key");
-        Object key;
+        Node key;
         if (ele1.getAsJsonObject().get("type").getAsString().equals("Identifier")) {
-            key = parseIdentifier(ele1);
+            key = parseExpression(ele1);
         } else {
             key = parseLiteral(ele1);
         }

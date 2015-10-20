@@ -5,8 +5,8 @@
 package ast;
 
 public class BreakStatement extends Statement {
-    String label;
-    public BreakStatement(String label) {
+    IdentifierExpression label;
+    public BreakStatement(IdentifierExpression label) {
         this.label = label;
     }
     public Object accept(StatementVisitor ask) {

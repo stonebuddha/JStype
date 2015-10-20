@@ -13,6 +13,6 @@ public class BinaryExpression extends Expression {
         this.right = right;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forBinaryExpression(operator, left, right);
+        return ask.forBinaryExpression(this, operator, left, right);
     }
 }

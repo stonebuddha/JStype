@@ -13,6 +13,6 @@ public class UpdateExpression extends Expression {
         this.prefix = prefix;
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forUpdateExpression(operator, argument, prefix);
+        return ask.forUpdateExpression(this, operator, argument, prefix);
     }
 }

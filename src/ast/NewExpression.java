@@ -10,6 +10,6 @@ public class NewExpression extends CallExpression {
         super(callee, arguments);
     }
     public Object accept(ExpressionVisitor ask) {
-        return ask.forNewExpression(callee, arguments);
+        return ask.forNewExpression(this, callee, arguments);
     }
 }
