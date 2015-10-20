@@ -60,12 +60,12 @@ public class Analyzer {
         }
 
         @Override
-        public Object forBreakStatement(String label) {
+        public Object forBreakStatement(IdentifierExpression label) {
             return null;
         }
 
         @Override
-        public Object forContinueStatement(String label) {
+        public Object forContinueStatement(IdentifierExpression label) {
             return null;
         }
 
@@ -101,7 +101,7 @@ public class Analyzer {
         }
 
         @Override
-        public Object forFunctionDeclaration(String id, ArrayList<String> params, BlockStatement body) {
+        public Object forFunctionDeclaration(IdentifierExpression id, ArrayList<IdentifierExpression> params, BlockStatement body) {
             return null;
         }
 
@@ -111,7 +111,7 @@ public class Analyzer {
         }
 
         @Override
-        public Object forLabeledStatement(String label, Statement body) {
+        public Object forLabeledStatement(IdentifierExpression label, Statement body) {
             return null;
         }
 
@@ -160,82 +160,90 @@ public class Analyzer {
         }
 
         @Override
-        public Object forArrayExpression(ArrayList<Expression> elements) {
+        public Object forArrayExpression(ArrayExpression arrayExpression, ArrayList<Expression> elements) {
             return null;
         }
 
         @Override
-        public Object forAssignmentExpression(String operator, Object left, Expression right) {
+        public Object forAssignmentExpression(AssignmentExpression assignmentExpression, String operator, Expression left, Expression right) {
             return null;
         }
 
         @Override
-        public Object forBinaryExpression(String operator, Expression left, Expression right) {
+        public Object forBinaryExpression(BinaryExpression binaryExpression, String operator, Expression left, Expression right) {
+            Result result = (Result)left.accept(new AnalyzeExpressionV(this.frame, this.stack));
+            Type leftType = result.type;
+            result = (Result)right.accept(new AnalyzeExpressionV(result.frame, result.stack));
+            Type rightType = result.type;
+            Type combinedType = leftType.merge(operator, rightType);
+            GIT.put(binaryExpression, combinedType);
+            return new Result(result.frame, result.stack, combinedType);
+        }
+
+        @Override
+        public Object forCallExpression(CallExpression callExpression, Expression callee, ArrayList<Expression> arguments) {
             return null;
         }
 
         @Override
-        public Object forCallExpression(Expression callee, ArrayList<Expression> arguments) {
+        public Object forConditionalExpression(ConditionalExpression conditionalExpression, Expression test, Expression alternate, Expression consequent) {
             return null;
         }
 
         @Override
-        public Object forConditionalExpression(Expression test, Expression alternate, Expression consequent) {
+        public Object forFunctionExpression(FunctionExpression functionExpression, IdentifierExpression id, ArrayList<IdentifierExpression> params, BlockStatement body) {
             return null;
         }
 
         @Override
-        public Object forFunctionExpression(String id, ArrayList<String> params, BlockStatement body) {
+        public Object forIdentifierExpression(IdentifierExpression identifierExpression, String name) {
+            Type type = this.frame.lookup(name);
+            GIT.put(identifierExpression, type);
+            return new Result(this.frame, this.stack, type);
+        }
+
+        @Override
+        public Object forLiteralExpression(LiteralExpression literalExpression, Literal literal) {
             return null;
         }
 
         @Override
-        public Object forIdentifierExpression(String name) {
+        public Object forLogicalExpression(LogicalExpression logicalExpression, String operator, Expression left, Expression right) {
             return null;
         }
 
         @Override
-        public Object forLiteralExpression(Literal literal) {
+        public Object forMemberExpression(MemberExpression memberExpression, Expression object, Expression property, boolean computed) {
             return null;
         }
 
         @Override
-        public Object forLogicalExpression(String operator, Expression left, Expression right) {
+        public Object forNewExpression(NewExpression newExpression, Expression callee, ArrayList<Expression> arguments) {
             return null;
         }
 
         @Override
-        public Object forMemberExpression(Expression object, Expression property, boolean computed) {
+        public Object forObjectExpression(ObjectExpression objectExpression, ArrayList<Property> properties) {
             return null;
         }
 
         @Override
-        public Object forNewExpression(Expression callee, ArrayList<Expression> arguments) {
+        public Object forSequenceExpression(SequenceExpression sequenceExpression, ArrayList<Expression> expressions) {
             return null;
         }
 
         @Override
-        public Object forObjectExpression(ArrayList<Property> properties) {
+        public Object forThisExpression(ThisExpression thisExpression) {
             return null;
         }
 
         @Override
-        public Object forSequenceExpression(ArrayList<Expression> expressions) {
+        public Object forUnaryExpression(UnaryExpression unaryExpression, String operator, boolean prefix, Expression argument) {
             return null;
         }
 
         @Override
-        public Object forThisExpression() {
-            return null;
-        }
-
-        @Override
-        public Object forUnaryExpression(String operator, boolean prefix, Expression argument) {
-            return null;
-        }
-
-        @Override
-        public Object forUpdateExpression(String operator, Expression argument, boolean prefix) {
+        public Object forUpdateExpression(UpdateExpression updateExpression, String operator, Expression argument, boolean prefix) {
             return null;
         }
     }

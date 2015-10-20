@@ -18,4 +18,7 @@ public class Frame {
         this.env = new HashMap<>();
         this.outer = outer;
     }
+    public Type lookup(String name) {
+        return this.env.get(name);
+    }
 }
