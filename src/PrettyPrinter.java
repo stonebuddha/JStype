@@ -17,6 +17,7 @@ public class PrettyPrinter {
     static final FormatPropertyV formatProperty = new FormatPropertyV();
 
     static class FormatProgramV implements ProgramVisitor {
+        @Override
         public Object forProgram(ArrayList<Statement> body) {
             StringBuilder builder = new StringBuilder();
             for (Statement stmt : body) {
@@ -28,6 +29,7 @@ public class PrettyPrinter {
     }
 
     static class FormatStatementV implements StatementVisitor {
+        @Override
         public Object forBlockStatement(ArrayList<Statement> body) {
             StringBuilder builder = new StringBuilder();
             builder.append("{\n");
@@ -38,6 +40,8 @@ public class PrettyPrinter {
             builder.append("}");
             return builder.toString();
         }
+
+        @Override
         public Object forBreakStatement(String label) {
             StringBuilder builder = new StringBuilder();
             builder.append("break");
@@ -50,6 +54,8 @@ public class PrettyPrinter {
             }
             return builder.toString();
         }
+
+        @Override
         public Object forContinueStatement(String label) {
             StringBuilder builder = new StringBuilder();
             builder.append("continue");
@@ -62,9 +68,13 @@ public class PrettyPrinter {
             }
             return builder.toString();
         }
+
+        @Override
         public Object forDebuggerStatement() {
             return "debug();";
         }
+
+        @Override
         public Object forDoWhileStatement(Statement body, Expression test) {
             StringBuilder builder = new StringBuilder();
             builder.append("do ");
@@ -74,15 +84,21 @@ public class PrettyPrinter {
             builder.append(");");
             return builder.toString();
         }
+
+        @Override
         public Object forEmptyStatement() {
             return ";";
         }
+
+        @Override
         public Object forExpressionStatement(Expression expression) {
             StringBuilder builder = new StringBuilder();
             builder.append((String)expression.accept(formatExpression));
             builder.append(";");
             return builder.toString();
         }
+
+        @Override
         public Object forForInStatement(Node left, Expression right, Statement body) {
             StringBuilder builder = new StringBuilder();
             builder.append("for (");
@@ -97,6 +113,8 @@ public class PrettyPrinter {
             builder.append((String)body.accept(formatStatement));
             return builder.toString();
         }
+
+        @Override
         public Object forForStatement(Node init, Expression test, Expression update, Statement body) {
             StringBuilder builder = new StringBuilder();
             builder.append("for (");
@@ -113,6 +131,8 @@ public class PrettyPrinter {
             builder.append((String)body.accept(formatStatement));
             return builder.toString();
         }
+
+        @Override
         public Object forFunctionDeclaration(String id, ArrayList<String> params, BlockStatement body) {
             StringBuilder builder = new StringBuilder();
             builder.append("function ");
@@ -131,6 +151,8 @@ public class PrettyPrinter {
             builder.append((String)body.accept(formatStatement));
             return builder.toString();
         }
+
+        @Override
         public Object forIfStatement(Expression test, Statement consequent, Statement alternate) {
             StringBuilder builder = new StringBuilder();
             builder.append("if (");
@@ -143,6 +165,8 @@ public class PrettyPrinter {
             }
             return builder.toString();
         }
+
+        @Override
         public Object forLabeledStatement(String label, Statement body) {
             StringBuilder builder = new StringBuilder();
             builder.append(label);
@@ -150,6 +174,8 @@ public class PrettyPrinter {
             builder.append((String)body.accept(formatStatement));
             return builder.toString();
         }
+
+        @Override
         public Object forReturnStatement(Expression argument) {
             StringBuilder builder = new StringBuilder();
             builder.append("return");
@@ -162,6 +188,8 @@ public class PrettyPrinter {
             }
             return builder.toString();
         }
+
+        @Override
         public Object forSwitchStatement(Expression discriminant, ArrayList<SwitchCase> cases) {
             StringBuilder builder = new StringBuilder();
             builder.append("switch (");
@@ -173,6 +201,8 @@ public class PrettyPrinter {
             builder.append("}");
             return builder.toString();
         }
+
+        @Override
         public Object forThrowStatement(Expression argument) {
             StringBuilder builder = new StringBuilder();
             builder.append("throw ");
@@ -180,6 +210,8 @@ public class PrettyPrinter {
             builder.append(";");
             return builder.toString();
         }
+
+        @Override
         public Object forTryStatement(BlockStatement block, CatchClause handler, BlockStatement finalizer) {
             StringBuilder builder = new StringBuilder();
             builder.append("try ");
@@ -189,6 +221,8 @@ public class PrettyPrinter {
             builder.append((String)finalizer.accept(formatStatement));
             return block.toString();
         }
+
+        @Override
         public Object forVariableDeclaration(ArrayList<VariableDeclarator> declarations) {
             StringBuilder builder = new StringBuilder();
             builder.append("var ");
@@ -204,6 +238,8 @@ public class PrettyPrinter {
             builder.append(";");
             return builder.toString();
         }
+
+        @Override
         public Object forWhileStatement(Expression test, Statement body) {
             StringBuilder builder = new StringBuilder();
             builder.append("while (");
@@ -212,6 +248,8 @@ public class PrettyPrinter {
             builder.append((String)body.accept(formatStatement));
             return builder.toString();
         }
+
+        @Override
         public Object forWithStatement(Expression object, Statement body) {
             StringBuilder builder = new StringBuilder();
             builder.append("with ");
