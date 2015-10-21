@@ -444,6 +444,7 @@ public class PrettyPrinter {
             StringBuilder builder = new StringBuilder();
             if (prefix) {
                 builder.append(operator);
+                builder.append(" ");
                 builder.append((String)argument.accept(formatExpression));
             } else {
                 builder.append((String)argument.accept(formatExpression));
