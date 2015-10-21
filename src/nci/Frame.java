@@ -3,12 +3,13 @@ package nci;
 import nci.type.Type;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by wayne on 15/10/20.
  */
 public class Frame {
-    HashMap<String, Type> env;
+    Map<String, Type> env;
     Frame outer;
     public Frame() {
         this.env = new HashMap<>();
@@ -19,6 +20,15 @@ public class Frame {
         this.outer = outer;
     }
     public Type lookup(String name) {
-        return this.env.get(name);
+        if (this.env.containsKey(name)) {
+            return this.env.get(name);
+        } else if (this.outer != null) {
+            return this.outer.lookup(name);
+        } else {
+            return null;
+        }
+    }
+    public void extend(String name, Type type) {
+        env.put(name, type);
     }
 }

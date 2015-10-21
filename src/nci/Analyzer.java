@@ -1,17 +1,20 @@
 package nci;
 
 import ast.*;
-import nci.type.Type;
+import nci.type.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Created by wayne on 15/10/20.
  */
 public class Analyzer {
 
-    static HashMap<Node, Type> GIT;
+    static Map<Node, Type> GIT;
+    static Map<Node, Proto> Heap;
 
     static class State {
         Frame frame;
@@ -32,9 +35,15 @@ public class Analyzer {
 
     static class AnalyzeProgramV implements ProgramVisitor {
         @Override
-        public Object forProgram(ArrayList<Statement> body) {
+        public Object forProgram(Program program, ArrayList<Statement> body) {
             GIT = new HashMap<>();
-            State state = new State(new Frame(), new Stack());
+            Heap = new HashMap<>();
+            Proto top = new Proto();
+            Heap.put(program, top);
+            Frame frame = new Frame();
+            frame.extend("$this", new Type(UndefinedType.bottom, NullType.bottom, BooleanType.bottom, NumberType.bottom, StringType.bottom, new ObjectType(program)));
+            State state = new State(frame, new Stack());
+            // TODO: pre-process declarations
             for (Statement stmt : body) {
                 state = (State)stmt.accept(new AnalyzeStatementV(state.frame, state.stack));
             }
@@ -166,7 +175,17 @@ public class Analyzer {
 
         @Override
         public Object forAssignmentExpression(AssignmentExpression assignmentExpression, String operator, Expression left, Expression right) {
-            return null;
+            Result result = (Result)left.accept(new AnalyzeExpressionV(this.frame, this.stack));
+            Type leftType = result.type;
+            result = (Result)right.accept(new AnalyzeExpressionV(result.frame, result.stack));
+            Type rightType = result.type;
+            if (leftType != null) {
+                // TODO: update the type information - to unify?
+            } else {
+                // TODO: set as global or add new field
+            }
+            GIT.put(assignmentExpression, rightType);
+            return rightType;
         }
 
         @Override
@@ -175,7 +194,7 @@ public class Analyzer {
             Type leftType = result.type;
             result = (Result)right.accept(new AnalyzeExpressionV(result.frame, result.stack));
             Type rightType = result.type;
-            Type combinedType = leftType.merge(operator, rightType);
+            Type combinedType = leftType.mergeBinary(operator, rightType);
             GIT.put(binaryExpression, combinedType);
             return new Result(result.frame, result.stack, combinedType);
         }
@@ -209,7 +228,13 @@ public class Analyzer {
 
         @Override
         public Object forLogicalExpression(LogicalExpression logicalExpression, String operator, Expression left, Expression right) {
-            return null;
+            Result result = (Result)left.accept(new AnalyzeExpressionV(this.frame, this.stack));
+            Type leftType = result.type;
+            result = (Result)right.accept(new AnalyzeExpressionV(result.frame, result.stack));
+            Type rightType = result.type;
+            Type combinedType = leftType.mergeLogical(operator, rightType); // TODO: 短路？
+            GIT.put(logicalExpression, combinedType);
+            return new Result(result.frame, result.stack, combinedType);
         }
 
         @Override
