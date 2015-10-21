@@ -6,5 +6,5 @@ import java.util.ArrayList;
  * Created by wayne on 15/10/16.
  */
 public interface ProgramVisitor {
-    Object forProgram(ArrayList<Statement> body);
+    Object forProgram(Program program, ArrayList<Statement> body);
 }

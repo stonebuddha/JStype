@@ -18,7 +18,7 @@ public class PrettyPrinter {
 
     static class FormatProgramV implements ProgramVisitor {
         @Override
-        public Object forProgram(ArrayList<Statement> body) {
+        public Object forProgram(Program program, ArrayList<Statement> body) {
             StringBuilder builder = new StringBuilder();
             for (Statement stmt : body) {
                 builder.append((String)stmt.accept(formatStatement));

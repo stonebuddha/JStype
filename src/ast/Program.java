@@ -12,6 +12,6 @@ public class Program extends Node {
         this.body = body;
     }
     public Object accept(ProgramVisitor ask) {
-        return ask.forProgram(body);
+        return ask.forProgram(this, body);
     }
 }
