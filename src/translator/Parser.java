@@ -2,6 +2,8 @@
  * Created by wayne on 10/14/15.
  */
 
+package translator;
+
 import ast.*;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import jdk.nashorn.internal.runtime.Context;
@@ -20,8 +22,8 @@ public class Parser {
         options.set("scripting", true);
 
         ErrorManager errors = new ErrorManager();
-        Context contextm = new Context(options, errors, Thread.currentThread().getContextClassLoader());
-        Context.setGlobal(contextm.createGlobal());
+        Context context = new Context(options, errors, Thread.currentThread().getContextClassLoader());
+        Context.setGlobal(context.createGlobal());
     }
 
     public static String rawParse(String code, String name) {
@@ -82,7 +84,7 @@ public class Parser {
             return new LabeledStatement(label, body);
         } else if (type.equals("BreakStatement")) {
             JsonElement ele = object.get("label");
-            IdentifierExpression label = null;
+            IdentifierExpression label;
             if (ele.isJsonNull()) {
                 label = null;
             } else {
@@ -336,7 +338,7 @@ public class Parser {
         } else if (type.equals("Literal")) {
             return new LiteralExpression(parseLiteral(element));
         } else {
-            throw new RuntimeException("cannot parse Expression");
+            throw new RuntimeException("Cannot Parse Expression");
         }
     }
 
@@ -361,7 +363,7 @@ public class Parser {
             }
             return new VariableDeclaration(declarations);
         } else {
-            throw new RuntimeException("cannot parse Declaration");
+            throw new RuntimeException("Cannot Parse Declaration");
         }
     }
 
@@ -432,7 +434,7 @@ public class Parser {
             } else if (prim.isString()) {
                 return new StringLiteral(prim.getAsString());
             } else {
-                throw new RuntimeException("cannot parse Literal");
+                throw new RuntimeException("Cannot Parse Literal");
             }
         } else if (ele.isJsonNull()) {
             return new NullLiteral();
@@ -442,7 +444,7 @@ public class Parser {
             String flags = obj.get("flags").getAsString();
             return new RegExpLiteral(pattern, flags);
         } else {
-            throw new RuntimeException("cannot parse Literal");
+            throw new RuntimeException("Cannot Parse Literal");
         }
     }
 }
