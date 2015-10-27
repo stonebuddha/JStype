@@ -2,6 +2,7 @@ package nci;
 
 import nci.type.Type;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -10,4 +11,7 @@ import java.util.Map;
 public class Proto {
     Map<String, Type> properties;
     // TODO: scope chain
+    public Proto() {
+        this.properties = new HashMap<>();
+    }
 }

@@ -1,6 +1,8 @@
 package nci;
 
 import ast.*;
+import com.google.common.collect.ImmutableList;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import nci.type.*;
 
 import java.util.ArrayList;
@@ -37,11 +39,11 @@ public class Analyzer {
         @Override
         public Object forProgram(Program program, ArrayList<Statement> body) {
             GIT = new HashMap<>();
-            Heap = new HashMap<>();
+            Heap = new HashMap<>(); // TODO: how to model the heap? along with stack and frame?
             Proto top = new Proto();
             Heap.put(program, top);
             Frame frame = new Frame();
-            frame.extend("$this", new Type(UndefinedType.bottom, NullType.bottom, BooleanType.bottom, NumberType.bottom, StringType.bottom, new ObjectType(program)));
+            frame.extend("%this", new Type(UndefinedType.bottom, NullType.bottom, BooleanType.bottom, NumberType.bottom, StringType.bottom, new ObjectType(program)));
             State state = new State(frame, new Stack());
             // TODO: pre-process declarations
             for (Statement stmt : body) {
@@ -175,6 +177,10 @@ public class Analyzer {
 
         @Override
         public Object forAssignmentExpression(AssignmentExpression assignmentExpression, String operator, Expression left, Expression right) {
+            if (left instanceof IdentifierExpression) {
+                Result result = (Result)right.accept(new AnalyzeExpressionV(this.frame, this.stack));
+                Type rightType = result.type;
+            }
             Result result = (Result)left.accept(new AnalyzeExpressionV(this.frame, this.stack));
             Type leftType = result.type;
             result = (Result)right.accept(new AnalyzeExpressionV(result.frame, result.stack));
