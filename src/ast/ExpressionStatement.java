@@ -6,10 +6,16 @@ package ast;
 
 public class ExpressionStatement extends Statement {
     Expression expression;
+
     public ExpressionStatement(Expression expression) {
         this.expression = expression;
     }
+
+    public Expression getExpression() {
+        return expression;
+    }
+
     public Object accept(StatementVisitor ask) {
-        return ask.forExpressionStatement(expression);
+        return ask.forExpressionStatement(this);
     }
 }

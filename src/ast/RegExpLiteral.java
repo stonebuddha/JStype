@@ -6,11 +6,20 @@ package ast;
 public class RegExpLiteral extends Literal {
     String pattern;
     String flags;
+
     public RegExpLiteral(String pattern, String flags) {
         this.pattern = pattern;
         this.flags = flags;
     }
+
+    public String getPattern() {
+        return pattern;
+    }
+    public String getFlags() {
+        return flags;
+    }
+
     public Object accept(LiteralVisitor ask) {
-        return ask.forRegExpLiteral(pattern, flags);
+        return ask.forRegExpLiteral(this);
     }
 }

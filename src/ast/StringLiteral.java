@@ -5,10 +5,16 @@ package ast;
  */
 public class StringLiteral extends Literal {
     String value;
+
     public StringLiteral(String value) {
         this.value = value;
     }
+
+    public String getValue() {
+        return value;
+    }
+
     public Object accept(LiteralVisitor ask) {
-        return ask.forStringLiteral(value);
+        return ask.forStringLiteral(this);
     }
 }

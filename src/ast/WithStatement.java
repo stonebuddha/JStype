@@ -7,11 +7,20 @@ package ast;
 public class WithStatement extends Statement {
     Expression object;
     Statement body;
+
     public WithStatement(Expression object, Statement body) {
         this.object = object;
         this.body = body;
     }
+
+    public Expression getObject() {
+        return object;
+    }
+    public Statement getBody() {
+        return body;
+    }
+
     public Object accept(StatementVisitor ask) {
-        return ask.forWithStatement(object, body);
+        return ask.forWithStatement(this);
     }
 }

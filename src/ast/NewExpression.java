@@ -9,7 +9,8 @@ public class NewExpression extends CallExpression {
     public NewExpression(Expression callee, ArrayList<Expression> arguments) {
         super(callee, arguments);
     }
+
     public Object accept(ExpressionVisitor ask) {
-        return ask.forNewExpression(this, callee, arguments);
+        return ask.forNewExpression(this);
     }
 }

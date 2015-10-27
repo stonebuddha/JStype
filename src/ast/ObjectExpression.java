@@ -7,10 +7,16 @@ import java.util.ArrayList;
  */
 public class ObjectExpression extends Expression {
     ArrayList<Property> properties;
+
     public ObjectExpression(ArrayList<Property> properties) {
         this.properties = properties;
     }
+
+    public ArrayList<Property> getProperties() {
+        return properties;
+    }
+
     public Object accept(ExpressionVisitor ask) {
-        return ask.forObjectExpression(this, properties);
+        return ask.forObjectExpression(this);
     }
 }

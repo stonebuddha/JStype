@@ -6,23 +6,23 @@ import java.util.ArrayList;
  * Created by wayne on 15/10/16.
  */
 public interface StatementVisitor {
-    Object forBlockStatement(ArrayList<Statement> body);
-    Object forBreakStatement(IdentifierExpression label);
-    Object forContinueStatement(IdentifierExpression label);
-    Object forDebuggerStatement();
-    Object forDoWhileStatement(Statement body, Expression test);
-    Object forEmptyStatement();
-    Object forExpressionStatement(Expression expression);
-    Object forForInStatement(Node left, Expression right, Statement body);
-    Object forForStatement(Node init, Expression test, Expression update, Statement body);
-    Object forFunctionDeclaration(IdentifierExpression id, ArrayList<IdentifierExpression> params, BlockStatement body);
-    Object forIfStatement(Expression test, Statement consequent, Statement alternate);
-    Object forLabeledStatement(IdentifierExpression label, Statement body);
-    Object forReturnStatement(Expression argument);
-    Object forSwitchStatement(Expression discriminant, ArrayList<SwitchCase> cases);
-    Object forThrowStatement(Expression argument);
-    Object forTryStatement(BlockStatement block, CatchClause handler, BlockStatement finalizer);
-    Object forVariableDeclaration(ArrayList<VariableDeclarator> declarations);
-    Object forWhileStatement(Expression test, Statement body);
-    Object forWithStatement(Expression object, Statement body);
+    Object forBlockStatement(BlockStatement blockStatement);
+    Object forBreakStatement(BreakStatement breakStatement);
+    Object forContinueStatement(ContinueStatement continueStatement);
+    Object forDebuggerStatement(DebuggerStatement debuggerStatement);
+    Object forDoWhileStatement(DoWhileStatement doWhileStatement);
+    Object forEmptyStatement(EmptyStatement emptyStatement);
+    Object forExpressionStatement(ExpressionStatement expressionStatement);
+    Object forForInStatement(ForInStatement forInStatement);
+    Object forForStatement(ForStatement forStatement);
+    Object forFunctionDeclaration(FunctionDeclaration functionDeclaration);
+    Object forIfStatement(IfStatement ifStatement);
+    Object forLabeledStatement(LabeledStatement labeledStatement);
+    Object forReturnStatement(ReturnStatement returnStatement);
+    Object forSwitchStatement(SwitchStatement switchStatement);
+    Object forThrowStatement(ThrowStatement throwStatement);
+    Object forTryStatement(TryStatement tryStatement);
+    Object forVariableDeclaration(VariableDeclaration variableDeclaration);
+    Object forWhileStatement(WhileStatement whileStatement);
+    Object forWithStatement(WithStatement withStatement);
 }

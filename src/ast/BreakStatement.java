@@ -6,10 +6,16 @@ package ast;
 
 public class BreakStatement extends Statement {
     IdentifierExpression label;
+
     public BreakStatement(IdentifierExpression label) {
         this.label = label;
     }
+
+    public IdentifierExpression getLabel() {
+        return label;
+    }
+
     public Object accept(StatementVisitor ask) {
-        return ask.forBreakStatement(label);
+        return ask.forBreakStatement(this);
     }
 }

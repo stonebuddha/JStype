@@ -5,6 +5,6 @@ package ast;
  */
 public class NullLiteral extends Literal {
     public Object accept(LiteralVisitor ask) {
-        return ask.forNullLiteral();
+        return ask.forNullLiteral(this);
     }
 }

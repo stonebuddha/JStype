@@ -7,12 +7,24 @@ public class BinaryExpression extends Expression {
     String operator;
     Expression left;
     Expression right;
+
     public BinaryExpression(String operator, Expression left, Expression right) {
         this.operator = operator;
         this.left = left;
         this.right = right;
     }
+
+    public String getOperator() {
+        return operator;
+    }
+    public Expression getLeft() {
+        return left;
+    }
+    public Expression getRight() {
+        return right;
+    }
+
     public Object accept(ExpressionVisitor ask) {
-        return ask.forBinaryExpression(this, operator, left, right);
+        return ask.forBinaryExpression(this);
     }
 }

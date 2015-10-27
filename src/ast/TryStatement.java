@@ -17,7 +17,17 @@ public class TryStatement extends Statement {
         this.finalizer = finalizer;
     }
 
+    public BlockStatement getBlock() {
+        return block;
+    }
+    public CatchClause getHandler() {
+        return handler;
+    }
+    public BlockStatement getFinalizer() {
+        return finalizer;
+    }
+
     public Object accept(StatementVisitor ask) {
-        return ask.forTryStatement(block, handler, finalizer);
+        return ask.forTryStatement(this);
     }
 }

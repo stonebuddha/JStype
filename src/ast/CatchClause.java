@@ -12,7 +12,14 @@ public class CatchClause extends Node {
         this.body = body;
     }
 
+    public IdentifierExpression getParam() {
+        return param;
+    }
+    public BlockStatement getBody() {
+        return body;
+    }
+
     public Object accept(CatchClauseVisitor ask) {
-        return ask.forCatchClause(this, param, body);
+        return ask.forCatchClause(this);
     }
 }

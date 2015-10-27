@@ -5,10 +5,16 @@ package ast;
  */
 public class IdentifierExpression extends Expression {
     String name;
+
     public IdentifierExpression(String name) {
         this.name = name;
     }
+
+    public String getName() {
+        return name;
+    }
+
     public Object accept(ExpressionVisitor ask) {
-        return ask.forIdentifierExpression(this, name);
+        return ask.forIdentifierExpression(this);
     }
 }

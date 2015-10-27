@@ -7,10 +7,16 @@ import java.util.ArrayList;
  */
 public class ArrayExpression extends Expression {
     ArrayList<Expression> elements;
+
     public ArrayExpression(ArrayList<Expression> elements) {
         this.elements = elements;
     }
+
+    public ArrayList<Expression> getElements() {
+        return elements;
+    }
+
     public Object accept(ExpressionVisitor ask) {
-        return ask.forArrayExpression(this, elements);
+        return ask.forArrayExpression(this);
     }
 }

@@ -5,10 +5,16 @@ package ast;
  */
 public class ReturnStatement extends Statement {
     Expression argument;
+
     public ReturnStatement(Expression argument) {
         this.argument = argument;
     }
+
+    public Expression getArgument() {
+        return argument;
+    }
+
     public Object accept(StatementVisitor ask) {
-        return ask.forReturnStatement(argument);
+        return ask.forReturnStatement(this);
     }
 }

@@ -5,6 +5,6 @@ package ast;
  */
 public class DebuggerStatement extends Statement {
     public Object accept(StatementVisitor ask) {
-        return ask.forDebuggerStatement();
+        return ask.forDebuggerStatement(this);
     }
 }

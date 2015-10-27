@@ -7,10 +7,16 @@ import java.util.ArrayList;
  */
 public class VariableDeclaration extends Declaration {
     ArrayList<VariableDeclarator> declarations;
+
     public VariableDeclaration(ArrayList<VariableDeclarator> declarations) {
         this.declarations = declarations;
     }
+
+    public ArrayList<VariableDeclarator> getDeclarations() {
+        return declarations;
+    }
+
     public Object accept(StatementVisitor ask) {
-        return ask.forVariableDeclaration(declarations);
+        return ask.forVariableDeclaration(this);
     }
 }

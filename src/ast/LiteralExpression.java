@@ -5,10 +5,16 @@ package ast;
  */
 public class LiteralExpression extends Expression {
     Literal literal;
+
     public LiteralExpression(Literal literal) {
         this.literal = literal;
     }
+
+    public Literal getLiteral() {
+        return literal;
+    }
+
     public Object accept(ExpressionVisitor ask) {
-        return ask.forLiteralExpression(this, literal);
+        return ask.forLiteralExpression(this);
     }
 }

@@ -7,10 +7,16 @@ import java.util.ArrayList;
  */
 public class SequenceExpression extends Expression {
     ArrayList<Expression> expressions;
+
     public SequenceExpression(ArrayList<Expression> expressions) {
         this.expressions = expressions;
     }
+
+    public ArrayList<Expression> getExpressions() {
+        return expressions;
+    }
+
     public Object accept(ExpressionVisitor ask) {
-        return ask.forSequenceExpression(this, expressions);
+        return ask.forSequenceExpression(this);
     }
 }
