@@ -10,17 +10,42 @@ import java.util.function.BiFunction;
 public class Eval {
 
     public static Domains.BValue eval(IRExp exp, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
-        BiFunction<Domains.Address, Domains.Address, Domains.Bool> instance = new BiFunction<Domains.Address, Domains.Address, Domains.Bool>() {
+        Utils.Recursive<BiFunction<Domains.Address, Domains.Address, Domains.Bool>> instance = new Utils.Recursive<>();
+        instance.func = new BiFunction<Domains.Address, Domains.Address, Domains.Bool>() {
             @Override
-            public Domains.Bool apply(Domains.Address address, Domains.Address address2) {
-                return null;
+            public Domains.Bool apply(Domains.Address a1, Domains.Address a2) {
+                Domains.BValue proto = store.getObj(a1).getProto();
+                if (proto instanceof Domains.Address) {
+                    Domains.Address a = (Domains.Address)proto;
+                    if (a.equals(a2)) {
+                        return Domains.Bool.True;
+                    } else {
+                        return instance.func.apply(a, a2);
+                    }
+                } else if (proto instanceof Domains.Null) {
+                    return Domains.Bool.False;
+                } else {
+                    throw new RuntimeException("undefined");
+                }
             }
         };
 
-        BiFunction<Domains.Str, Domains.Address, Domains.Bool> find = new BiFunction<Domains.Str, Domains.Address, Domains.Bool>() {
+        Utils.Recursive<BiFunction<Domains.Str, Domains.Address, Domains.Bool>> find = new Utils.Recursive<>();
+        find.func = new BiFunction<Domains.Str, Domains.Address, Domains.Bool>() {
             @Override
-            public Domains.Bool apply(Domains.Str str, Domains.Address address) {
-                return null;
+            public Domains.Bool apply(Domains.Str str, Domains.Address a) {
+                Domains.Object obj = store.getObj(a);
+                Domains.BValue bv = obj.apply(str);
+                if (bv != null) {
+                    return Domains.Bool.True;
+                } else {
+                    Domains.BValue proto = obj.getProto();
+                    if (proto instanceof Domains.Address) {
+                        return find.func.apply(str, (Domains.Address)proto);
+                    } else {
+                        return Domains.Bool.False;
+                    }
+                }
             }
         };
 
@@ -112,13 +137,13 @@ public class Eval {
                     }
                 } else if (op.equals(Bop.InstanceOf)) {
                     if (bv1 instanceof Domains.Address && bv2 instanceof Domains.Address) {
-                        return instance.apply((Domains.Address)bv1, (Domains.Address)bv2);
+                        return instance.func.apply((Domains.Address)bv1, (Domains.Address)bv2);
                     } else {
                         return Domains.Bool.False;
                     }
                 } else if (op.equals(Bop.In)) {
                     if (bv1 instanceof Domains.Str && bv2 instanceof Domains.Address) {
-                        return find.apply((Domains.Str)bv1, (Domains.Address)bv2);
+                        return find.func.apply((Domains.Str)bv1, (Domains.Address)bv2);
                     } else {
                         throw new RuntimeException("translator reneged");
                     }
@@ -139,7 +164,38 @@ public class Eval {
                 } else if (op.equals(Uop.LogicalNot)) {
                     return bv.logicalNot();
                 } else if (op.equals(Uop.TypeOf)) {
-
+                    Domains.BValueVisitor typeOf = new Domains.BValueVisitor() {
+                        @Override
+                        public Object forNum(Domains.Num bNum) {
+                            return new Domains.Str("number");
+                        }
+                        @Override
+                        public Object forBool(Domains.Bool bBool) {
+                            return new Domains.Str("boolean");
+                        }
+                        @Override
+                        public Object forStr(Domains.Str bStr) {
+                            return new Domains.Str("string");
+                        }
+                        @Override
+                        public Object forNull(Domains.Null bNull) {
+                            return new Domains.Str("object");
+                        }
+                        @Override
+                        public Object forUndef(Domains.Undef bUndef) {
+                            return new Domains.Str("undefined");
+                        }
+                        @Override
+                        public Object forAddress(Domains.Address bAddress) {
+                            Domains.Object obj = store.getObj(bAddress);
+                            if (obj.getCode() != null) {
+                                return new Domains.Str("function");
+                            } else {
+                                return new Domains.Str("object");
+                            }
+                        }
+                    };
+                    return bv.accept(typeOf);
                 } else if (op.equals(Uop.ToBool)) {
                     return bv.toBool();
                 } else if (op.equals(Uop.IsPrim)) {

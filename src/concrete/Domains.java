@@ -2,10 +2,13 @@ package concrete;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.sun.istack.internal.Nullable;
 import ir.*;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Created by wayne on 15/10/27.
@@ -48,7 +51,7 @@ public class Domains {
             return env.get(x);
         }
 
-        public Env extendAll(ArrayList<Map.Entry<IRPVar, Address>> bind) {
+        public Env extendAll(ImmutableList<Map.Entry<IRPVar, Address>> bind) {
             ImmutableMap.Builder<IRPVar, Address> builder = ImmutableMap.<IRPVar, Address>builder().putAll(env);
             for (Map.Entry<IRPVar, Address> entry : bind) {
                 builder = builder.put(entry);
@@ -78,12 +81,16 @@ public class Domains {
             return new Store(ImmutableMap.<Address, BValue>builder().putAll(toValue).put(av).build(), toObject);
         }
 
-        public Store extendAll(ArrayList<Map.Entry<Address, BValue>> avs) {
+        public Store extendAll(ImmutableList<Map.Entry<Address, BValue>> avs) {
             ImmutableMap.Builder<Address, BValue> builder = ImmutableMap.<Address, BValue>builder().putAll(toValue);
             for (Map.Entry<Address, BValue> entry : avs) {
                 builder = builder.put(entry);
             }
             return new Store(builder.build(), toObject);
+        }
+
+        public Store putObj(Address a, Object o) {
+            return new Store(toValue, ImmutableMap.<Address, Object>builder().putAll(toObject).put(a, o).build());
         }
     }
 
@@ -101,9 +108,17 @@ public class Domains {
         public Scratchpad update(IRScratch x, BValue bv) {
             int sz = mem.size();
             return new Scratchpad(ImmutableList.<BValue>builder().
-                    addAll(mem.subList(0, x.n - 1)).
-                    add(bv).addAll(mem.subList(x.n + 1, sz - 1)).
+                    addAll(mem.subList(0, x.n)).
+                    add(bv).addAll(mem.subList(x.n + 1, sz)).
                     build());
+        }
+
+        public static Scratchpad apply(Integer len) {
+            ArrayList<BValue> bvs = new ArrayList<>(len);
+            for (int i = 0; i < len; i += 1) {
+                bvs.add(i, new Undef());
+            }
+            return new Scratchpad(ImmutableList.<BValue>builder().addAll(bvs).build());
         }
     }
 
@@ -125,6 +140,15 @@ public class Domains {
             this.lbl = lbl;
             this.bv = bv;
         }
+    }
+
+    public interface BValueVisitor {
+        java.lang.Object forNum(Num bNum);
+        java.lang.Object forBool(Bool bBool);
+        java.lang.Object forStr(Str bStr);
+        java.lang.Object forNull(Null bNull);
+        java.lang.Object forUndef(Undef bUndef);
+        java.lang.Object forAddress(Address bAddress);
     }
 
     public static abstract class BValue extends Value {
@@ -176,6 +200,8 @@ public class Domains {
         public abstract Bool toBool();
         public abstract Str toStr();
         public abstract Num toNum();
+
+        public abstract java.lang.Object accept(BValueVisitor ask);
     }
 
     public static class Num extends BValue {
@@ -183,6 +209,63 @@ public class Domains {
 
         public Num(Double n) {
             this.n = n;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Num && n.equals(((Num) obj).n));
+        }
+
+        @Override
+        public BValue plus(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num(n + ((Num) bv).n);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue minus(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num(n - ((Num) bv).n);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        // TODO: add rest of operations
+
+        @Override
+        public Bool toBool() {
+            return new Bool(n != 0 && !n.isNaN());
+        }
+        @Override
+        public Str toStr() {
+            if (n.longValue() == n) {
+                return new Str(Long.toString(n.longValue()));
+            } else {
+                return new Str(n.toString());
+            }
+        }
+        @Override
+        public Num toNum() {
+            return this;
+        }
+
+        @Override
+        public java.lang.Object accept(BValueVisitor ask) {
+            return ask.forNum(this);
+        }
+
+        static final long maxU32 = 4294967295L;
+        public static Boolean isU32(BValue bv) {
+            if (bv instanceof Num) {
+                Double n = ((Num) bv).n;
+                return (n.longValue() == n && n >= 0 && n <= maxU32);
+            } else {
+                return false;
+            }
         }
     }
 
@@ -192,6 +275,33 @@ public class Domains {
         public Str(String str) {
             this.str = str;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Str && str.equals(((Str) obj).str));
+        }
+
+        @Override
+        public Bool toBool() {
+            return new Bool(!str.isEmpty());
+        }
+        @Override
+        public Str toStr() {
+            return this;
+        }
+        @Override
+        public Num toNum() {
+            try {
+                return new Num(Double.valueOf(str));
+            } catch (NumberFormatException e) {
+                return new Num(Double.NaN);
+            }
+        }
+
+        @Override
+        public java.lang.Object accept(BValueVisitor ask) {
+            return ask.forStr(this);
+        }
     }
 
     public static class Bool extends BValue {
@@ -199,6 +309,33 @@ public class Domains {
 
         public Bool(Boolean b) {
             this.b = b;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Bool && b.equals(((Bool) obj).b));
+        }
+
+        @Override
+        public java.lang.Object accept(BValueVisitor ask) {
+            return ask.forBool(this);
+        }
+
+        @Override
+        public Bool toBool() {
+            return this;
+        }
+        @Override
+        public Str toStr() {
+            return new Str(b.toString());
+        }
+        @Override
+        public Num toNum() {
+            if (b) {
+                return new Num(1.0);
+            } else {
+                return new Num(0.0);
+            }
         }
 
         public static final Bool True = new Bool(true);
@@ -212,6 +349,29 @@ public class Domains {
             this.a = a;
         }
 
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Address && a.equals(((Address) obj).a));
+        }
+
+        @Override
+        public Bool toBool() {
+            return Bool.True;
+        }
+        @Override
+        public Str toStr() {
+            throw new RuntimeException("translator reneged");
+        }
+        @Override
+        public Num toNum() {
+            throw new RuntimeException("translator reneged");
+        }
+
+        @Override
+        public java.lang.Object accept(BValueVisitor ask) {
+            return ask.forAddress(this);
+        }
+
         static int count = 0;
         public static Address generate() {
             count += 1;
@@ -220,26 +380,142 @@ public class Domains {
     }
 
     public static class Undef extends BValue {
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Undef);
+        }
 
+        @Override
+        public Bool toBool() {
+            return Bool.False;
+        }
+        @Override
+        public Str toStr() {
+            return new Str("undefined");
+        }
+        @Override
+        public Num toNum() {
+            return new Num(Double.NaN);
+        }
+
+        @Override
+        public java.lang.Object accept(BValueVisitor ask) {
+            return ask.forUndef(this);
+        }
     }
 
     public static class Null extends BValue {
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Null);
+        }
 
+        @Override
+        public Bool toBool() {
+            return Bool.False;
+        }
+        @Override
+        public Str toStr() {
+            return new Str("null");
+        }
+        @Override
+        public Num toNum() {
+            return new Num(0.0);
+        }
+
+        @Override
+        public java.lang.Object accept(BValueVisitor ask) {
+            return ask.forNull(this);
+        }
+    }
+
+    public static abstract class Closure {}
+
+    public static class Clo extends Closure {
+        public Env env;
+        public IRMethod m;
+
+        public Clo(Env env, IRMethod m) {
+            this.env = env;
+            this.m = m;
+        }
     }
 
     public static class Object {
+        public ImmutableMap<Str, BValue> extern;
+        public ImmutableMap<Str, java.lang.Object> intern;
+
+        JSClass myClass;
+        BValue myProto;
+
+        public Object(ImmutableMap<Str, BValue> extern, ImmutableMap<Str, java.lang.Object> intern) {
+            this.extern = extern;
+            this.intern = intern;
+            myClass = (JSClass)intern.get(Utils.Fields.classname);
+            myProto = (BValue)intern.get(Utils.Fields.proto);
+        }
+
+        @Nullable
+        public BValue apply(Str str) {
+            return extern.get(str);
+        }
+
+        public Object update(Str str, BValue bv) {
+            // TODO
+            return null;
+        }
+
+        public Map.Entry<Object, Boolean> delete(Str str) {
+            // TODO
+            return null;
+        }
+
+        public ImmutableSet<Str> fields() {
+            // TODO
+            return null;
+        }
+
+        public JSClass getJSClass() {
+            return myClass;
+        }
+
+        public BValue getProto() {
+            return myProto;
+        }
+
+        public Boolean calledAsCtor() {
+            return intern.containsKey(Utils.Fields.constructor);
+        }
+
+        @Nullable
+        public Closure getCode() {
+            java.lang.Object code = intern.get(Utils.Fields.code);
+            if (code != null) {
+                return (Closure)code;
+            } else {
+                return null;
+            }
+        }
+
+        @Nullable
+        public BValue getValue() {
+            java.lang.Object value = intern.get(Utils.Fields.value);
+            if (value != null) {
+                return (BValue)value;
+            } else {
+                return null;
+            }
+        }
     }
 
-    public static abstract class Kont {
-    }
+    public static abstract class Kont {}
 
-    public static class HaltKont extends Kont {
-    }
+    public static class HaltKont extends Kont {}
 
     public static class SeqKont extends Kont {
-        public ArrayList<IRStmt> ss;
+        public ImmutableList<IRStmt> ss;
 
-        public SeqKont(ArrayList<IRStmt> ss) {
+        public SeqKont(ImmutableList<IRStmt> ss) {
             this.ss = ss;
         }
     }
@@ -255,14 +531,97 @@ public class Domains {
     }
 
     public static class ForKont extends Kont {
-        public ArrayList<Str> strs;
+        public ImmutableList<Str> strs;
         public IRVar x;
         public IRStmt s;
 
-        public ForKont(ArrayList<Str> strs, IRVar x, IRStmt s) {
+        public ForKont(ImmutableList<Str> strs, IRVar x, IRStmt s) {
             this.strs = strs;
             this.x = x;
             this.s = s;
+        }
+    }
+
+    public static class RetKont extends Kont {
+        public IRVar x;
+        public Env env;
+        public Boolean isctor;
+        public Scratchpad pad;
+
+        public RetKont(IRVar x, Env env, Boolean isctor, Scratchpad pad) {
+            this.x = x;
+            this.env = env;
+            this.isctor = isctor;
+            this.pad = pad;
+        }
+    }
+
+    public static class TryKont extends Kont {
+        public IRPVar x;
+        public IRStmt sc;
+        public IRStmt sf;
+
+        public TryKont(IRPVar x, IRStmt sc, IRStmt sf) {
+            this.x = x;
+            this.sc = sc;
+            this.sf = sf;
+        }
+    }
+
+    public static class CatchKont extends Kont {
+        public IRStmt sf;
+
+        public CatchKont(IRStmt sf) {
+            this.sf = sf;
+        }
+    }
+
+    public static class FinKont extends Kont {
+        public Value v;
+
+        public FinKont(Value v) {
+            this.v = v;
+        }
+    }
+
+    public static class LblKont extends Kont {
+        public String lbl;
+
+        public LblKont(String lbl) {
+            this.lbl = lbl;
+        }
+    }
+
+    static class KontStack {
+        public ImmutableList<Kont> ks;
+
+        public KontStack(ImmutableList<Kont> ks) {
+            this.ks = ks;
+        }
+
+        public KontStack push(Kont k) {
+            return new KontStack(ImmutableList.<Kont>builder().add(k).addAll(ks).build());
+        }
+
+        public KontStack pop() {
+            return new KontStack(ks.subList(1, ks.size()));
+        }
+
+        public KontStack repl(Kont k) {
+            return new KontStack(ImmutableList.<Kont>builder().add(k).addAll(ks.subList(1, ks.size())).build());
+        }
+
+        public Kont top() {
+            return ks.get(0);
+        }
+
+        public KontStack dropWhile(Predicate<Kont> f) {
+            for (int i = 0; i < ks.size(); i += 1) {
+                if (!f.test(ks.get(i))) {
+                    return new KontStack(ks.subList(i, ks.size()));
+                }
+            }
+            return new KontStack(ImmutableList.<Kont>of());
         }
     }
 }
