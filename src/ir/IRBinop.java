@@ -12,4 +12,9 @@ public class IRBinop extends IRExp {
         this.e1 = e1;
         this.e2 = e2;
     }
+
+    @Override
+    public Object accept(IRExpVisitor ask) {
+        return ask.forBinop(this);
+    }
 }

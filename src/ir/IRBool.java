@@ -9,4 +9,9 @@ public class IRBool extends IRExp {
     public IRBool(Boolean v) {
         this.v = v;
     }
+
+    @Override
+    public Object accept(IRExpVisitor ask) {
+        return ask.forBool(this);
+    }
 }

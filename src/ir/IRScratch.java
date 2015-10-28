@@ -9,4 +9,9 @@ public class IRScratch extends IRVar {
     public IRScratch(Integer n) {
         this.n = n;
     }
+
+    @Override
+    public Object accept(IRExpVisitor ask) {
+        return ask.forScratch(this);
+    }
 }

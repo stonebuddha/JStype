@@ -9,4 +9,9 @@ public class IRNum extends IRExp {
     public IRNum(Double v) {
         this.v = v;
     }
+
+    @Override
+    public Object accept(IRExpVisitor ask) {
+        return ask.forNum(this);
+    }
 }

@@ -9,4 +9,9 @@ public class IRPVar extends IRVar {
     public IRPVar(Integer n) {
         this.n = n;
     }
+
+    @Override
+    public Object accept(IRExpVisitor ask) {
+        return ask.forPVar(this);
+    }
 }

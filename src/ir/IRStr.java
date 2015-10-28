@@ -9,4 +9,9 @@ public class IRStr extends IRExp {
     public IRStr(String v) {
         this.v = v;
     }
+
+    @Override
+    public Object accept(IRExpVisitor ask) {
+        return ask.forStr(this);
+    }
 }

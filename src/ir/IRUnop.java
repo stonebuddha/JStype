@@ -11,4 +11,9 @@ public class IRUnop extends IRExp {
         this.op = op;
         this.e = e;
     }
+
+    @Override
+    public Object accept(IRExpVisitor ask) {
+        return ask.forUnop(this);
+    }
 }
