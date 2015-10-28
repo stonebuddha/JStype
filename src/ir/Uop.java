@@ -5,7 +5,7 @@ package ir;
  */
 public class Uop {
 
-    public static final Uop Negation = new Uop();
+    public static final Uop Negate = new Uop();
     public static final Uop Not = new Uop();
 
     public static final Uop LogicalNot = new Uop();

@@ -152,8 +152,30 @@ public class Domains {
         }
 
         public BValue nonStrictEqual(BValue bv) {
-
+            BValue bv1 = this.strictEqual(bv);
+            BValue bv2 = Bool.False;
+            if (this instanceof Undef && bv instanceof Null) {
+                bv2 = Bool.True;
+            } else if (this instanceof Null && bv instanceof Undef) {
+                bv2 = Bool.True;
+            } else if (this instanceof Num && bv instanceof Str) {
+                return this.strictEqual(bv.toNum());
+            } else if (this instanceof Str && bv instanceof Num) {
+                return this.toNum().strictEqual(bv);
+            }
+            return bv1.or(bv2);
         }
+
+        public BValue negate() { throw new RuntimeException("translator reneged"); }
+        public BValue not() { throw new RuntimeException("translator reneged"); }
+        public BValue logicalNot() { throw new RuntimeException("translator reneged"); }
+
+        public BValue isPrim() {
+            return Bool.True;
+        }
+        public abstract Bool toBool();
+        public abstract Str toStr();
+        public abstract Num toNum();
     }
 
     public static class Num extends BValue {
@@ -178,6 +200,9 @@ public class Domains {
         public Bool(Boolean b) {
             this.b = b;
         }
+
+        public static final Bool True = new Bool(true);
+        public static final Bool False = new Bool(false);
     }
 
     public static class Address extends BValue {
