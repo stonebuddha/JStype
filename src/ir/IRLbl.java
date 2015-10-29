@@ -11,4 +11,9 @@ public class IRLbl extends IRStmt {
         this.lbl = lbl;
         this.s = s;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forLbl(this);
+    }
 }

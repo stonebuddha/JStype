@@ -13,4 +13,9 @@ public class IRNewfun extends IRStmt {
         this.m = m;
         this.n = n;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forNewfun(this);
+    }
 }

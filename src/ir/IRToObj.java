@@ -11,4 +11,9 @@ public class IRToObj extends IRStmt {
         this.x = x;
         this.e = e;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forToObj(this);
+    }
 }

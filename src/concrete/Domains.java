@@ -3,10 +3,14 @@ package concrete;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.sun.istack.internal.Nullable;
+import concrete.init.Init;
 import ir.*;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -234,7 +238,114 @@ public class Domains {
             }
         }
 
-        // TODO: add rest of operations
+        @Override
+        public BValue times(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num(n * ((Num) bv).n);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue divide(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num(n / ((Num) bv).n);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue mod(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num(n % ((Num) bv).n);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue shl(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num((double)(n.longValue() << ((Num) bv).n.longValue()));
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue sar(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num((double)(n.longValue() >> ((Num) bv).n.longValue()));
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue shr(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num((double)(n.longValue() >>> ((Num) bv).n.longValue()));
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue lessThan(BValue bv) {
+            if (bv instanceof Num) {
+                return new Bool(n < ((Num) bv).n);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue lessEqual(BValue bv) {
+            if (bv instanceof Num) {
+                return new Bool(n <= ((Num) bv).n);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue and(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num((double)(n.longValue() & ((Num) bv).n.longValue()));
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue or(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num((double)(n.longValue() | ((Num) bv).n.longValue()));
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue xor(BValue bv) {
+            if (bv instanceof Num) {
+                return new Num((double)(n.longValue() ^ ((Num) bv).n.longValue()));
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue negate() {
+            return new Num(-n);
+        }
+
+        @Override
+        public BValue not() {
+            return new Num((double)(~n.longValue()));
+        }
 
         @Override
         public Bool toBool() {
@@ -282,6 +393,33 @@ public class Domains {
         }
 
         @Override
+        public BValue strConcat(BValue bv) {
+            if (bv instanceof Str) {
+                return new Str(str + ((Str) bv).str);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue strLessThan(BValue bv) {
+            if (bv instanceof Str) {
+                return new Bool(str.compareTo(((Str) bv).str) < 0);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
+        public BValue strLessEqual(BValue bv) {
+            if (bv instanceof Str) {
+                return new Bool(str.compareTo(((Str) bv).str) <= 0);
+            } else {
+                throw new RuntimeException("translator reneged");
+            }
+        }
+
+        @Override
         public Bool toBool() {
             return new Bool(!str.isEmpty());
         }
@@ -314,6 +452,29 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Bool && b.equals(((Bool) obj).b));
+        }
+
+        @Override
+        public BValue logicalAnd(BValue bv) {
+            if (!b) {
+                return this;
+            } else {
+                return bv;
+            }
+        }
+
+        @Override
+        public BValue logicalOr(BValue bv) {
+            if (b) {
+                return this;
+            } else {
+                return bv;
+            }
+        }
+
+        @Override
+        public BValue logicalNot() {
+            return new Bool(!b);
         }
 
         @Override
@@ -352,6 +513,12 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Address && a.equals(((Address) obj).a));
+        }
+
+
+        @Override
+        public BValue isPrim() {
+            return Bool.False;
         }
 
         @Override
@@ -461,18 +628,41 @@ public class Domains {
         }
 
         public Object update(Str str, BValue bv) {
-            // TODO
-            return null;
+            if (Init.noupdate.getOrDefault(myClass, ImmutableSet.<Str>of()).contains(str)) {
+                return this;
+            } else {
+                return new Object(ImmutableMap.<Str, BValue>builder().putAll(extern).put(str, bv).build(), intern);
+            }
         }
 
         public Map.Entry<Object, Boolean> delete(Str str) {
-            // TODO
-            return null;
+            if ((Init.nodelete.getOrDefault(myClass, ImmutableSet.<Str>of()).contains(str)) || !(extern.containsKey(str))) {
+                return new AbstractMap.SimpleImmutableEntry<>(this, false);
+            } else {
+                // TODO: time complexity needs to be refined
+                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
+                for (Map.Entry<Str, BValue> entry : extern.entrySet()) {
+                    if (!entry.getKey().equals(str)) {
+                        builder = builder.put(entry);
+                    }
+                }
+                return new AbstractMap.SimpleImmutableEntry<>(
+                        new Object(builder.build(), intern),
+                        true
+                );
+            }
         }
 
         public ImmutableSet<Str> fields() {
-            // TODO
-            return null;
+            // TODO: time complexity needs to be refined
+            ImmutableSet.Builder<Str> builder = ImmutableSet.<Str>builder();
+            ImmutableSet<Str> noenum = Init.noenum.getOrDefault(myClass, ImmutableSet.<Str>of());
+            for (Str str : extern.keySet()) {
+                if (!noenum.contains(str)) {
+                    builder = builder.add(str);
+                }
+            }
+            return builder.build();
         }
 
         public JSClass getJSClass() {
@@ -510,7 +700,12 @@ public class Domains {
 
     public static abstract class Kont {}
 
-    public static class HaltKont extends Kont {}
+    public static class HaltKont extends Kont {
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof HaltKont);
+        }
+    }
 
     public static class SeqKont extends Kont {
         public ImmutableList<IRStmt> ss;
@@ -592,7 +787,7 @@ public class Domains {
         }
     }
 
-    static class KontStack {
+    public static class KontStack {
         public ImmutableList<Kont> ks;
 
         public KontStack(ImmutableList<Kont> ks) {

@@ -14,4 +14,9 @@ public class IRTry extends IRStmt {
         this.s2 = s2;
         this.s3 = s3;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forTry(this);
+    }
 }

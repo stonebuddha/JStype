@@ -11,4 +11,9 @@ public class IRWhile extends IRStmt {
         this.e = e;
         this.s = s;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forWhile(this);
+    }
 }

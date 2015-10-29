@@ -13,4 +13,9 @@ public class IRFor extends IRStmt {
         this.e = e;
         this.s = s;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forFor(this);
+    }
 }

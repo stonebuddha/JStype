@@ -13,4 +13,9 @@ public class IRCall extends IRStmt {
         this.e2 = e2;
         this.e3 = e3;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forCall(this);
+    }
 }

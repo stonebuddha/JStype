@@ -12,4 +12,9 @@ public class IRNew extends IRStmt {
         this.e1 = e1;
         this.e2 = e2;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forNew(this);
+    }
 }

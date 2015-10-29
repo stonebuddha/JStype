@@ -11,4 +11,9 @@ public class IRJump extends IRStmt {
         this.lbl = lbl;
         this.e = e;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forJump(this);
+    }
 }

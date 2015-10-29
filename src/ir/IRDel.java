@@ -12,4 +12,9 @@ public class IRDel extends IRStmt {
         this.e1 = e1;
         this.e2 = e2;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forDel(this);
+    }
 }

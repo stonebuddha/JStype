@@ -4,6 +4,7 @@ package ir;
  * Created by wayne on 15/10/27.
  */
 public class JSClass {
+
     public static final JSClass CObject = new JSClass();
     public static final JSClass CFunction = new JSClass();
     public static final JSClass CArray = new JSClass();

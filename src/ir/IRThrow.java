@@ -9,4 +9,9 @@ public class IRThrow extends IRStmt {
     public IRThrow(IRExp e) {
         this.e = e;
     }
+
+    @Override
+    public Object accept(IRStmtVisitor ask) {
+        return ask.forThrow(this);
+    }
 }
