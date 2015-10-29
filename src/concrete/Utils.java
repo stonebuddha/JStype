@@ -1,5 +1,7 @@
 package concrete;
 
+import ir.IRVar;
+
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -28,7 +30,22 @@ public class Utils {
         return null;
     }
 
+    public static Map.Entry<Domains.Store, Domains.Address> allocObj(Domains.Address a, Domains.Store store) {
+        // TODO
+        return null;
+    }
+
+    public static Interpreter.State applyClo(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks) {
+        // TODO
+        return null;
+    }
+
     public static Domains.BValue lookup(Domains.Object o, Domains.Str str, Domains.Store store) {
+        // TODO
+        return null;
+    }
+
+    public static Domains.Store setConstr(Domains.Store store, Domains.Address a) {
         // TODO
         return null;
     }

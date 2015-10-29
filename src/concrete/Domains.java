@@ -19,14 +19,7 @@ import java.util.function.Predicate;
  */
 public class Domains {
 
-    public static abstract class Term {
-        public static Term fromStmt(IRStmt s) {
-            return new StmtTerm(s);
-        }
-        public static Term fromValue(Value v) {
-            return new ValueTerm(v);
-        }
-    }
+    public static abstract class Term {}
 
     public static class StmtTerm extends Term {
         public IRStmt s;
