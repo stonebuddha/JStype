@@ -25,7 +25,7 @@ public class Init {
                 ImmutableMap.<Domains.Address, Domains.BValue>of(),
                 ImmutableMap.<Domains.Address, Domains.Object>of());
         return new Interpreter.State(
-                Domains.Term.fromStmt(s),
+                new Domains.StmtTerm(s),
                 env,
                 store,
                 Domains.Scratchpad.apply(0),
