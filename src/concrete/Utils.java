@@ -1,5 +1,6 @@
 package concrete;
 
+import ir.IRScratch;
 import ir.IRVar;
 
 import java.util.ArrayList;
@@ -30,6 +31,11 @@ public class Utils {
         return null;
     }
 
+    public static Map.Entry<Domains.Store, Domains.Address> allocFun(Domains.Closure clo, Domains.BValue n, Domains.Store store) {
+        // TODO
+        return null;
+    }
+
     public static Map.Entry<Domains.Store, Domains.Address> allocObj(Domains.Address a, Domains.Store store) {
         // TODO
         return null;
@@ -40,12 +46,32 @@ public class Utils {
         return null;
     }
 
+    public static Map.Entry<Domains.Value, Map.Entry<Domains.Store, Domains.Scratchpad>> delete(Domains.BValue bv1, Domains.BValue bv2, IRScratch x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
+        // TODO
+        return null;
+    }
+
     public static Domains.BValue lookup(Domains.Object o, Domains.Str str, Domains.Store store) {
         // TODO
         return null;
     }
 
+    public static ArrayList<String> objAllKeys(Domains.BValue bv, Domains.Store store) {
+        // TODO
+        return null;
+    }
+
     public static Domains.Store setConstr(Domains.Store store, Domains.Address a) {
+        // TODO
+        return null;
+    }
+
+    public static Map.Entry<Domains.Value, Map.Entry<Domains.Store, Domains.Scratchpad>> toObj(Domains.BValue bv, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
+        // TODO
+        return null;
+    }
+
+    public static Map.Entry<Domains.Value, Domains.Store> updateObj(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, Domains.Store store) {
         // TODO
         return null;
     }
