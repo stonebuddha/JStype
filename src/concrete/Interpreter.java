@@ -2,6 +2,7 @@ package concrete;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import concrete.init.Init;
 import ir.*;
 
 import java.util.AbstractMap;
@@ -29,7 +30,11 @@ public class Interpreter {
         Mutable.clear();
         IRStmt ir = readIR(args[0]);
         try {
-
+            State state = Init.initState(ir);
+            while (!state.fin()) {
+                state = state.next();
+            }
+            return Mutable.outputMap;
         } catch (Exception e) {
             if (Mutable.catchExc) {
                 return Mutable.outputMap;
@@ -228,10 +233,13 @@ public class Interpreter {
                 Domains.Value v = ((Domains.ValueTerm)t).v;
                 if (v instanceof Domains.BValue) {
                     Domains.BValue bv = (Domains.BValue)v;
+                    return null; // TODO
                 } else if (v instanceof Domains.EValue) {
                     Domains.EValue ev = (Domains.EValue)v;
+                    return null; // TODO
                 } else {
                     Domains.JValue jv = (Domains.JValue)v;
+                    return null; // TODO
                 }
             }
         }
