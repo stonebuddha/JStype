@@ -1,5 +1,7 @@
 package concrete;
 
+import com.google.common.collect.ImmutableList;
+
 import ir.IRScratch;
 import ir.IRVar;
 
@@ -56,7 +58,7 @@ public class Utils {
         return null;
     }
 
-    public static ArrayList<String> objAllKeys(Domains.BValue bv, Domains.Store store) {
+    public static ImmutableList<Domains.Str> objAllKeys(Domains.BValue bv, Domains.Store store) {
         // TODO
         return null;
     }

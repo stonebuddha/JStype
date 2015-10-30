@@ -227,31 +227,34 @@ public class Interpreter {
 
                     @Override
                     public Object forFor(IRFor irFor) {
-                        ArrayList<String> allKeys = Utils.objAllKeys(eval(irFor.e), store);
-                        /*if (allKeys.size() > 0) {
-                            String str = allKeys.get(0);
-                            List<String> strs = allKeys.subList(1, allKeys.size());
+                        ImmutableList<Domains.Str> allKeys = Utils.objAllKeys(eval(irFor.e), store);
+                        if (allKeys.size() > 0) {
+                            Domains.Str str = allKeys.get(0);
+                            ImmutableList<Domains.Str> strs = allKeys.subList(1, allKeys.size());
                             if (irFor.x instanceof IRPVar) {
-                                return new State(Domains.StmtTerm(irFor.s),
+                                return new State(new Domains.StmtTerm(irFor.s),
                                         env,
                                         store.extend(new AbstractMap.SimpleImmutableEntry<>(env.apply((IRPVar)irFor.x), str)),
                                         pad,
-                                        ks.push(Domains.ForKont(strs, irFor.x, irFor.s)));
+                                        ks.push(new Domains.ForKont(strs, irFor.x, irFor.s)));
 
                             }
                             else {
-                                return State(Domains.StmtTerm(irFor.s), env, store, )
+                                return new State(new Domains.StmtTerm(irFor.s),
+                                        env,
+                                        store,
+                                        pad.update((IRScratch)irFor.x, str),
+                                        ks.push(new Domains.ForKont(strs, irFor.x, irFor.s)));
                             }
                         }
-                        IRStmt s = irSeq.ss.get(0);
-                        ImmutableList<IRStmt> ss = irSeq.ss.subList(1, irSeq.ss.size());
-                        return new State(new Domains.StmtTerm(s), env, store, pad, ks.push(new Domains.SeqKont(ss)));*/
-                        return null;
+                        else {
+                            return new State(new Domains.ValueTerm(new Domains.Undef()), env, store, pad, ks);
+                        }
                     }
 
                     @Override
                     public Object forMerge(IRMerge irMerge) {
-                        return null;
+                        return new State(new Domains.ValueTerm(new Domains.Undef()), env, store, pad, ks);
                     }
                 };
 
@@ -260,14 +263,114 @@ public class Interpreter {
                 Domains.Value v = ((Domains.ValueTerm)t).v;
                 if (v instanceof Domains.BValue) {
                     Domains.BValue bv = (Domains.BValue)v;
-                    return null; // TODO
-                } else if (v instanceof Domains.EValue) {
+                    if (ks.top() instanceof Domains.SeqKont) {
+                        Domains.SeqKont sk = (Domains.SeqKont) ks.top();
+                        if (sk.ss.size() > 0) {
+                            return new State(new Domains.StmtTerm(sk.ss.get(0)),
+                                    env,
+                                    store,
+                                    pad,
+                                    ks.repl(new Domains.SeqKont(sk.ss.subList(1, sk.ss.size()))));
+                        }
+                        else {
+                            return new State(new Domains.ValueTerm(new Domains.Undef()), env, store, pad, ks);
+                        }
+                    }
+                    else if (ks.top() instanceof Domains.WhileKont){
+                        Domains.WhileKont wk = (Domains.WhileKont) ks.top();
+                        Domains.Bool pred = (Domains.Bool)eval(wk.e);
+                        if (pred.equals(Domains.Bool.True)) {
+                            return new State(new Domains.StmtTerm(wk.s), env, store, pad, ks);
+                        }
+                        else {
+                            return new State(new Domains.ValueTerm(new Domains.Undef()), env, store, pad, ks);
+                        }
+                    }
+                    else if (ks.top() instanceof Domains.ForKont) {
+                        Domains.ForKont fk = (Domains.ForKont) ks.top();
+                        if (fk.strs.size() > 0) {
+                            if (fk.x instanceof IRPVar) {
+                                return new State(new Domains.StmtTerm(fk.s),
+                                        env,
+                                        store.extend(new AbstractMap.SimpleImmutableEntry<>(env.apply((IRPVar)fk.x), fk.strs.get(0))),
+                                        pad,
+                                        ks.repl(new Domains.ForKont(fk.strs.subList(1, fk.strs.size()), fk.x, fk.s)));
+                            }
+                            else {
+                                return new State(new Domains.StmtTerm(fk.s),
+                                        env,
+                                        store,
+                                        pad.update((IRScratch)fk.x, fk.strs.get(0)),
+                                        ks.repl(new Domains.ForKont(fk.strs.subList(1, fk.strs.size()), fk.x, fk.s)));
+                            }
+                        }
+                        else {
+                            return new State(new Domains.ValueTerm(new Domains.Undef()), env, store, pad, ks);
+                        }
+                    }
+                    else if (ks.top() instanceof Domains.RetKont) {
+                        // TODO
+                        return null;
+                    }
+                    else if (ks.top() instanceof Domains.TryKont) {
+                        // TODO
+                        return null;
+                    }
+                    else if (ks.top() instanceof Domains.CatchKont) {
+                        // TODO
+                        return null;
+                    }
+                    else if (ks.top() instanceof Domains.FinKont) {
+                        // TODO
+                        return null;
+                    }
+                    else if (ks.top() instanceof Domains.LblKont) {
+                        // TODO
+                        return null;
+                    }
+                    else if (ks.top() instanceof Domains.HaltKont) {
+                        // TODO
+                        return null;
+                    }
+                }
+                else if (v instanceof Domains.EValue) {
                     Domains.EValue ev = (Domains.EValue)v;
-                    return null; // TODO
+                    if (ks.top() instanceof Domains.RetKont) {
+                        // TODO
+                        return null;
+                    }
+                    else if (ks.top() instanceof Domains.TryKont) {
+                        // TODO
+                        return null;
+                    }
+                    else if (ks.top() instanceof Domains.CatchKont) {
+                        // TODO
+                        return null;
+                    }
+                    else {
+                        // TODO
+                        return null;
+                    }
                 } else {
                     Domains.JValue jv = (Domains.JValue)v;
-                    return null; // TODO
+                    if (ks.top() instanceof Domains.TryKont) {
+                        // TODO
+                        return null;
+                    }
+                    else if (ks.top() instanceof Domains.CatchKont) {
+                        // TODO
+                        return null;
+                    }
+                    else if (ks.top() instanceof Domains.LblKont) {
+                        // TODO
+                        return null;
+                    }
+                    else {
+                        // TODO
+                        return null;
+                    }
                 }
+                return null;
             }
         }
     }
