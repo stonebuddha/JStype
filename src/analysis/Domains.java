@@ -341,8 +341,102 @@ public class Domains {
 
     public static abstract class Str {
         public Str merge(Str str) {
-            // TODO
-            return null;
+            if (this.equals(str)) {
+                return this;
+            } else if (this instanceof SBot) {
+                return str;
+            } else if (str instanceof SBot) {
+                return this;
+            } else if (this instanceof SConstNum && str instanceof SConstNum) {
+                return new SNum();
+            } else if ((this instanceof SConstNum && str instanceof SConstNotSplNorNum)
+                    || (this instanceof SConstNotSplNorNum && str instanceof SConstNum)) {
+                return new SNotSpl();
+            } else if ((this instanceof SConstNum && str instanceof SConstSpl)
+                    || (this instanceof SConstSpl && str instanceof SConstNum)) {
+                return Top;
+            } else if ((this instanceof SConstNum && str instanceof SNotSplNorNum)
+                    || (this instanceof SNotSplNorNum && str instanceof SConstNum)) {
+                return new SNotSpl();
+            } else if ((this instanceof SConstNum && str instanceof SSpl)
+                    || (this instanceof SSpl && str instanceof SConstNum)) {
+                return Top;
+            } else if ((this instanceof SConstNum && str instanceof SNotNum)
+                    || (this instanceof SNotNum && str instanceof SConstNum)) {
+                return Top;
+            } else if (this instanceof SConstNotSplNorNum && str instanceof SConstNotSplNorNum) {
+                return new SNotSplNorNum();
+            } else if ((this instanceof SConstNotSplNorNum && str instanceof SConstSpl)
+                    || (this instanceof SConstSpl && str instanceof SConstNotSplNorNum)) {
+                return new SNotNum();
+            } else if ((this instanceof SConstNotSplNorNum && str instanceof SNum)
+                    || (this instanceof SNum && str instanceof SConstNotSplNorNum)) {
+                return new SNotSpl();
+            } else if ((this instanceof SConstNotSplNorNum && str instanceof SSpl)
+                    || (this instanceof SSpl && str instanceof SConstNotSplNorNum)) {
+                return new SNotNum();
+            } else if (this instanceof SConstSpl && str instanceof SConstSpl) {
+                return new SSpl();
+            } else if ((this instanceof SConstSpl && str instanceof SNum)
+                    || (this instanceof SNum && str instanceof SConstSpl)) {
+                return Top;
+            } else if ((this instanceof SConstSpl && str instanceof SNotSplNorNum)
+                    || (this instanceof SNotSplNorNum && str instanceof SConstSpl)) {
+                return new SNotNum();
+            } else if ((this instanceof SConstSpl && str instanceof SNotSpl)
+                    || (this instanceof SNotSpl && str instanceof SConstSpl)) {
+                return Top;
+            } else if ((this instanceof SNum && str instanceof SNotSplNorNum)
+                    || (this instanceof SNotSplNorNum && str instanceof SNum)) {
+                return new SNotSpl();
+            } else if ((this instanceof SNum && str instanceof SSpl)
+                    || (this instanceof SSpl && str instanceof SNum)) {
+                return Top;
+            } else if ((this instanceof SNum && str instanceof SNotNum)
+                    || (this instanceof SNotNum && str instanceof SNum)) {
+                return Top;
+            } else if ((this instanceof SNotSplNorNum && str instanceof SSpl)
+                    || (this instanceof SNotSpl && str instanceof SNotSplNorNum)) {
+                return new SNotNum();
+            } else if ((this instanceof SSpl && str instanceof SNotSpl)
+                    || (this instanceof SNotSpl && str instanceof SSpl)) {
+                return Top;
+            } else if ((this instanceof SNotNum && str instanceof SNotSpl)
+                    || (this instanceof SNotSpl && str instanceof SNotNum)) {
+                return Top;
+            } else if (this.partialLessEqual(str)) {
+                return str;
+            } else if (str.partialLessEqual(this)) {
+                return str;
+            } else {
+                throw new RuntimeException("Incorrect implementation of string lattice");
+            }
+        }
+
+        public Boolean partialLessEqual(Str str) {
+            if (this instanceof SBot || str instanceof STop) {
+                return true;
+            } else if (this.equals(str)) {
+                return true;
+            } else if ((this instanceof SConstNum && str instanceof SNum)
+                    || (this instanceof SConstNum && str instanceof SNotSpl)
+                    || (this instanceof SConstNotSplNorNum && str instanceof SNotSplNorNum)
+                    || (this instanceof SConstNotSplNorNum && str instanceof SNotSpl)
+                    || (this instanceof SConstNotSplNorNum && str instanceof SNotNum)
+                    || (this instanceof SConstSpl && str instanceof SSpl)
+                    || (this instanceof SConstSpl && str instanceof SNotNum)
+                    || (this instanceof SNum && str instanceof SNotSpl)
+                    || (this instanceof SSpl && str instanceof SNotNum)
+                    || (this instanceof SNotSplNorNum && str instanceof SNotNum)
+                    || (this instanceof SNotSplNorNum && str instanceof SNotSpl)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public Boolean notPartialLessEqual(Str str) {
+            return !(this.partialLessEqual(str));
         }
 
         public static final Str Top = new STop();
