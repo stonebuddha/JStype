@@ -34,16 +34,16 @@ public class Domains {
     public static class BValue extends Value {
         public Num n;
         public Bool b;
-        public Str s;
+        public Str str;
         public ImmutableSet<AddressSpace.Address> as;
         public Null nil;
         public Undef undef;
         public ImmutableSet<Domain> types;
 
-        public BValue(Num n, Bool b, Str s, ImmutableSet<AddressSpace.Address> as, Null nil, Undef undef) {
+        public BValue(Num n, Bool b, Str str, ImmutableSet<AddressSpace.Address> as, Null nil, Undef undef) {
             this.n = n;
             this.b = b;
-            this.s = s;
+            this.str = str;
             this.as = as;
             this.nil = nil;
             this.undef = undef;
@@ -51,7 +51,7 @@ public class Domains {
             ImmutableSet.Builder<Domain> builder = ImmutableSet.<Domain>builder();
             if (!n.equals(Num.Bot)) builder = builder.add(DNum);
             if (!b.equals(Bool.Bot)) builder = builder.add(DBool);
-            if (!s.equals(Str.Bot)) builder = builder.add(DStr);
+            if (!str.equals(Str.Bot)) builder = builder.add(DStr);
             if (!as.isEmpty()) builder = builder.add(DAddr);
             if (!nil.equals(Null.Bot)) builder = builder.add(DNull);
             if (!undef.equals(Undef.Bot)) builder = builder.add(DUndef);
@@ -62,7 +62,7 @@ public class Domains {
             return new BValue(
                     n.merge(bv.n),
                     b.merge(bv.b),
-                    s.merge(bv.s),
+                    str.merge(bv.str),
                     ImmutableSet.<AddressSpace.Address>builder().addAll(as).addAll(bv.as).build(),
                     nil.merge(bv.nil),
                     undef.merge(bv.undef));
@@ -74,6 +74,82 @@ public class Domains {
 
         public BValue minus(BValue bv) {
             return Num.inject(n.minus(bv.n));
+        }
+
+        public BValue times(BValue bv) {
+            return Num.inject(n.times(bv.n));
+        }
+
+        public BValue divide(BValue bv) {
+            return Num.inject(n.divide(bv.n));
+        }
+
+        public BValue mod(BValue bv) {
+            return Num.inject(n.mod(bv.n));
+        }
+
+        public BValue shl(BValue bv) {
+            return Num.inject(n.shl(bv.n));
+        }
+
+        public BValue sar(BValue bv) {
+            return Num.inject(n.sar(bv.n));
+        }
+
+        public BValue shr(BValue bv) {
+            return Num.inject(n.shr(bv.n));
+        }
+
+        public BValue lessThan(BValue bv) {
+            return Bool.inject(n.lessThan(bv.n));
+        }
+
+        public BValue lessEqual(BValue bv) {
+            return Bool.inject(n.lessEqual(bv.n));
+        }
+
+        public BValue and(BValue bv) {
+            return Num.inject(n.and(bv.n));
+        }
+
+        public BValue or(BValue bv) {
+            return Num.inject(n.or(bv.n));
+        }
+
+        public BValue xor(BValue bv) {
+            return Num.inject(n.xor(bv.n));
+        }
+
+        public BValue logicalAnd(BValue bv) {
+            return Bool.inject(b.logicalAnd(bv.b));
+        }
+
+        public BValue logicalOr(BValue bv) {
+            return Bool.inject(b.logicalOr(bv.b));
+        }
+
+        public BValue strConcat(BValue bv) {
+            return Str.inject(str.strConcat(bv.str));
+        }
+
+        public BValue strLessThan(BValue bv) {
+            return Bool.inject(str.strLessThan(bv.str));
+        }
+
+        public BValue strLessEqual(BValue bv) {
+            return Bool.inject(str.strLessEqual(bv.str));
+        }
+
+        public BValue negate() {
+            return Num.inject(n.negate());
+        }
+
+        public BValue not() {
+            return Num.inject(n.not());
+        }
+
+        public BValue logicalNot() {
+            return Bool.inject(b.logicalNot());
         }
 
         public Boolean isBot() {
@@ -194,7 +270,185 @@ public class Domains {
             }
         }
 
-        // TODO: add rest of operations
+        public Num times(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Bot;
+            } else if (this.equals(NaN) || n.equals(NaN)) {
+                return NaN;
+            } else if (this instanceof NTop || n instanceof NTop) {
+                return Top;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return new NConst(((NConst)this).d * ((NConst)n).d);
+            } else if ((this instanceof NReal && n.equals(Inf)) || (this.equals(Inf) && n instanceof NReal)) {
+                return Top;
+            } else if ((this instanceof NReal && n.equals(NInf) || (this.equals(NInf) && n instanceof NReal))) {
+                return Top;
+            } else {
+                return new NReal();
+            }
+        }
+
+        public Num divide(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Bot;
+            } else if (this.equals(NaN) || n.equals(NaN)) {
+                return NaN;
+            } else if (this instanceof NTop || n instanceof NTop) {
+                return Top;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return new NConst(((NConst)this).d / ((NConst)n).d);
+            } else if (this instanceof NReal && (n.equals(Inf) || n.equals(NInf))) {
+                return new NConst(0.0);
+            } else {
+                return Top;
+            }
+        }
+
+        public Num mod(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Bot;
+            } else if (this.equals(NaN) || n.equals(NaN)) {
+                return NaN;
+            } else if (this instanceof NTop || n instanceof NTop) {
+                return Top;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return new NConst(((NConst)this).d % ((NConst)n).d);
+            } else if ((this.equals(Inf) || this.equals((NInf))) && (n instanceof NReal)) {
+                return NaN;
+            } else {
+                return new NReal();
+            }
+        }
+
+        public Num shl(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Bot;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return new NConst((double)(((NConst)this).d.longValue() << ((NConst)n).d.longValue()));
+            } else {
+                return new NReal();
+            }
+        }
+
+        public Num sar(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Bot;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return new NConst((double)(((NConst)this).d.longValue() >> ((NConst)n).d.longValue()));
+            } else {
+                return new NReal();
+            }
+        }
+
+        public Num shr(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Bot;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return new NConst((double)(((NConst)this).d.longValue() >>> ((NConst)n).d.longValue()));
+            } else {
+                return new NReal();
+            }
+        }
+
+        public Bool lessThan(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Bool.Bot;
+            } else if (this.equals(NaN) || n.equals(NaN)) {
+                return Bool.False;
+            } else if (this instanceof NTop || n instanceof NTop) {
+                return Bool.Top;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return Bool.alpha(((NConst)this).d < ((NConst)n).d);
+            } else if ((this instanceof NReal && n.equals(Inf))
+                    || (this.equals(NInf) && n instanceof NReal)) {
+                return Bool.True;
+            } else if ((this.equals(Inf) && n instanceof NReal)
+                    || (this instanceof NReal && n.equals(NInf))) {
+                return Bool.False;
+            } else {
+                return Bool.Top;
+            }
+        }
+
+        public Bool lessEqual(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Bool.Bot;
+            } else if (this.equals(NaN) || n.equals(NaN)) {
+                return Bool.False;
+            } else if (this instanceof NTop || n instanceof NTop) {
+                return Bool.Top;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return Bool.alpha(((NConst)this).d <= ((NConst)n).d);
+            } else if ((this instanceof NReal && n.equals(Inf))
+                    || (this.equals(NInf) && n instanceof NReal)) {
+                return Bool.True;
+            } else if ((this.equals(Inf) && n instanceof NReal)
+                    || (this instanceof NReal && n.equals(NInf))) {
+                return Bool.False;
+            } else {
+                return Bool.Top;
+            }
+        }
+
+        public Num and(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Num.Bot;
+            } else if (this.equals(NaN) || n.equals((NaN))) {
+                return Num.Zero;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return new NConst((double)(((NConst)this).d.longValue() & ((NConst)n).d.longValue()));
+            } else {
+                return new NReal();
+            }
+        }
+
+        public Num or(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Num.Bot;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return new NConst((double)(((NConst)this).d.longValue() | ((NConst)n).d.longValue()));
+            } else {
+                return new NReal();
+            }
+        }
+
+        public Num xor(Num n) {
+            if (this instanceof NBot || n instanceof NBot) {
+                return Num.Bot;
+            } else if (this instanceof NConst && n instanceof NConst) {
+                return new NConst((double)(((NConst)this).d.longValue() ^ ((NConst)n).d.longValue()));
+            } else {
+                return new NReal();
+            }
+        }
+
+        public Num negate() {
+            if (this instanceof NConst) {
+                return new NConst(-((NConst)this).d);
+            } else {
+                return this;
+            }
+        }
+
+        public Num not() {
+            if (this instanceof NConst) {
+                return new NConst((double)(~((NConst)this).d.longValue()));
+            } else {
+                return this;
+            }
+        }
+
+        public Str toStr() {
+            if (this instanceof NConst) {
+                return Str.alpha(((NConst)this).d.toString());
+            } else if (this instanceof NTop) {
+                return Str.Top;
+            } else if (this instanceof NReal) {
+                return Str.NumStr;
+            } else {
+                return Str.Bot;
+            }
+        }
 
         public static final Num Top = new NTop();
         public static final Num Bot = new NBot();
@@ -290,6 +544,79 @@ public class Domains {
                 return this;
             } else {
                 throw new RuntimeException("suppress false compiler warning");
+            }
+        }
+
+        public Bool strictEqual(Bool b) {
+            if (this instanceof BBot || b instanceof BBot) {
+                return Bot;
+            } else if (this instanceof BTop || b instanceof BTop) {
+                return Top;
+            } else if ((this instanceof BTrue && b instanceof BTrue)
+                    || (this instanceof BFalse && b instanceof BFalse)) {
+                return True;
+            } else {
+                return False;
+            }
+        }
+
+        public Bool logicalAnd(Bool b) {
+            if (this instanceof BBot || b instanceof BBot) {
+                return Bot;
+            } else if (this instanceof BFalse || b instanceof BFalse) {
+                return False;
+            } else if (this instanceof BTop || b instanceof BTop) {
+                return Top;
+            } else {
+                return True;
+            }
+        }
+
+        public Bool logicalOr(Bool b) {
+            if (this instanceof BBot || b instanceof BBot) {
+                return Bot;
+            } else if (this instanceof BTrue || b instanceof BTrue) {
+                return True;
+            } else if (this instanceof BTop || b instanceof BTop) {
+                return Top;
+            } else {
+                return False;
+            }
+        }
+
+        public Bool logicalNot() {
+            if (this instanceof BBot) {
+                return Bot;
+            } else if (this instanceof BTrue) {
+                return False;
+            } else if (this instanceof BFalse) {
+                return True;
+            } else {
+                return Top;
+            }
+        }
+
+        public Num toNum() {
+            if (this instanceof BBot) {
+                return Num.Bot;
+            } else if (this instanceof BTrue) {
+                return Num.alpha(1.0);
+            } else if (this instanceof BFalse) {
+                return Num.alpha(0.0);
+            } else {
+                return Num.Top;
+            }
+        }
+
+        public Str toStr() {
+            if (this instanceof BBot) {
+                return Str.Bot;
+            } else if (this instanceof BTrue) {
+                return Str.alpha("true");
+            } else if (this instanceof BFalse) {
+                return Str.alpha("false");
+            } else {
+                return Str.Top;
             }
         }
 
@@ -437,6 +764,244 @@ public class Domains {
 
         public Boolean notPartialLessEqual(Str str) {
             return !(this.partialLessEqual(str));
+        }
+
+        public Bool strictEqual(Str str) {
+            if (this instanceof SConstNum && str instanceof SConstNum) {
+                return Bool.alpha(((SConstNum)this).str.equals(((SConstNum)str).str));
+            } else if (this instanceof SConstNotSplNorNum && str instanceof SConstNotSplNorNum) {
+                return Bool.alpha(((SConstNotSplNorNum)this).str.equals(((SConstNotSplNorNum)str).str));
+            } else if (this instanceof SConstSpl && str instanceof SConstSpl) {
+                return Bool.alpha(((SConstSpl)this).str.equals(((SConstSpl)str).str));
+            } else if ((this instanceof SNotSpl && str instanceof SNotNum)
+                    || (this instanceof SNotNum && str instanceof SNotSpl)) {
+                return Bool.Top;
+            } else if (this.notPartialLessEqual(str) && str.notPartialLessEqual(this)) {
+                return Bool.False;
+            } else if (this instanceof SBot || str instanceof SBot) {
+                return Bool.Bot;
+            } else {
+                return Bool.Top;
+            }
+        }
+
+        public Str strConcat(Str str) {
+            if (this instanceof SBot || str instanceof SBot) {
+                return Bot;
+            } else if (this instanceof STop && str instanceof SConstNum) {
+                return new SNotSpl();
+            } else if (this instanceof STop && str instanceof SConstSpl) {
+                return new SNotNum();
+            } else if (this instanceof STop && str instanceof SNum) {
+                return new SNotSpl();
+            } else if (this instanceof STop && str instanceof SSpl) {
+                return new SNotNum();
+            } else if (this instanceof STop) {
+                return Top;
+            } else if (this.equals(Str.Empty)) {
+                return str;
+            } else if (str.equals(Str.Empty)) {
+                return this;
+            } else if (Str.isExact(this) && Str.isExact(str)) {
+                return Str.alpha(Str.getExact(this).get() + Str.getExact(str).get());
+            } else if (this instanceof SConstNum) {
+                if (str instanceof SNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotSplNorNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SSpl) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotSpl) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotNum) {
+                    return new SNotSpl();
+                } else if (str instanceof STop) {
+                    return new SNotSpl();
+                }
+            } else if (this instanceof SConstNotSplNorNum) {
+                if (str instanceof SNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotSplNorNum) {
+                    return new SNotNum();
+                } else if (str instanceof SSpl) {
+                    return new SNotNum();
+                } else if (str instanceof SNotSpl) {
+                    return Top;
+                } else if (str instanceof SNotNum) {
+                    return new SNotNum();
+                } else if (str instanceof STop) {
+                    return Top;
+                }
+            } else if (this instanceof SConstSpl) {
+                if (str instanceof SNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotSplNorNum) {
+                    return new SNotNum();
+                } else if (str instanceof SSpl) {
+                    return new SNotSplNorNum();
+                } else if (str instanceof SNotSpl) {
+                    return new SNotNum();
+                } else if (str instanceof SNotNum) {
+                    return new SNotNum();
+                } else if (str instanceof STop) {
+                    return new SNotNum();
+                }
+            } else if (this instanceof SNum) {
+                if (str instanceof SConstNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SConstNotSplNorNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SConstSpl) {
+                    return new SNotSplNorNum();
+                } else if (str instanceof SNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotSplNorNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SSpl) {
+                    return new SNotSplNorNum();
+                } else if (str instanceof SNotSpl) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotNum) {
+                    return new SNotSpl();
+                } else if (str instanceof STop) {
+                    return new SNotSpl();
+                }
+            } else if (this instanceof SNotSplNorNum) {
+                if (str instanceof SConstNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SConstNotSplNorNum) {
+                    return new SNotNum();
+                } else if (str instanceof SConstSpl) {
+                    return new SNotNum();
+                } else if (str instanceof SNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotSplNorNum) {
+                    return new SNotNum();
+                } else if (str instanceof SSpl) {
+                    return new SNotNum();
+                } else if (str instanceof SNotSpl) {
+                    return Top;
+                } else if (str instanceof SNotNum) {
+                    return new SNotNum();
+                } else if (str instanceof STop) {
+                    return Top;
+                }
+            } else if (this instanceof SSpl) {
+                if (str instanceof SConstNum) {
+                    return new SNotSplNorNum();
+                } else if (str instanceof SConstNotSplNorNum) {
+                    return new SNotNum();
+                } else if (str instanceof SConstSpl) {
+                    return new SNotSplNorNum();
+                } else if (str instanceof SNum) {
+                    return new SNotSplNorNum();
+                } else if (str instanceof SNotSplNorNum) {
+                    return new SNotNum();
+                } else if (str instanceof SSpl) {
+                    return new SNotSplNorNum();
+                } else if (str instanceof SNotSpl) {
+                    return new SNotNum();
+                } else if (str instanceof SNotNum) {
+                    return new SNotNum();
+                } else if (str instanceof STop) {
+                    return new SNotNum();
+                }
+            } else if (this instanceof SNotSpl) {
+                if (str instanceof SConstNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SConstNotSplNorNum) {
+                    return Top;
+                } else if (str instanceof SConstSpl) {
+                    return new SNotNum();
+                } else if (str instanceof SNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotSplNorNum) {
+                    return Top;
+                } else if (str instanceof SSpl) {
+                    return new SNotNum();
+                } else if (str instanceof SNotSpl) {
+                    return Top;
+                } else if (str instanceof SNotNum) {
+                    return Top;
+                } else if (str instanceof STop) {
+                    return Top;
+                }
+            } else if (this instanceof SNotNum) {
+                if (str instanceof SConstNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SConstNotSplNorNum) {
+                    return new SNotNum();
+                } else if (str instanceof SConstSpl) {
+                    return new SNotNum();
+                } else if (str instanceof SNum) {
+                    return new SNotSpl();
+                } else if (str instanceof SNotSplNorNum) {
+                    return new SNotNum();
+                } else if (str instanceof SSpl) {
+                    return new SNotNum();
+                } else if (str instanceof SNotSpl) {
+                    return Top;
+                } else if (str instanceof SNotNum) {
+                    return new SNotNum();
+                } else if (str instanceof STop) {
+                    return Top;
+                }
+            }
+            throw new RuntimeException("incorrect implementation of string lattice");
+        }
+
+        public Bool strLessThan(Str str) {
+            if (this instanceof SBot || str instanceof SBot) {
+                return Bool.Bot;
+            } else if (Str.isExact(this) && Str.isExact(str)) {
+                return Bool.alpha(Str.getExact(this).get().compareTo(Str.getExact(str).get()) < 0);
+            } else if ((this instanceof SConstNum && str instanceof SConstSpl)
+                    || (this instanceof SConstNum && str instanceof SSpl)
+                    || (this instanceof SNum && str instanceof SConstSpl)
+                    || (this instanceof SNum && str instanceof SSpl)) {
+                return Bool.True;
+            } else if ((this instanceof SConstSpl && str instanceof SConstNum)
+                    || (this instanceof SConstSpl && str instanceof SNum)
+                    || (this instanceof SSpl && str instanceof SConstNum)
+                    || (this instanceof SSpl && str instanceof SNum)) {
+                return Bool.False;
+            } else {
+                return Bool.Top;
+            }
+        }
+
+        public Bool strLessEqual(Str str) {
+            if (this instanceof SBot || str instanceof SBot) {
+                return Bool.Bot;
+            } else if (Str.isExact(this) && Str.isExact(str)) {
+                return Bool.alpha(Str.getExact(this).get().compareTo(Str.getExact(str).get()) <= 0);
+            } else if ((this instanceof SConstNum && str instanceof SConstSpl)
+                    || (this instanceof SConstNum && str instanceof SSpl)
+                    || (this instanceof SNum && str instanceof SConstSpl)
+                    || (this instanceof SNum && str instanceof SSpl)) {
+                return Bool.True;
+            } else if ((this instanceof SConstSpl && str instanceof SConstNum)
+                    || (this instanceof SConstSpl && str instanceof SNum)
+                    || (this instanceof SSpl && str instanceof SConstNum)
+                    || (this instanceof SSpl && str instanceof SNum)) {
+                return Bool.False;
+            } else {
+                return Bool.Top;
+            }
+        }
+
+        public Num toNum() {
+            if (this instanceof SBot) {
+                return Num.Bot;
+            } else if (this instanceof SNotNum || this instanceof SSpl || this instanceof SNotSplNorNum) {
+                return Num.NaN;
+            } else if (this instanceof SConstNotSplNorNum || this instanceof SConstSpl) {
+                return Num.NaN;
+            } else if (this instanceof SConstNum) {
+                return Num.alpha(Double.valueOf(((SConstNum)this).str));
+            } else {
+                return Num.Top;
+            }
         }
 
         public static final Str Top = new STop();
