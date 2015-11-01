@@ -31,6 +31,24 @@ public class Domains {
 
     public static abstract class Value {}
 
+    public static class EValue extends Value {
+        public BValue bv;
+
+        public EValue(BValue bv) {
+            this.bv = bv;
+        }
+    }
+
+    public static class JValue extends Value {
+        public String lbl;
+        public BValue bv;
+
+        public JValue(String lbl, BValue bv) {
+            this.lbl = lbl;
+            this.bv = bv;
+        }
+    }
+
     public static class BValue extends Value {
         public Num n;
         public Bool b;
@@ -152,6 +170,94 @@ public class Domains {
             return Bool.inject(b.logicalNot());
         }
 
+        public BValue isPrim() {
+            Bool notaddr = Bool.alpha(!types.contains(DAddr));
+            Bool hasprim = Bool.alpha(!defAddr());
+            return Bool.inject(notaddr.merge(hasprim));
+        }
+
+        public BValue toBool() {
+            Bool res = Bool.Bot;
+            for (Domain dom : types) {
+                if (!res.equals(Bool.Top)) {
+                    Bool b1;
+                    if (dom.equals(DNum)) {
+                        if (n.defNaN() || n.def0()) {
+                            b1 = Bool.False;
+                        } else if (n.defNotNaN() && n.defNot0()) {
+                            b1 = Bool.True;
+                        } else {
+                            b1 = Bool.Top;
+                        }
+                    } else if (dom.equals(DBool)) {
+                        b1 = b;
+                    } else if (dom.equals(DStr)) {
+                        if (str.defEmpty()) {
+                            b1 = Bool.False;
+                        } else if (str.defNotEmpty()) {
+                            b1 = Bool.True;
+                        } else {
+                            b1 = Bool.Top;
+                        }
+                    } else if (dom.equals(DAddr)) {
+                        b1 = Bool.True;
+                    } else {
+                        b1 = Bool.False;
+                    }
+                    res = res.merge(b1);
+                }
+            }
+            return Bool.inject(res);
+        }
+
+        public BValue toStr() {
+            Str res = Str.Bot;
+            for (Domain dom : types) {
+                if (!res.equals(Str.Top)) {
+                    Str str1;
+                    if (dom.equals(DNum)) {
+                        str1 = n.toStr();
+                    } else if (dom.equals(DBool)) {
+                        str1 = b.toStr();
+                    } else if (dom.equals(DStr)) {
+                        str1 = str;
+                    } else if (dom.equals(DNull)) {
+                        str1 = Str.alpha("null");
+                    } else if (dom.equals(DUndef)) {
+                        str1 = Str.alpha("undefined");
+                    } else {
+                        str1 = Str.Top;
+                    }
+                    res = res.merge(str1);
+                }
+            }
+            return Str.inject(res);
+        }
+
+        private BValue toNum() {
+            Num res = Num.Bot;
+            for (Domain dom : types) {
+                if (!res.equals(Num.Top)) {
+                    Num n1;
+                    if (dom.equals(DNum)) {
+                        n1 = n;
+                    } else if (dom.equals(DBool)) {
+                        n1 = b.toNum();
+                    } else if (dom.equals(DStr)) {
+                        n1 = str.toNum();
+                    } else if (dom.equals(DNull)) {
+                        n1 = Num.alpha(0.0);
+                    } else if (dom.equals(DUndef)) {
+                        n1 = Num.alpha(Double.NaN);
+                    } else {
+                        n1 = Num.Top;
+                    }
+                    res = res.merge(n1);
+                }
+            }
+            return Num.inject(res);
+        }
+
         public Boolean isBot() {
             return types.isEmpty();
         }
@@ -178,6 +284,22 @@ public class Domains {
 
         public Boolean defUndef() {
             return (types.size() == 1 && types.contains(DUndef));
+        }
+
+        public BValue onlyNum() {
+            return Num.inject(n);
+        }
+
+        public BValue onlyBool() {
+            return Bool.inject(b);
+        }
+
+        public BValue onlyStr() {
+            return Str.inject(str);
+        }
+
+        public BValue onlyAddr() {
+            return AddressSpace.Addresses.inject(as);
         }
 
         public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, ImmutableSet.<AddressSpace.Address>of(), Null.Bot, Undef.Bot);
@@ -448,6 +570,22 @@ public class Domains {
             } else {
                 return Str.Bot;
             }
+        }
+
+        public Boolean defNaN() {
+            return this.equals(NaN);
+        }
+
+        public Boolean defNotNaN() {
+            return (!this.equals(NaN) && !this.equals(Top));
+        }
+
+        public Boolean def0() {
+            return this.equals(Zero);
+        }
+
+        public Boolean defNot0() {
+            return (this.equals(Bot) || (this instanceof NConst && ((NConst)this).d != 0));
         }
 
         public static final Num Top = new NTop();
@@ -1002,6 +1140,16 @@ public class Domains {
             } else {
                 return Num.Top;
             }
+        }
+
+        public Boolean defEmpty() {
+            return this.equals(Empty);
+        }
+
+        public Boolean defNotEmpty() {
+            return (this instanceof SBot || this instanceof SNum || this instanceof SConstNum ||
+                    this instanceof SConstSpl || this instanceof SSpl ||
+                    (this instanceof SConstNotSplNorNum && !((SConstNotSplNorNum)this).str.isEmpty()));
         }
 
         public static final Str Top = new STop();
