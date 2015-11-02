@@ -1,10 +1,14 @@
 package analysis;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import ir.IRStmt;
+import ir.*;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Created by wayne on 15/10/29.
@@ -18,6 +22,113 @@ public class Domains {
 
         public StmtTerm(IRStmt s) {
             this.s = s;
+        }
+    }
+
+    public static class ValueTerm extends Term {
+        public Value v;
+
+        public ValueTerm(Value v) {
+            this.v = v;
+        }
+    }
+
+    public static class Env {
+        public ImmutableMap<IRPVar, ImmutableSet<AddressSpace.Address>> env;
+
+        public Env(ImmutableMap<IRPVar, ImmutableSet<AddressSpace.Address>> env) {
+            this.env = env;
+        }
+
+        public Env merge(Env rho) {
+            ImmutableMap.Builder<IRPVar, ImmutableSet<AddressSpace.Address>> builder = ImmutableMap.<IRPVar, ImmutableSet<AddressSpace.Address>>builder();
+            for (Map.Entry<IRPVar, ImmutableSet<AddressSpace.Address>> entry : env.entrySet()) {
+                builder = builder.put(
+                        entry.getKey(),
+                        ImmutableSet.<AddressSpace.Address>builder()
+                                .addAll(entry.getValue())
+                                .addAll(rho.env.get(entry.getKey())).build());
+            }
+            return new Env(builder.build());
+        }
+
+        public ImmutableSet<AddressSpace.Address> apply(IRPVar x) {
+            return env.get(x);
+        }
+
+        public Env extendAll(ImmutableList<Map.Entry<IRPVar, AddressSpace.Address>> bind) {
+            ImmutableMap.Builder<IRPVar, ImmutableSet<AddressSpace.Address>> builder = ImmutableMap.<IRPVar, ImmutableSet<AddressSpace.Address>>builder().putAll(env);
+            for (Map.Entry<IRPVar, AddressSpace.Address> entry : bind) {
+                builder = builder.put(entry.getKey(), ImmutableSet.of(entry.getValue()));
+            }
+            return new Env(builder.build());
+        }
+
+        public ImmutableSet<AddressSpace.Address> addrs() {
+            ImmutableSet.Builder<AddressSpace.Address> builder = ImmutableSet.<AddressSpace.Address>builder();
+            for (ImmutableSet<AddressSpace.Address> set : env.values()) {
+                builder = builder.addAll(set);
+            }
+            return builder.build();
+        }
+    }
+
+    public static class Store {
+        public ImmutableMap<AddressSpace.Address, BValue> toValue;
+        public ImmutableSet<AddressSpace.Address> weak;
+    }
+
+    public static class Scratchpad {
+        public ImmutableList<BValue> mem;
+
+        public Scratchpad(ImmutableList<BValue> mem) {
+            this.mem = mem;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Scratchpad && mem.equals(((Scratchpad) obj).mem));
+        }
+
+        public Scratchpad merge(Scratchpad pad) {
+            if (this.equals(pad)) {
+                return this;
+            } else {
+                ImmutableList.Builder<BValue> builder = ImmutableList.<BValue>builder();
+                for (int i = 0; i < mem.size(); i += 1) {
+                    builder.add(mem.get(i).merge(pad.mem.get(i)));
+                }
+                return new Scratchpad(builder.build());
+            }
+        }
+
+        public BValue apply(IRScratch x) {
+            return mem.get(x.n);
+        }
+
+        public Scratchpad update(IRScratch x, BValue bv) {
+            int sz = mem.size();
+            return new Scratchpad(ImmutableList.<BValue>builder()
+                    .addAll(mem.subList(0, x.n))
+                    .add(bv).addAll(mem.subList(x.n + 1, sz))
+                    .build()
+            );
+        }
+
+        public ImmutableSet<AddressSpace.Address> addrs() {
+            ImmutableSet.Builder<AddressSpace.Address> builder = ImmutableSet.<AddressSpace.Address>builder();
+            for (BValue bv : mem) {
+                builder = builder.addAll(bv.as);
+            }
+            return builder.build();
+        }
+
+        public static Scratchpad apply(Integer len) {
+            ArrayList<BValue> bvs = new ArrayList<>(len);
+            for (int i = 0; i < len; i += 1) {
+                bvs.add(i, Undef.BV);
+            }
+            return new Scratchpad(ImmutableList.<BValue>builder().addAll(bvs).build());
         }
     }
 
@@ -634,21 +745,21 @@ public class Domains {
 
     public static class NBot extends Num {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof NBot);
         }
     }
 
     public static class NTop extends Num {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof NTop);
         }
     }
 
     public static class NReal extends Num {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof NReal);
         }
     }
@@ -661,7 +772,7 @@ public class Domains {
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             if (obj instanceof NConst) {
                 return (d.equals(((NConst) obj).d) || (d.isNaN() && ((NConst) obj).d.isNaN()));
             } else {
@@ -778,28 +889,28 @@ public class Domains {
 
     public static class BBot extends Bool {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof BBot);
         }
     }
 
     public static class BTrue extends Bool {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof BTrue);
         }
     }
 
     public static class BFalse extends Bool {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof BFalse);
         }
     }
 
     public static class BTop extends Bool {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof BTop);
         }
     }
@@ -1245,19 +1356,12 @@ public class Domains {
                 ImmutableSet.Builder<Str> builder = ImmutableSet.<Str>builder();
                 for (Str str : strs) {
                     if (str instanceof SConstNum && (hasSNum || hasSNotSpl)) {
-
                     } else if (str instanceof SConstNotSplNorNum && (hasSNotSplNorNum || hasSNotSpl || hasSNotNum)) {
-
                     } else if (str instanceof SConstSpl && (hasSSpl || hasSNotNum)) {
-
                     } else if (str instanceof SNum && (hasSNotSpl)) {
-
                     } else if (str instanceof SNotSplNorNum && (hasSNotSpl || hasSNotNum)) {
-
                     } else if (str instanceof SSpl && (hasSNotNum)) {
-
                     } else if (str instanceof SBot) {
-
                     } else {
                         builder = builder.add(str);
                     }
@@ -1269,49 +1373,49 @@ public class Domains {
 
     public static class SBot extends Str {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof SBot);
         }
     }
 
     public static class STop extends Str {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof STop);
         }
     }
 
     public static class SNum extends Str {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof SNum);
         }
     }
 
     public static class SNotNum extends Str {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof SNotNum);
         }
     }
 
     public static class SSpl extends Str {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof SSpl);
         }
     }
 
     public static class SNotSplNorNum extends Str {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof SNotSplNorNum);
         }
     }
 
     public static class SNotSpl extends Str {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof SNotSpl);
         }
     }
@@ -1324,7 +1428,7 @@ public class Domains {
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof SConstNum && ((SConstNum) obj).str.equals(str));
         }
     }
@@ -1337,7 +1441,7 @@ public class Domains {
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof SConstNotSplNorNum && ((SConstNotSplNorNum) obj).str.equals(str));
         }
     }
@@ -1350,7 +1454,7 @@ public class Domains {
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof SConstSpl && ((SConstSpl) obj).str.equals(str));
         }
     }
@@ -1406,14 +1510,14 @@ public class Domains {
 
     public static class MaybeNull extends Null {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof MaybeNull);
         }
     }
 
     public static class NotNull extends Null {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof NotNull);
         }
     }
@@ -1435,15 +1539,65 @@ public class Domains {
 
     public static class MaybeUndef extends Undef {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof MaybeUndef);
         }
     }
 
     public static class NotUndef extends Undef {
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(java.lang.Object obj) {
             return (obj instanceof NotUndef);
+        }
+    }
+
+    public static abstract class Closure {}
+
+    public static class Clo extends Closure {
+        public Env rho;
+        public IRMethod m;
+
+        public Clo(Env rho, IRMethod m) {
+            this.rho = rho;
+            this.m = m;
+        }
+    }
+
+    public static class Object {
+        public ExternMap extern;
+        public ImmutableMap<Str, java.lang.Object> intern;
+        public ImmutableSet<Str> present;
+
+        JSClass myClass;
+        BValue myProto;
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Object && extern.equals(((Object) obj).extern) && intern.equals(((Object) obj).intern) && present.equals(((Object) obj).present));
+        }
+
+        public Object(ExternMap extern, ImmutableMap<Str, java.lang.Object> intern, ImmutableSet<Str> present) {
+            this.extern = extern;
+            this.intern = intern;
+            this.present = present;
+            myClass = (JSClass)intern.get(Utils.Fields.classname);
+            myProto = (BValue)intern.get(Utils.Fields.proto);
+        }
+    }
+
+    public static class ExternMap {
+        public Optional<BValue> top;
+        public Optional<BValue> notnum;
+        public Optional<BValue> num;
+        public ImmutableMap<Str, BValue> exactnotnum;
+        public ImmutableMap<Str, BValue> exactnum;
+
+        public ExternMap() {
+            this.top = Optional.absent();
+            this.notnum = Optional.absent();
+            this.num = Optional.absent();
+            this.exactnotnum = ImmutableMap.of();
+            this.exactnum = ImmutableMap.of();
         }
     }
 }
