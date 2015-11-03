@@ -5,7 +5,9 @@ import com.google.common.collect.ImmutableList;
 import ir.IRScratch;
 import ir.IRVar;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -29,8 +31,18 @@ public class Utils {
     }
 
     public static Map.Entry<Domains.Store, ArrayList<Domains.Address>> alloc(Domains.Store store, ArrayList<Domains.BValue> bvs) {
-        // TODO
-        return null;
+        ArrayList<Domains.Address> as = new ArrayList<Domains.Address>();
+        for (int i = 0; i < bvs.size(); ++i) {
+            as.add(Domains.Address.generate());
+        }
+        ArrayList<Map.Entry<Domains.Address, Domains.BValue>> avs = new ArrayList<>();
+        for (int i = 0; i < as.size(); ++i) {
+            avs.add(new AbstractMap.SimpleImmutableEntry<Domains.Address, Domains.BValue>(as.get(i), bvs.get(i)));
+        }
+        Domains.Store store1 = store.extendAll(
+                ImmutableList.<Map.Entry<Domains.Address, Domains.BValue>>builder().addAll(avs).build()
+        );
+        return new AbstractMap.SimpleImmutableEntry<Domains.Store, ArrayList<Domains.Address>>(store1, as);
     }
 
     public static Map.Entry<Domains.Store, Domains.Address> allocFun(Domains.Closure clo, Domains.BValue n, Domains.Store store) {
