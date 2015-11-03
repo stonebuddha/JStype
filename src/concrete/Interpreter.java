@@ -6,6 +6,7 @@ import concrete.init.Init;
 import ir.*;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Created by wayne on 15/10/29.
@@ -378,8 +379,17 @@ public class Interpreter {
                         return new State(new Domains.StmtTerm(ck.sf), env, store, pad, ks.repl(new Domains.FinKont(ev)));
                     }
                     else {
-                        // TODO
-                        return null;
+                        Predicate<Domains.Kont> f = new Predicate<Domains.Kont>() {
+                            @Override
+                            public boolean test(Domains.Kont kont) {
+                                if (kont instanceof Domains.RetKont || kont instanceof Domains.TryKont || kont instanceof Domains.CatchKont || kont instanceof Domains.HaltKont) {
+                                    return false;
+                                }
+                                return true;
+                            }
+                        };
+                        Domains.KontStack ks1 = ks.dropWhile(f);
+                        return new State(new Domains.ValueTerm(ev), env, store, pad, ks1);
                     }
                 } else {
                     Domains.JValue jv = (Domains.JValue) v;
@@ -395,8 +405,20 @@ public class Interpreter {
                         return new State(new Domains.ValueTerm(jv.bv), env, store, pad, ks.pop());
                     }
                     else {
-                        // TODO
-                        return null;
+                        Predicate<Domains.Kont> f = new Predicate<Domains.Kont>() {
+                            @Override
+                            public boolean test(Domains.Kont kont) {
+                                if (kont instanceof Domains.TryKont || kont instanceof Domains.CatchKont || kont instanceof Domains.HaltKont) {
+                                    return false;
+                                }
+                                if (kont instanceof Domains.LblKont && (((Domains.LblKont) kont).lbl) == jv.lbl) {
+                                    return false;
+                                }
+                                return true;
+                            }
+                        };
+                        Domains.KontStack ks1 = ks.dropWhile(f);
+                        return new State(new Domains.ValueTerm(jv), env, store, pad, ks1);
                     }
                 }
                 return null;
