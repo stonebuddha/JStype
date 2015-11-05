@@ -1,5 +1,6 @@
 package analysis;
 
+import analysis.init.Init;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -23,6 +24,11 @@ public class Domains {
         public StmtTerm(IRStmt s) {
             this.s = s;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof StmtTerm && s.equals(((StmtTerm) obj).s));
+        }
     }
 
     public static class ValueTerm extends Term {
@@ -30,6 +36,11 @@ public class Domains {
 
         public ValueTerm(Value v) {
             this.v = v;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof ValueTerm && v.equals(((ValueTerm) obj).v));
         }
     }
 
@@ -40,16 +51,25 @@ public class Domains {
             this.env = env;
         }
 
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Env && env.equals(((Env) obj).env));
+        }
+
         public Env merge(Env rho) {
-            ImmutableMap.Builder<IRPVar, ImmutableSet<AddressSpace.Address>> builder = ImmutableMap.<IRPVar, ImmutableSet<AddressSpace.Address>>builder();
-            for (Map.Entry<IRPVar, ImmutableSet<AddressSpace.Address>> entry : env.entrySet()) {
-                builder = builder.put(
-                        entry.getKey(),
-                        ImmutableSet.<AddressSpace.Address>builder()
-                                .addAll(entry.getValue())
-                                .addAll(rho.env.get(entry.getKey())).build());
+            if (this.equals(rho)) {
+                return this;
+            } else {
+                ImmutableMap.Builder<IRPVar, ImmutableSet<AddressSpace.Address>> builder = ImmutableMap.<IRPVar, ImmutableSet<AddressSpace.Address>>builder();
+                for (Map.Entry<IRPVar, ImmutableSet<AddressSpace.Address>> entry : env.entrySet()) {
+                    builder.put(
+                            entry.getKey(),
+                            ImmutableSet.<AddressSpace.Address>builder()
+                                    .addAll(entry.getValue())
+                                    .addAll(rho.env.get(entry.getKey())).build());
+                }
+                return new Env(builder.build());
             }
-            return new Env(builder.build());
         }
 
         public ImmutableSet<AddressSpace.Address> apply(IRPVar x) {
@@ -57,9 +77,10 @@ public class Domains {
         }
 
         public Env extendAll(ImmutableList<Map.Entry<IRPVar, AddressSpace.Address>> bind) {
-            ImmutableMap.Builder<IRPVar, ImmutableSet<AddressSpace.Address>> builder = ImmutableMap.<IRPVar, ImmutableSet<AddressSpace.Address>>builder().putAll(env);
+            ImmutableMap.Builder<IRPVar, ImmutableSet<AddressSpace.Address>> builder = ImmutableMap.<IRPVar, ImmutableSet<AddressSpace.Address>>builder();
+            builder.putAll(env);
             for (Map.Entry<IRPVar, AddressSpace.Address> entry : bind) {
-                builder = builder.put(entry.getKey(), ImmutableSet.of(entry.getValue()));
+                builder.put(entry.getKey(), ImmutableSet.of(entry.getValue()));
             }
             return new Env(builder.build());
         }
@@ -67,7 +88,7 @@ public class Domains {
         public ImmutableSet<AddressSpace.Address> addrs() {
             ImmutableSet.Builder<AddressSpace.Address> builder = ImmutableSet.<AddressSpace.Address>builder();
             for (ImmutableSet<AddressSpace.Address> set : env.values()) {
-                builder = builder.addAll(set);
+                builder.addAll(set);
             }
             return builder.build();
         }
@@ -75,7 +96,82 @@ public class Domains {
 
     public static class Store {
         public ImmutableMap<AddressSpace.Address, BValue> toValue;
-        public ImmutableSet<AddressSpace.Address> weak;
+        public ImmutableMap<AddressSpace.Address, Object> toObject;
+        public ImmutableMap<AddressSpace.Address, ImmutableSet<KontStack>> toKonts;
+
+        public Store(ImmutableMap<AddressSpace.Address, BValue> toValue, ImmutableMap<AddressSpace.Address, Object> toObject, ImmutableMap<AddressSpace.Address, ImmutableSet<KontStack>> toKonts) {
+            this.toValue = toValue;
+            this.toObject = toObject;
+            this.toKonts = toKonts;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            if (obj instanceof Store) {
+                Store sigma = (Store)obj;
+                return (toValue.equals(((Store) obj).toValue) && toObject.equals(((Store) obj).toObject) && toKonts.equals(((Store) obj).toKonts));
+            } else {
+                return false;
+            }
+        }
+
+        public Store merge(Store sigma) {
+            ImmutableMap<AddressSpace.Address, BValue> _toValue;
+            if (toValue.equals(sigma.toValue)) {
+                _toValue = toValue;
+            } else {
+                ImmutableMap.Builder<AddressSpace.Address, BValue> builder = ImmutableMap.<AddressSpace.Address, BValue>builder();
+                builder.putAll(sigma.toValue);
+                for (Map.Entry<AddressSpace.Address, BValue> entry : toValue.entrySet()) {
+                    AddressSpace.Address a = entry.getKey();
+                    BValue bv = entry.getValue();
+                    BValue bv2 = sigma.toValue.get(a);
+                    if (bv2 != null) {
+                        builder.put(a, bv.merge(bv2));
+                    } else {
+                        builder.put(a, bv);
+                    }
+                }
+                _toValue = builder.build();
+            }
+            ImmutableMap<AddressSpace.Address, Object> _toObject;
+            if (toObject.equals(sigma.toObject)) {
+                _toObject = toObject;
+            } else {
+                ImmutableMap.Builder<AddressSpace.Address, Object> builder = ImmutableMap.<AddressSpace.Address, Object>builder();
+                builder.putAll(sigma.toObject);
+                for (Map.Entry<AddressSpace.Address, Object> entry : toObject.entrySet()) {
+                    AddressSpace.Address a = entry.getKey();
+                    Object o = entry.getValue();
+                    Object o2 = sigma.toObject.get(a);
+                    if (o2 != null) {
+                        builder.put(a, o.merge(o2));
+                    } else {
+                        builder.put(a, o);
+                    }
+                }
+                _toObject = builder.build();
+            }
+            ImmutableMap<AddressSpace.Address, ImmutableSet<KontStack>> _toKonts;
+            if (toKonts.equals(sigma.toKonts)) {
+                _toKonts = toKonts;
+            } else {
+                ImmutableMap.Builder<AddressSpace.Address, ImmutableSet<KontStack>> builder = ImmutableMap.<AddressSpace.Address, ImmutableSet<KontStack>>builder();
+                builder.putAll(sigma.toKonts);
+                for (Map.Entry<AddressSpace.Address, ImmutableSet<KontStack>> entry : toKonts.entrySet()) {
+                    AddressSpace.Address a = entry.getKey();
+                    ImmutableSet<KontStack> ks = entry.getValue();
+                    ImmutableSet<KontStack> ks2 = sigma.toKonts.get(a);
+                    if (ks2 != null) {
+                        builder.put(a, ImmutableSet.<KontStack>builder().addAll(ks).addAll(ks2).build());
+                    } else {
+                        builder.put(a, ks);
+                    }
+                }
+                _toKonts = builder.build();
+            }
+            return new Store(_toValue, _toObject, _toKonts);
+        }
     }
 
     public static class Scratchpad {
@@ -148,6 +244,11 @@ public class Domains {
         public EValue(BValue bv) {
             this.bv = bv;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof EValue && bv.equals(((EValue) obj).bv));
+        }
     }
 
     public static class JValue extends Value {
@@ -158,6 +259,11 @@ public class Domains {
             this.lbl = lbl;
             this.bv = bv;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof JValue && lbl.equals(((JValue) obj).lbl) && bv.equals(((JValue) obj).bv));
+        }
     }
 
     public static class BValue extends Value {
@@ -167,7 +273,8 @@ public class Domains {
         public ImmutableSet<AddressSpace.Address> as;
         public Null nil;
         public Undef undef;
-        public ImmutableSet<Domain> types;
+
+        ImmutableSet<Domain> types;
 
         public BValue(Num n, Bool b, Str str, ImmutableSet<AddressSpace.Address> as, Null nil, Undef undef) {
             this.n = n;
@@ -185,6 +292,16 @@ public class Domains {
             if (!nil.equals(Null.Bot)) builder = builder.add(DNull);
             if (!undef.equals(Undef.Bot)) builder = builder.add(DUndef);
             this.types = builder.build();
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            if (obj instanceof BValue) {
+                BValue bv = (BValue)obj;
+                return (n.equals(bv.n) && b.equals(bv.b) && str.equals(bv.str) && as.equals(bv.as) && nil.equals(bv.nil) && undef.equals(bv.undef));
+            } else {
+                return false;
+            }
         }
 
         public BValue merge(BValue bv) {
@@ -1363,7 +1480,7 @@ public class Domains {
                     } else if (str instanceof SSpl && (hasSNotNum)) {
                     } else if (str instanceof SBot) {
                     } else {
-                        builder = builder.add(str);
+                        builder.add(str);
                     }
                 }
                 return builder.build();
@@ -1468,6 +1585,11 @@ public class Domains {
                 this.loc = loc;
             }
 
+            @Override
+            public boolean equals(java.lang.Object obj) {
+                return (obj instanceof Address && loc.equals(((Address) obj).loc));
+            }
+
             public static Address apply(Integer x) {
                 return new Address(BigInteger.valueOf(x));
             }
@@ -1561,6 +1683,11 @@ public class Domains {
             this.rho = rho;
             this.m = m;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Clo && rho.equals(((Clo) obj).rho) && m.equals(((Clo) obj).m));
+        }
     }
 
     public static class Object {
@@ -1582,6 +1709,77 @@ public class Domains {
             this.present = present;
             myClass = (JSClass)intern.get(Utils.Fields.classname);
             myProto = (BValue)intern.get(Utils.Fields.proto);
+        }
+
+        public Object merge(Object o) {
+            if (this.equals(o)) {
+                return this;
+            } else {
+                ExternMap extern1 = extern.merge(o.extern);
+                ImmutableSet.Builder<Str> builder1 = ImmutableSet.<Str>builder();
+                for (Str str : present) {
+                    if (o.present.contains(str)) {
+                        builder1.add(str);
+                    }
+                }
+                ImmutableSet<Str> present1 = builder1.build();
+                ImmutableMap.Builder<Str, java.lang.Object> builder2 = ImmutableMap.<Str, java.lang.Object>builder();
+                for (Map.Entry<Str, java.lang.Object> entry : o.intern.entrySet()) {
+                    Str k = entry.getKey();
+                    java.lang.Object v = entry.getValue();
+                    if (k.equals(Utils.Fields.code)) {
+                        ImmutableSet<Closure> me = (ImmutableSet<Closure>)intern.get(Utils.Fields.code);
+                        ImmutableSet<Closure> that = (ImmutableSet<Closure>)v;
+                        builder2.put(k, ImmutableSet.builder().addAll(me).addAll(that).build());
+                    } else if (k.equals(Utils.Fields.classname)) {
+                        builder2.put(k, myClass);
+                    } else if (k.equals(Utils.Fields.constructor)) {
+                        builder2.put(k, true);
+                    } else {
+                        BValue me;
+                        if (intern.get(k) != null) {
+                            me = (BValue)intern.get(k);
+                        } else {
+                            me = BValue.Bot;
+                        }
+                        BValue that = (BValue)v;
+                        builder2.put(k, me.merge(that));
+                    }
+                }
+                if (intern.containsKey(Utils.Fields.constructor)) {
+                    builder2.put(Utils.Fields.constructor, true);
+                }
+                ImmutableMap<Str, java.lang.Object> intern1 = builder2.build();
+                return new Object(extern1, intern1, present1);
+            }
+        }
+
+        public Optional<BValue> apply(Str str) {
+            return extern.apply(str);
+        }
+
+        public Object strongUpdate(Str str, BValue bv) {
+            if (Str.isExact(str)) {
+                if (Init.noupdate.get(myClass).contains(str)) {
+                    return this;
+                } else {
+                    return new Object(extern.strongUpdate(str, bv), intern, ImmutableSet.<Str>builder().addAll(present).add(str).build());
+                }
+            } else {
+                return new Object(extern.weakUpdate(str, bv), intern, present);
+            }
+        }
+
+        public Object weakUpdate(Str str, BValue bv) {
+            if (Str.isExact(str)) {
+                if (Init.noupdate.get(myClass).contains(str)) {
+                    return this;
+                } else {
+                    return new Object(extern.weakUpdate(str, bv), intern, present);
+                }
+            } else {
+                return new Object(extern.weakUpdate(str, bv), intern, present);
+            }
         }
     }
 
@@ -1606,6 +1804,16 @@ public class Domains {
             this.num = num;
             this.exactnotnum = exactnotnum;
             this.exactnum = exactnum;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            if (obj instanceof ExternMap) {
+                ExternMap em = (ExternMap)obj;
+                return (top.equals(em.top) && notnum.equals(em.notnum) && num.equals(em.num) && exactnotnum.equals(em.exactnotnum) && exactnum.equals(em.exactnum));
+            } else {
+                return false;
+            }
         }
 
         public ExternMap merge(ExternMap ext) {
@@ -1653,9 +1861,9 @@ public class Domains {
                     BValue bv = entry.getValue();
                     BValue bv1 = ext.exactnotnum.get(k);
                     if (bv1 != null) {
-                        builder = builder.put(k, bv.merge(bv1));
+                        builder.put(k, bv.merge(bv1));
                     } else {
-                        builder = builder.put(k, bv);
+                        builder.put(k, bv);
                     }
                 }
                 _exactnotnum = builder.build();
@@ -1672,9 +1880,9 @@ public class Domains {
                     BValue bv = entry.getValue();
                     BValue bv1 = ext.exactnum.get(k);
                     if (bv1 != null) {
-                        builder = builder.put(k, bv.merge(bv1));
+                        builder.put(k, bv.merge(bv1));
                     } else {
-                        builder = builder.put(k, bv);
+                        builder.put(k, bv);
                     }
                 }
                 _exactnum = builder.build();
@@ -1682,18 +1890,179 @@ public class Domains {
 
             return new ExternMap(top1, notnum1, num1, _exactnotnum, _exactnum);
         }
+
+        public Optional<BValue> apply(Str str) {
+            ImmutableSet.Builder<BValue> splBuilder = ImmutableSet.<BValue>builder();
+            for (Map.Entry<Str, BValue> entry : exactnotnum.entrySet()) {
+                Str x = entry.getKey();
+                if (Str.SplStrings.contains(Str.getExact(x).get())) {
+                    splBuilder.add(entry.getValue());
+                }
+            }
+            ImmutableSet<BValue> splValues = splBuilder.build();
+            ImmutableSet.Builder<BValue> nonSplBuilder = ImmutableSet.<BValue>builder();
+            for (Map.Entry<Str, BValue> entry : exactnotnum.entrySet()) {
+                Str x = entry.getKey();
+                if (!Str.SplStrings.contains(Str.getExact(x).get())) {
+                    nonSplBuilder.add(entry.getValue());
+                }
+            }
+            ImmutableSet<BValue> nonSplValues = nonSplBuilder.build();
+
+            ImmutableSet.Builder<BValue> builder = ImmutableSet.<BValue>builder();
+            if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
+                if (top.isPresent()) builder.add(top.get());
+                if (notnum.isPresent()) builder.add(notnum.get());
+                if (exactnotnum.containsKey(str)) builder.add(exactnotnum.get(str));
+            } else if (str instanceof SConstNum) {
+                if (top.isPresent()) builder.add(top.get());
+                if (num.isPresent()) builder.add(num.get());
+                if (exactnum.containsKey(str)) builder.add(exactnum.get(str));
+            } else if (str instanceof SNum) {
+                if (top.isPresent()) builder.add(top.get());
+                if (num.isPresent()) builder.add(num.get());
+                builder.addAll(exactnum.values());
+            } else if (str instanceof SNotSplNorNum) {
+                if (top.isPresent()) builder.add(top.get());
+                if (notnum.isPresent()) builder.add(notnum.get());
+                builder.addAll(nonSplValues);
+            } else if (str instanceof SSpl) {
+                if (top.isPresent()) builder.add(top.get());
+                if (notnum.isPresent()) builder.add(notnum.get());
+                builder.addAll(splValues);
+            } else if (str instanceof SNotSpl) {
+                if (top.isPresent()) builder.add(top.get());
+                if (num.isPresent()) builder.add(num.get());
+                if (notnum.isPresent()) builder.add(notnum.get());
+                builder.addAll(exactnum.values());
+                builder.addAll(nonSplValues);
+            } else if (str instanceof SNotNum) {
+                if (top.isPresent()) builder.add(top.get());
+                if (notnum.isPresent()) builder.add(notnum.get());
+                builder.addAll(exactnotnum.values());
+            } else if (str instanceof STop) {
+                if (top.isPresent()) builder.add(top.get());
+                if (num.isPresent()) builder.add(num.get());
+                if (notnum.isPresent()) builder.add(notnum.get());
+                builder.addAll(exactnotnum.values());
+                builder.addAll(exactnum.values());
+            } else {
+                throw new RuntimeException("used SBot with an object");
+            }
+            ImmutableSet<BValue> bvs = builder.build();
+
+            if (bvs.isEmpty()) {
+                return Optional.absent();
+            } else {
+                BValue bv = BValue.Bot;
+                for (BValue v : bvs) {
+                    bv = bv.merge(v);
+                }
+                return Optional.of(bv);
+            }
+        }
+
+        public ExternMap strongUpdate(Str str, BValue bv) {
+            if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
+                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
+                builder.putAll(exactnotnum);
+                builder.put(str, bv);
+                return new ExternMap(top, notnum, num, builder.build(), exactnum);
+            } else if (str instanceof SConstNum) {
+                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
+                builder.putAll(exactnum);
+                builder.put(str, bv);
+                return new ExternMap(top, notnum, num, exactnotnum, builder.build());
+            } else {
+                throw new RuntimeException("strong updated with inexact string");
+            }
+        }
+
+        public ExternMap weakUpdate(Str str, BValue bv) {
+            if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
+                BValue _bv = exactnotnum.get(str), bv1;
+                if (_bv != null) {
+                    bv1 = bv.merge(_bv);
+                } else {
+                    bv1 = bv;
+                }
+                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
+                builder.putAll(exactnotnum);
+                builder.put(str, bv1);
+                return new ExternMap(top, notnum, num, builder.build(), exactnum);
+            } else if (str instanceof SConstNum) {
+                BValue _bv = exactnum.get(str), bv1;
+                if (_bv != null) {
+                    bv1 = bv.merge(_bv);
+                } else {
+                    bv1 = bv;
+                }
+                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
+                builder.putAll(exactnum);
+                builder.put(str, bv1);
+                return new ExternMap(top, notnum, num, exactnotnum, builder.build());
+            } else if (str instanceof SNum) {
+                Optional<BValue> num1;
+                if (num.isPresent()) {
+                    num1 = Optional.of(num.get().merge(bv));
+                } else {
+                    num1 = Optional.of(bv);
+                }
+                return new ExternMap(top, notnum, num1, exactnotnum, exactnum);
+            } else if (str instanceof SSpl || str instanceof SNotSplNorNum || str instanceof SNotNum) {
+                Optional<BValue> notnum1;
+                if (notnum.isPresent()) {
+                    notnum1 = Optional.of(notnum.get().merge(bv));
+                } else {
+                    notnum1 = Optional.of(bv);
+                }
+                return new ExternMap(top, notnum1, num, exactnotnum, exactnum);
+            } else if (str instanceof SNotSpl || str instanceof STop) {
+                Optional<BValue> top1;
+                if (top.isPresent()) {
+                    top1 = Optional.of(top.get().merge(bv));
+                } else {
+                    top1 = Optional.of(bv);
+                }
+                return new ExternMap(top1, notnum, num, exactnotnum, exactnum);
+            } else {
+                throw new RuntimeException("used SBot with an object");
+            }
+        }
+
+        public ExternMap delete(Str str) {
+            if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
+                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
+                for (Map.Entry<Str, BValue> entry : exactnotnum.entrySet()) {
+                    if (!str.equals(entry.getKey())) {
+                        builder.put(entry);
+                    }
+                }
+                return new ExternMap(top, notnum, num, builder.build(), exactnum);
+            } else if (str instanceof SConstNum) {
+                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
+                for (Map.Entry<Str, BValue> entry : exactnum.entrySet()) {
+                    if (!str.equals(entry.getKey())) {
+                        builder.put(entry);
+                    }
+                }
+                return new ExternMap(top, notnum, num, exactnotnum, builder.build());
+            } else {
+                throw new RuntimeException("tried to delete inexact string");
+            }
+        }
     }
 
     public static abstract class Kont {}
 
-    public static class HaltKont {
+    public static class HaltKont extends Kont {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof HaltKont);
         }
     }
 
-    public static class SeqKont {
+    public static class SeqKont extends Kont {
         public ImmutableList<IRStmt> ss;
 
         public SeqKont(ImmutableList<IRStmt> ss) {
@@ -1701,7 +2070,7 @@ public class Domains {
         }
     }
 
-    public static class WhileKont {
+    public static class WhileKont extends Kont {
         public IRExp e;
         public IRStmt s;
 
@@ -1711,7 +2080,7 @@ public class Domains {
         }
     }
 
-    public static class ForKont {
+    public static class ForKont extends Kont {
         public BValue bv;
         public IRVar x;
         public IRStmt s;
@@ -1723,7 +2092,7 @@ public class Domains {
         }
     }
 
-    public static class RetKont {
+    public static class RetKont extends Kont {
         public IRVar x;
         public Env rho;
         public Boolean isctor;
@@ -1736,7 +2105,7 @@ public class Domains {
         }
     }
 
-    public static class TryKont {
+    public static class TryKont extends Kont {
         public IRPVar x;
         public IRStmt sc;
         public IRStmt sf;
@@ -1748,7 +2117,7 @@ public class Domains {
         }
     }
 
-    public static class CatchKont {
+    public static class CatchKont extends Kont {
         public IRStmt sf;
 
         public CatchKont(IRStmt sf) {
@@ -1756,7 +2125,7 @@ public class Domains {
         }
     }
 
-    public static class FinKont {
+    public static class FinKont extends Kont {
         public ImmutableSet<Value> vs;
 
         public FinKont(ImmutableSet<Value> vs) {
@@ -1764,7 +2133,7 @@ public class Domains {
         }
     }
 
-    public static class LblKont {
+    public static class LblKont extends Kont {
         public String lbl;
 
         public LblKont(String lbl) {
@@ -1772,7 +2141,7 @@ public class Domains {
         }
     }
 
-    public static class AddrKont {
+    public static class AddrKont extends Kont {
         public AddressSpace.Address a;
         public IRMethod m;
 
@@ -1789,6 +2158,34 @@ public class Domains {
         public KontStack(ImmutableList<Kont> ks, ImmutableList<Integer> exc) {
             this.ks = ks;
             this.exc = exc;
+        }
+
+        public KontStack(ImmutableList<Kont> ks) {
+            this.ks = ks;
+            this.exc = ImmutableList.of(0);
+        }
+
+        public KontStack merge(KontStack rhs) {
+            ImmutableList.Builder<Kont> builder = ImmutableList.<Kont>builder();
+            for (int i = 0; i < ks.size(); i += 1) {
+                Kont k1 = ks.get(i);
+                Kont k2 = rhs.ks.get(i);
+                if (k1 instanceof FinKont && k2 instanceof FinKont) {
+
+                } else if (k1 instanceof ForKont && k2 instanceof ForKont) {
+
+                } else {
+                    builder.add(k1);
+                }
+            }
+            ImmutableList<Kont> newks = builder.build();
+            ImmutableList<Integer> newexc;
+            if (exc.get(exc.size() - 1) < rhs.exc.get(rhs.exc.size() - 1)) {
+                newexc = rhs.exc;
+            } else {
+                newexc = exc;
+            }
+            return new KontStack(newks, newexc);
         }
     }
 }
