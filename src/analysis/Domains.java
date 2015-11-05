@@ -1599,5 +1599,196 @@ public class Domains {
             this.exactnotnum = ImmutableMap.of();
             this.exactnum = ImmutableMap.of();
         }
+
+        public ExternMap(Optional<BValue> top, Optional<BValue> notnum, Optional<BValue> num, ImmutableMap<Str, BValue> exactnotnum, ImmutableMap<Str, BValue> exactnum) {
+            this.top = top;
+            this.notnum = notnum;
+            this.num = num;
+            this.exactnotnum = exactnotnum;
+            this.exactnum = exactnum;
+        }
+
+        public ExternMap merge(ExternMap ext) {
+            Optional<BValue> top1;
+            if (top.isPresent() && ext.top.isPresent()) {
+                top1 = Optional.of(top.get().merge(ext.top.get()));
+            } else if (top.isPresent()) {
+                top1 = top;
+            } else if (ext.top.isPresent()) {
+                top1 = ext.top;
+            } else {
+                top1 = Optional.absent();
+            }
+
+            Optional<BValue> notnum1;
+            if (notnum.isPresent() && ext.notnum.isPresent()) {
+                notnum1 = Optional.of(notnum.get().merge(ext.notnum.get()));
+            } else if (notnum.isPresent()) {
+                notnum1 = notnum;
+            } else if (ext.notnum.isPresent()) {
+                notnum1 = ext.notnum;
+            } else {
+                notnum1 = Optional.absent();
+            }
+
+            Optional<BValue> num1;
+            if (num.isPresent() && ext.num.isPresent()) {
+                num1 = Optional.of(num.get().merge(ext.num.get()));
+            } else if (num.isPresent()) {
+                num1 = num;
+            } else if (ext.num.isPresent()) {
+                num1 = ext.num;
+            } else {
+                num1 = Optional.absent();
+            }
+
+            ImmutableMap<Str, BValue> _exactnotnum;
+            if (exactnotnum.equals(ext.exactnotnum)) {
+                _exactnotnum = exactnotnum;
+            } else {
+                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
+                builder.putAll(ext.exactnotnum);
+                for (Map.Entry<Str, BValue> entry : exactnotnum.entrySet()) {
+                    Str k = entry.getKey();
+                    BValue bv = entry.getValue();
+                    BValue bv1 = ext.exactnotnum.get(k);
+                    if (bv1 != null) {
+                        builder = builder.put(k, bv.merge(bv1));
+                    } else {
+                        builder = builder.put(k, bv);
+                    }
+                }
+                _exactnotnum = builder.build();
+            }
+
+            ImmutableMap<Str, BValue> _exactnum;
+            if (exactnum.equals(ext.exactnum)) {
+                _exactnum = exactnum;
+            } else {
+                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
+                builder.putAll(ext.exactnum);
+                for (Map.Entry<Str, BValue> entry : exactnum.entrySet()) {
+                    Str k = entry.getKey();
+                    BValue bv = entry.getValue();
+                    BValue bv1 = ext.exactnum.get(k);
+                    if (bv1 != null) {
+                        builder = builder.put(k, bv.merge(bv1));
+                    } else {
+                        builder = builder.put(k, bv);
+                    }
+                }
+                _exactnum = builder.build();
+            }
+
+            return new ExternMap(top1, notnum1, num1, _exactnotnum, _exactnum);
+        }
+    }
+
+    public static abstract class Kont {}
+
+    public static class HaltKont {
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof HaltKont);
+        }
+    }
+
+    public static class SeqKont {
+        public ImmutableList<IRStmt> ss;
+
+        public SeqKont(ImmutableList<IRStmt> ss) {
+            this.ss = ss;
+        }
+    }
+
+    public static class WhileKont {
+        public IRExp e;
+        public IRStmt s;
+
+        public WhileKont(IRExp e, IRStmt s) {
+            this.e = e;
+            this.s = s;
+        }
+    }
+
+    public static class ForKont {
+        public BValue bv;
+        public IRVar x;
+        public IRStmt s;
+
+        public ForKont(BValue bv, IRVar x, IRStmt s) {
+            this.bv = bv;
+            this.x = x;
+            this.s = s;
+        }
+    }
+
+    public static class RetKont {
+        public IRVar x;
+        public Env rho;
+        public Boolean isctor;
+        // TODO: trace
+
+        public RetKont(IRVar x, Env rho, Boolean isctor) {
+            this.x = x;
+            this.rho = rho;
+            this.isctor = isctor;
+        }
+    }
+
+    public static class TryKont {
+        public IRPVar x;
+        public IRStmt sc;
+        public IRStmt sf;
+
+        public TryKont(IRPVar x, IRStmt sc, IRStmt sf) {
+            this.x = x;
+            this.sc = sc;
+            this.sf = sf;
+        }
+    }
+
+    public static class CatchKont {
+        public IRStmt sf;
+
+        public CatchKont(IRStmt sf) {
+            this.sf = sf;
+        }
+    }
+
+    public static class FinKont {
+        public ImmutableSet<Value> vs;
+
+        public FinKont(ImmutableSet<Value> vs) {
+            this.vs = vs;
+        }
+    }
+
+    public static class LblKont {
+        public String lbl;
+
+        public LblKont(String lbl) {
+            this.lbl = lbl;
+        }
+    }
+
+    public static class AddrKont {
+        public AddressSpace.Address a;
+        public IRMethod m;
+
+        public AddrKont(AddressSpace.Address a, IRMethod m) {
+            this.a = a;
+            this.m = m;
+        }
+    }
+
+    public static class KontStack {
+        public ImmutableList<Kont> ks;
+        public ImmutableList<Integer> exc;
+
+        public KontStack(ImmutableList<Kont> ks, ImmutableList<Integer> exc) {
+            this.ks = ks;
+            this.exc = exc;
+        }
     }
 }
