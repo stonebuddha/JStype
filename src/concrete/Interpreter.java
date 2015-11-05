@@ -6,6 +6,7 @@ import concrete.init.Init;
 import ir.*;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Created by wayne on 15/10/29.
@@ -309,65 +310,115 @@ public class Interpreter {
                         }
                     }
                     else if (ks.top() instanceof Domains.RetKont) {
-                        // TODO
-                        return null;
+                        Domains.RetKont rk = (Domains.RetKont) ks.top();
+                        if (rk.isctor && !(bv instanceof Domains.Address)) {
+                            if (rk.x instanceof IRPVar) {
+                                return new State(new Domains.ValueTerm(Eval.eval(rk.x, rk.env, store, rk.pad)), rk.env, store, rk.pad, ks.pop());
+                            }
+                            else {
+                                return new State(new Domains.ValueTerm(rk.pad.apply((IRScratch)rk.x)), rk.env, store, rk.pad, ks.pop());
+                            }
+                        }
+                        else {
+                            if (rk.x instanceof IRPVar) {
+                                return new State(new Domains.ValueTerm(bv),
+                                        rk.env,
+                                        store.extend(new AbstractMap.SimpleImmutableEntry<>(rk.env.apply((IRPVar)rk.x), bv)),
+                                        rk.pad,
+                                        ks.pop());
+                            }
+                            else {
+                                return new State(new Domains.ValueTerm(bv),
+                                        rk.env,
+                                        store,
+                                        rk.pad.update((IRScratch)rk.x, bv),
+                                        ks.pop());
+                            }
+                        }
                     }
                     else if (ks.top() instanceof Domains.TryKont) {
-                        // TODO
-                        return null;
+                        Domains.TryKont tk = (Domains.TryKont) ks.top();
+                        return new State(new Domains.StmtTerm(tk.sf), env, store, pad, ks.repl(new Domains.FinKont(new Domains.Undef())));
                     }
                     else if (ks.top() instanceof Domains.CatchKont) {
-                        // TODO
-                        return null;
+                        Domains.CatchKont ck = (Domains.CatchKont) ks.top();
+                        return new State(new Domains.StmtTerm(ck.sf), env, store, pad, ks.repl(new Domains.FinKont(new Domains.Undef())));
                     }
                     else if (ks.top() instanceof Domains.FinKont) {
-                        // TODO
-                        return null;
+                        Domains.FinKont fk = (Domains.FinKont) ks.top();
+                        if (fk.v instanceof Domains.BValue) {
+                            return new State(new Domains.ValueTerm(bv), env, store, pad, ks.pop());
+                        }
+                        else {
+                            return new State(new Domains.ValueTerm(fk.v), env, store, pad, ks.pop());
+                        }
                     }
                     else if (ks.top() instanceof Domains.LblKont) {
-                        // TODO
-                        return null;
+                        return new State(new Domains.ValueTerm(bv), env, store, pad, ks.pop());
                     }
                     else if (ks.top() instanceof Domains.HaltKont) {
-                        // TODO
-                        return null;
+                        throw new RuntimeException("trying to transition from final state");
                     }
                 }
                 else if (v instanceof Domains.EValue) {
-                    Domains.EValue ev = (Domains.EValue)v;
+                    Domains.EValue ev = (Domains.EValue) v;
                     if (ks.top() instanceof Domains.RetKont) {
-                        // TODO
-                        return null;
+                        Domains.RetKont rk = (Domains.RetKont) ks.top();
+                        return new State(new Domains.ValueTerm(ev), rk.env, store, rk.pad, ks.pop());
                     }
                     else if (ks.top() instanceof Domains.TryKont) {
-                        // TODO
-                        return null;
+                        Domains.TryKont tk = (Domains.TryKont) ks.top();
+                        return new State(new Domains.StmtTerm(tk.sc),
+                                env,
+                                store.extend(new AbstractMap.SimpleImmutableEntry<>(env.apply(tk.x), ev.bv)),
+                                pad,
+                                ks.repl(new Domains.CatchKont(tk.sf)));
                     }
                     else if (ks.top() instanceof Domains.CatchKont) {
-                        // TODO
-                        return null;
+                        Domains.CatchKont ck = (Domains.CatchKont) ks.top();
+                        return new State(new Domains.StmtTerm(ck.sf), env, store, pad, ks.repl(new Domains.FinKont(ev)));
                     }
                     else {
-                        // TODO
-                        return null;
+                        Predicate<Domains.Kont> f = new Predicate<Domains.Kont>() {
+                            @Override
+                            public boolean test(Domains.Kont kont) {
+                                if (kont instanceof Domains.RetKont || kont instanceof Domains.TryKont || kont instanceof Domains.CatchKont || kont instanceof Domains.HaltKont) {
+                                    return false;
+                                }
+                                return true;
+                            }
+                        };
+                        Domains.KontStack ks1 = ks.dropWhile(f);
+                        return new State(new Domains.ValueTerm(ev), env, store, pad, ks1);
                     }
                 } else {
-                    Domains.JValue jv = (Domains.JValue)v;
+                    Domains.JValue jv = (Domains.JValue) v;
                     if (ks.top() instanceof Domains.TryKont) {
-                        // TODO
-                        return null;
+                        Domains.TryKont tk = (Domains.TryKont) ks.top();
+                        return new State(new Domains.StmtTerm(tk.sf), env, store, pad, ks.repl(new Domains.FinKont(jv)));
                     }
                     else if (ks.top() instanceof Domains.CatchKont) {
-                        // TODO
-                        return null;
+                        Domains.CatchKont ck = (Domains.CatchKont) ks.top();
+                        return new State(new Domains.StmtTerm(ck.sf), env, store, pad, ks.repl(new Domains.FinKont(jv)));
                     }
-                    else if (ks.top() instanceof Domains.LblKont) {
-                        // TODO
-                        return null;
+                    else if (ks.top() instanceof Domains.LblKont && jv.lbl == ((Domains.LblKont)ks.top()).lbl) {
+                        return new State(new Domains.ValueTerm(jv.bv), env, store, pad, ks.pop());
                     }
                     else {
-                        // TODO
-                        return null;
+                        Predicate<Domains.Kont> f = new Predicate<Domains.Kont>() {
+                            @Override
+                            public boolean test(Domains.Kont kont) {
+                                if (kont instanceof Domains.TryKont || kont instanceof Domains.CatchKont || kont instanceof Domains.HaltKont) {
+                                    return false;
+                                }
+                                if (kont instanceof Domains.LblKont && (((Domains.LblKont) kont).lbl) == jv.lbl) {
+                                    return false;
+                                }
+                                return true;
+                            }
+                        };
+                        Domains.KontStack ks1 = ks.dropWhile(f);
+                        return new State(new Domains.ValueTerm(jv), env, store, pad, ks1);
                     }
                 }
                 return null;
