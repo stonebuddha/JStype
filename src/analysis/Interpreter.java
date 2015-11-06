@@ -33,7 +33,18 @@ public class Interpreter {
         public Domains.Env env;
         public Domains.Store store;
         public Domains.Scratchpad pad;
+        public Domains.KontStack ks;
+        public Trace trace;
 
+        public State(Domains.Term t, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
+            this.t = t;
+            this.env = env;
+            this.store = store;
+            this.pad = pad;
+            this.ks = ks;
+            this.trace = trace;
+        }
+        
         // TODO
     }
 }
