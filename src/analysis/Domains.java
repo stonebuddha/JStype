@@ -1,15 +1,15 @@
 package analysis;
 
 import analysis.init.Init;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import fj.F;
+import fj.Ord;
+import fj.P;
+import fj.P2;
+import fj.data.*;
 import ir.*;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * Created by wayne on 15/10/29.
@@ -45,9 +45,9 @@ public class Domains {
     }
 
     public static class Env {
-        public ImmutableMap<IRPVar, ImmutableSet<AddressSpace.Address>> env;
+        public TreeMap<IRPVar, Set<AddressSpace.Address>> env;
 
-        public Env(ImmutableMap<IRPVar, ImmutableSet<AddressSpace.Address>> env) {
+        public Env(TreeMap<IRPVar, Set<AddressSpace.Address>> env) {
             this.env = env;
         }
 
@@ -60,46 +60,39 @@ public class Domains {
             if (this.equals(rho)) {
                 return this;
             } else {
-                ImmutableMap.Builder<IRPVar, ImmutableSet<AddressSpace.Address>> builder = ImmutableMap.<IRPVar, ImmutableSet<AddressSpace.Address>>builder();
-                for (Map.Entry<IRPVar, ImmutableSet<AddressSpace.Address>> entry : env.entrySet()) {
-                    builder.put(
-                            entry.getKey(),
-                            ImmutableSet.<AddressSpace.Address>builder()
-                                    .addAll(entry.getValue())
-                                    .addAll(rho.env.get(entry.getKey())).build());
+                ArrayList<P2<IRPVar, Set<AddressSpace.Address>>> list = new ArrayList<>();
+                assert env.keys().equals(rho.env.keys());
+                for (P2<IRPVar, Set<AddressSpace.Address>> p2 : env) {
+                    list.add(P.p(p2._1(), p2._2().union(rho.env.get(p2._1()).some())));
                 }
-                return new Env(builder.build());
+                return new Env(TreeMap.treeMap(Ord.hashOrd(), List.list(list)));
             }
         }
 
-        public ImmutableSet<AddressSpace.Address> apply(IRPVar x) {
+        public Option<Set<AddressSpace.Address>> apply(IRPVar x) {
             return env.get(x);
         }
 
-        public Env extendAll(ImmutableList<Map.Entry<IRPVar, AddressSpace.Address>> bind) {
-            ImmutableMap.Builder<IRPVar, ImmutableSet<AddressSpace.Address>> builder = ImmutableMap.<IRPVar, ImmutableSet<AddressSpace.Address>>builder();
-            builder.putAll(env);
-            for (Map.Entry<IRPVar, AddressSpace.Address> entry : bind) {
-                builder.put(entry.getKey(), ImmutableSet.of(entry.getValue()));
-            }
-            return new Env(builder.build());
+        public Env extendAll(List<P2<IRPVar, AddressSpace.Address>> bind) {
+            List<P2<IRPVar, Set<AddressSpace.Address>>> list = bind.map(p -> P.p(p._1(), AddressSpace.Addresses.apply(p._2())));
+            return new Env(env.union(list));
         }
 
-        public ImmutableSet<AddressSpace.Address> addrs() {
-            ImmutableSet.Builder<AddressSpace.Address> builder = ImmutableSet.<AddressSpace.Address>builder();
-            for (ImmutableSet<AddressSpace.Address> set : env.values()) {
-                builder.addAll(set);
-            }
-            return builder.build();
+        public Env filter(F<IRPVar, Boolean> f) {
+            return new Env(TreeMap.treeMap(Ord.hashOrd(), env.keys().filter(f).map(k -> P.p(k, env.get(k).some()))));
+        }
+
+        public Set<AddressSpace.Address> addrs() {
+            return env.values().foldLeft(Set.union(), Set.empty(Ord.hashOrd()));
         }
     }
 
     public static class Store {
-        public ImmutableMap<AddressSpace.Address, BValue> toValue;
-        public ImmutableMap<AddressSpace.Address, Object> toObject;
-        public ImmutableMap<AddressSpace.Address, ImmutableSet<KontStack>> toKonts;
+        public TreeMap<AddressSpace.Address, BValue> toValue;
+        public TreeMap<AddressSpace.Address, Object> toObject;
+        public TreeMap<AddressSpace.Address, Set<KontStack>> toKonts;
 
-        public Store(ImmutableMap<AddressSpace.Address, BValue> toValue, ImmutableMap<AddressSpace.Address, Object> toObject, ImmutableMap<AddressSpace.Address, ImmutableSet<KontStack>> toKonts) {
+        public Store(TreeMap<AddressSpace.Address, BValue> toValue, TreeMap<AddressSpace.Address, Object> toObject, TreeMap<AddressSpace.Address, Set<KontStack>> toKonts) {
             this.toValue = toValue;
             this.toObject = toObject;
             this.toKonts = toKonts;
@@ -116,68 +109,59 @@ public class Domains {
         }
 
         public Store merge(Store sigma) {
-            ImmutableMap<AddressSpace.Address, BValue> _toValue;
+            TreeMap<AddressSpace.Address, BValue> _toValue;
             if (toValue.equals(sigma.toValue)) {
                 _toValue = toValue;
             } else {
-                ImmutableMap.Builder<AddressSpace.Address, BValue> builder = ImmutableMap.<AddressSpace.Address, BValue>builder();
-                builder.putAll(sigma.toValue);
-                for (Map.Entry<AddressSpace.Address, BValue> entry : toValue.entrySet()) {
-                    AddressSpace.Address a = entry.getKey();
-                    BValue bv = entry.getValue();
-                    BValue bv2 = sigma.toValue.get(a);
-                    if (bv2 != null) {
-                        builder.put(a, bv.merge(bv2));
-                    } else {
-                        builder.put(a, bv);
-                    }
-                }
-                _toValue = builder.build();
+                _toValue = sigma.toValue.union(
+                        toValue.keys().map(a -> {
+                            Option<BValue> bv = sigma.toValue.get(a);
+                            if (bv.isSome()) {
+                                return P.p(a, toValue.get(a).some().merge(bv.some()));
+                            } else {
+                                return P.p(a, toValue.get(a).some());
+                            }
+                        })
+                );
             }
-            ImmutableMap<AddressSpace.Address, Object> _toObject;
+            TreeMap<AddressSpace.Address, Object> _toObject;
             if (toObject.equals(sigma.toObject)) {
                 _toObject = toObject;
             } else {
-                ImmutableMap.Builder<AddressSpace.Address, Object> builder = ImmutableMap.<AddressSpace.Address, Object>builder();
-                builder.putAll(sigma.toObject);
-                for (Map.Entry<AddressSpace.Address, Object> entry : toObject.entrySet()) {
-                    AddressSpace.Address a = entry.getKey();
-                    Object o = entry.getValue();
-                    Object o2 = sigma.toObject.get(a);
-                    if (o2 != null) {
-                        builder.put(a, o.merge(o2));
-                    } else {
-                        builder.put(a, o);
-                    }
-                }
-                _toObject = builder.build();
+                _toObject = sigma.toObject.union(
+                        toObject.keys().map(a -> {
+                            Option<Object> o = sigma.toObject.get(a);
+                            if (o.isSome()) {
+                                return P.p(a, toObject.get(a).some().merge(o.some()));
+                            } else {
+                                return P.p(a, toObject.get(a).some());
+                            }
+                        })
+                );
             }
-            ImmutableMap<AddressSpace.Address, ImmutableSet<KontStack>> _toKonts;
+            TreeMap<AddressSpace.Address, Set<KontStack>> _toKonts;
             if (toKonts.equals(sigma.toKonts)) {
                 _toKonts = toKonts;
             } else {
-                ImmutableMap.Builder<AddressSpace.Address, ImmutableSet<KontStack>> builder = ImmutableMap.<AddressSpace.Address, ImmutableSet<KontStack>>builder();
-                builder.putAll(sigma.toKonts);
-                for (Map.Entry<AddressSpace.Address, ImmutableSet<KontStack>> entry : toKonts.entrySet()) {
-                    AddressSpace.Address a = entry.getKey();
-                    ImmutableSet<KontStack> ks = entry.getValue();
-                    ImmutableSet<KontStack> ks2 = sigma.toKonts.get(a);
-                    if (ks2 != null) {
-                        builder.put(a, ImmutableSet.<KontStack>builder().addAll(ks).addAll(ks2).build());
-                    } else {
-                        builder.put(a, ks);
-                    }
-                }
-                _toKonts = builder.build();
+                _toKonts = sigma.toKonts.union(
+                        toKonts.keys().map(a -> {
+                            Option<Set<KontStack>> ks = sigma.toKonts.get(a);
+                            if (ks.isSome()) {
+                                return P.p(a, toKonts.get(a).some().union(ks.some()));
+                            } else {
+                                return P.p(a, toKonts.get(a).some());
+                            }
+                        })
+                );
             }
             return new Store(_toValue, _toObject, _toKonts);
         }
     }
 
     public static class Scratchpad {
-        public ImmutableList<BValue> mem;
+        public Seq<BValue> mem;
 
-        public Scratchpad(ImmutableList<BValue> mem) {
+        public Scratchpad(Seq<BValue> mem) {
             this.mem = mem;
         }
 
@@ -187,36 +171,28 @@ public class Domains {
         }
 
         public Scratchpad merge(Scratchpad pad) {
+            assert mem.length() == pad.mem.length();
             if (this.equals(pad)) {
                 return this;
             } else {
-                ImmutableList.Builder<BValue> builder = ImmutableList.<BValue>builder();
-                for (int i = 0; i < mem.size(); i += 1) {
-                    builder.add(mem.get(i).merge(pad.mem.get(i)));
+                ArrayList<BValue> bvs = new ArrayList<>();
+                for (int i = 0; i < mem.length(); i += 1) {
+                    bvs.add(mem.index(i).merge(pad.mem.index(i)));
                 }
-                return new Scratchpad(builder.build());
+                return new Scratchpad(Seq.seq(List.list(bvs)));
             }
         }
 
         public BValue apply(IRScratch x) {
-            return mem.get(x.n);
+            return mem.index(x.n);
         }
 
         public Scratchpad update(IRScratch x, BValue bv) {
-            int sz = mem.size();
-            return new Scratchpad(ImmutableList.<BValue>builder()
-                    .addAll(mem.subList(0, x.n))
-                    .add(bv).addAll(mem.subList(x.n + 1, sz))
-                    .build()
-            );
+            return new Scratchpad(mem.update(x.n, bv));
         }
 
-        public ImmutableSet<AddressSpace.Address> addrs() {
-            ImmutableSet.Builder<AddressSpace.Address> builder = ImmutableSet.<AddressSpace.Address>builder();
-            for (BValue bv : mem) {
-                builder = builder.addAll(bv.as);
-            }
-            return builder.build();
+        public Set<AddressSpace.Address> addrs() {
+            return mem.foldLeft((sa, bv) -> sa.union(bv.as), Set.empty(Ord.hashOrd()));
         }
 
         public static Scratchpad apply(Integer len) {
@@ -224,7 +200,7 @@ public class Domains {
             for (int i = 0; i < len; i += 1) {
                 bvs.add(i, Undef.BV);
             }
-            return new Scratchpad(ImmutableList.<BValue>builder().addAll(bvs).build());
+            return new Scratchpad(Seq.seq(List.list(bvs)));
         }
     }
 
@@ -270,13 +246,13 @@ public class Domains {
         public Num n;
         public Bool b;
         public Str str;
-        public ImmutableSet<AddressSpace.Address> as;
+        public Set<AddressSpace.Address> as;
         public Null nil;
         public Undef undef;
 
-        ImmutableSet<Domain> types;
+        Set<Domain> types;
 
-        public BValue(Num n, Bool b, Str str, ImmutableSet<AddressSpace.Address> as, Null nil, Undef undef) {
+        public BValue(Num n, Bool b, Str str, Set<AddressSpace.Address> as, Null nil, Undef undef) {
             this.n = n;
             this.b = b;
             this.str = str;
@@ -284,14 +260,14 @@ public class Domains {
             this.nil = nil;
             this.undef = undef;
 
-            ImmutableSet.Builder<Domain> builder = ImmutableSet.<Domain>builder();
-            if (!n.equals(Num.Bot)) builder = builder.add(DNum);
-            if (!b.equals(Bool.Bot)) builder = builder.add(DBool);
-            if (!str.equals(Str.Bot)) builder = builder.add(DStr);
-            if (!as.isEmpty()) builder = builder.add(DAddr);
-            if (!nil.equals(Null.Bot)) builder = builder.add(DNull);
-            if (!undef.equals(Undef.Bot)) builder = builder.add(DUndef);
-            this.types = builder.build();
+            ArrayList<Domain> doms = new ArrayList<>();
+            if (!n.equals(Num.Bot)) doms.add(DNum);
+            if (!b.equals(Bool.Bot)) doms.add(DBool);
+            if (!str.equals(Str.Bot)) doms.add(DStr);
+            if (!as.isEmpty()) doms.add(DAddr);
+            if (!nil.equals(Null.Bot)) doms.add(DNull);
+            if (!undef.equals(Undef.Bot)) doms.add(DUndef);
+            this.types = Set.set(Ord.hashOrd(), List.list(doms));
         }
 
         @Override
@@ -309,7 +285,7 @@ public class Domains {
                     n.merge(bv.n),
                     b.merge(bv.b),
                     str.merge(bv.str),
-                    ImmutableSet.<AddressSpace.Address>builder().addAll(as).addAll(bv.as).build(),
+                    as.union(bv.as),
                     nil.merge(bv.nil),
                     undef.merge(bv.undef));
         }
@@ -399,7 +375,7 @@ public class Domains {
         }
 
         public BValue isPrim() {
-            Bool notaddr = Bool.alpha(!types.contains(DAddr));
+            Bool notaddr = Bool.alpha(!types.member(DAddr));
             Bool hasprim = Bool.alpha(!defAddr());
             return Bool.inject(notaddr.merge(hasprim));
         }
@@ -491,27 +467,27 @@ public class Domains {
         }
 
         public Boolean defNum() {
-            return (types.size() == 1 && types.contains(DNum));
+            return (types.size() == 1 && types.member(DNum));
         }
 
         public Boolean defBool() {
-            return (types.size() == 1 && types.contains(DBool));
+            return (types.size() == 1 && types.member(DBool));
         }
 
         public Boolean defStr() {
-            return (types.size() == 1 && types.contains(DStr));
+            return (types.size() == 1 && types.member(DStr));
         }
 
         public Boolean defAddr() {
-            return (types.size() == 1 && types.contains(DAddr));
+            return (types.size() == 1 && types.member(DAddr));
         }
 
         public Boolean defNull() {
-            return (types.size() == 1 && types.contains(DNull));
+            return (types.size() == 1 && types.member(DNull));
         }
 
         public Boolean defUndef() {
-            return (types.size() == 1 && types.contains(DUndef));
+            return (types.size() == 1 && types.member(DUndef));
         }
 
         public BValue onlyNum() {
@@ -530,7 +506,7 @@ public class Domains {
             return AddressSpace.Addresses.inject(as);
         }
 
-        public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, ImmutableSet.<AddressSpace.Address>of(), Null.Bot, Undef.Bot);
+        public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Undef.Bot);
     }
 
     public static abstract class Num {
@@ -856,7 +832,7 @@ public class Domains {
         }
 
         public static BValue inject(Num n) {
-            return new BValue(n, Bool.Bot, Str.Bot, ImmutableSet.<AddressSpace.Address>of(), Null.Bot, Undef.Bot);
+            return new BValue(n, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Undef.Bot);
         }
     }
 
@@ -1000,7 +976,7 @@ public class Domains {
         }
 
         public static BValue inject(Bool b) {
-            return new BValue(Num.Bot, b, Str.Bot, ImmutableSet.<AddressSpace.Address>of(), Null.Bot, Undef.Bot);
+            return new BValue(Num.Bot, b, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Undef.Bot);
         }
     }
 
@@ -1036,66 +1012,66 @@ public class Domains {
         public Str merge(Str str) {
             if (this.equals(str)) {
                 return this;
-            } else if (this instanceof SBot) {
+            } else if (this.equals(SBot)) {
                 return str;
-            } else if (str instanceof SBot) {
+            } else if (str.equals(SBot)) {
                 return this;
             } else if (this instanceof SConstNum && str instanceof SConstNum) {
-                return new SNum();
+                return SNum;
             } else if ((this instanceof SConstNum && str instanceof SConstNotSplNorNum)
                     || (this instanceof SConstNotSplNorNum && str instanceof SConstNum)) {
-                return new SNotSpl();
+                return SNotSpl;
             } else if ((this instanceof SConstNum && str instanceof SConstSpl)
                     || (this instanceof SConstSpl && str instanceof SConstNum)) {
                 return Top;
-            } else if ((this instanceof SConstNum && str instanceof SNotSplNorNum)
-                    || (this instanceof SNotSplNorNum && str instanceof SConstNum)) {
-                return new SNotSpl();
-            } else if ((this instanceof SConstNum && str instanceof SSpl)
-                    || (this instanceof SSpl && str instanceof SConstNum)) {
+            } else if ((this instanceof SConstNum && str.equals(SNotSplNorNum))
+                    || (this.equals(SNotSplNorNum) && str instanceof SConstNum)) {
+                return SNotSpl;
+            } else if ((this instanceof SConstNum && str.equals(SSpl))
+                    || (this.equals(SSpl) && str instanceof SConstNum)) {
                 return Top;
-            } else if ((this instanceof SConstNum && str instanceof SNotNum)
-                    || (this instanceof SNotNum && str instanceof SConstNum)) {
+            } else if ((this instanceof SConstNum && str.equals(SNotNum))
+                    || (this.equals(SNotNum) && str instanceof SConstNum)) {
                 return Top;
             } else if (this instanceof SConstNotSplNorNum && str instanceof SConstNotSplNorNum) {
-                return new SNotSplNorNum();
+                return SNotSplNorNum;
             } else if ((this instanceof SConstNotSplNorNum && str instanceof SConstSpl)
                     || (this instanceof SConstSpl && str instanceof SConstNotSplNorNum)) {
-                return new SNotNum();
-            } else if ((this instanceof SConstNotSplNorNum && str instanceof SNum)
-                    || (this instanceof SNum && str instanceof SConstNotSplNorNum)) {
-                return new SNotSpl();
-            } else if ((this instanceof SConstNotSplNorNum && str instanceof SSpl)
-                    || (this instanceof SSpl && str instanceof SConstNotSplNorNum)) {
-                return new SNotNum();
+                return SNotNum;
+            } else if ((this instanceof SConstNotSplNorNum && str.equals(SNum))
+                    || (this.equals(SNum) && str instanceof SConstNotSplNorNum)) {
+                return SNotSpl;
+            } else if ((this instanceof SConstNotSplNorNum && str.equals(SSpl))
+                    || (this.equals(SSpl) && str instanceof SConstNotSplNorNum)) {
+                return SNotNum;
             } else if (this instanceof SConstSpl && str instanceof SConstSpl) {
-                return new SSpl();
-            } else if ((this instanceof SConstSpl && str instanceof SNum)
-                    || (this instanceof SNum && str instanceof SConstSpl)) {
+                return SSpl;
+            } else if ((this instanceof SConstSpl && str.equals(SNum))
+                    || (this.equals(SNum) && str instanceof SConstSpl)) {
                 return Top;
-            } else if ((this instanceof SConstSpl && str instanceof SNotSplNorNum)
-                    || (this instanceof SNotSplNorNum && str instanceof SConstSpl)) {
-                return new SNotNum();
-            } else if ((this instanceof SConstSpl && str instanceof SNotSpl)
-                    || (this instanceof SNotSpl && str instanceof SConstSpl)) {
+            } else if ((this instanceof SConstSpl && str.equals(SNotSplNorNum))
+                    || (this.equals(SNotSplNorNum) && str instanceof SConstSpl)) {
+                return SNotNum;
+            } else if ((this instanceof SConstSpl && str.equals(SNotSpl))
+                    || (this.equals(SNotSpl) && str instanceof SConstSpl)) {
                 return Top;
-            } else if ((this instanceof SNum && str instanceof SNotSplNorNum)
-                    || (this instanceof SNotSplNorNum && str instanceof SNum)) {
-                return new SNotSpl();
-            } else if ((this instanceof SNum && str instanceof SSpl)
-                    || (this instanceof SSpl && str instanceof SNum)) {
+            } else if ((this.equals(SNum) && str.equals(SNotSplNorNum))
+                    || (this.equals(SNotSplNorNum) && str.equals(SNum))) {
+                return SNotSpl;
+            } else if ((this.equals(SNum) && str.equals(SSpl))
+                    || (this.equals(SSpl) && str.equals(SNum))) {
                 return Top;
-            } else if ((this instanceof SNum && str instanceof SNotNum)
-                    || (this instanceof SNotNum && str instanceof SNum)) {
+            } else if ((this.equals(SNum) && str.equals(SNotNum))
+                    || (this.equals(SNotNum) && str.equals(SNum))) {
                 return Top;
-            } else if ((this instanceof SNotSplNorNum && str instanceof SSpl)
-                    || (this instanceof SNotSpl && str instanceof SNotSplNorNum)) {
-                return new SNotNum();
-            } else if ((this instanceof SSpl && str instanceof SNotSpl)
-                    || (this instanceof SNotSpl && str instanceof SSpl)) {
+            } else if ((this.equals(SNotSplNorNum) && str.equals(SSpl))
+                    || (this.equals(SNotSpl) && str.equals(SNotSplNorNum))) {
+                return SNotNum;
+            } else if ((this.equals(SSpl) && str.equals(SNotSpl))
+                    || (this.equals(SNotSpl) && str.equals(SSpl))) {
                 return Top;
-            } else if ((this instanceof SNotNum && str instanceof SNotSpl)
-                    || (this instanceof SNotSpl && str instanceof SNotNum)) {
+            } else if ((this.equals(SNotNum) && str.equals(SNotSpl))
+                    || (this.equals(SNotSpl) && str.equals(SNotNum))) {
                 return Top;
             } else if (this.partialLessEqual(str)) {
                 return str;
@@ -1107,21 +1083,21 @@ public class Domains {
         }
 
         public Boolean partialLessEqual(Str str) {
-            if (this instanceof SBot || str instanceof STop) {
+            if (this.equals(SBot) || str.equals(STop)) {
                 return true;
             } else if (this.equals(str)) {
                 return true;
-            } else if ((this instanceof SConstNum && str instanceof SNum)
-                    || (this instanceof SConstNum && str instanceof SNotSpl)
-                    || (this instanceof SConstNotSplNorNum && str instanceof SNotSplNorNum)
-                    || (this instanceof SConstNotSplNorNum && str instanceof SNotSpl)
-                    || (this instanceof SConstNotSplNorNum && str instanceof SNotNum)
-                    || (this instanceof SConstSpl && str instanceof SSpl)
-                    || (this instanceof SConstSpl && str instanceof SNotNum)
-                    || (this instanceof SNum && str instanceof SNotSpl)
-                    || (this instanceof SSpl && str instanceof SNotNum)
-                    || (this instanceof SNotSplNorNum && str instanceof SNotNum)
-                    || (this instanceof SNotSplNorNum && str instanceof SNotSpl)) {
+            } else if ((this instanceof SConstNum && str.equals(SNum))
+                    || (this instanceof SConstNum && str.equals(SNotSpl))
+                    || (this instanceof SConstNotSplNorNum && str.equals(SNotSplNorNum))
+                    || (this instanceof SConstNotSplNorNum && str.equals(SNotSpl))
+                    || (this instanceof SConstNotSplNorNum && str.equals(SNotNum))
+                    || (this instanceof SConstSpl && str.equals(SSpl))
+                    || (this instanceof SConstSpl && str.equals(SNotNum))
+                    || (this.equals(SNum) && str.equals(SNotSpl))
+                    || (this.equals(SSpl) && str.equals(SNotNum))
+                    || (this.equals(SNotSplNorNum) && str.equals(SNotNum))
+                    || (this.equals(SNotSplNorNum) && str.equals(SNotSpl))) {
                 return true;
             } else {
                 return false;
@@ -1139,12 +1115,12 @@ public class Domains {
                 return Bool.alpha(((SConstNotSplNorNum)this).str.equals(((SConstNotSplNorNum)str).str));
             } else if (this instanceof SConstSpl && str instanceof SConstSpl) {
                 return Bool.alpha(((SConstSpl)this).str.equals(((SConstSpl)str).str));
-            } else if ((this instanceof SNotSpl && str instanceof SNotNum)
-                    || (this instanceof SNotNum && str instanceof SNotSpl)) {
+            } else if ((this.equals(SNotSpl) && str.equals(SNotNum))
+                    || (this.equals(SNotNum) && str.equals(SNotSpl))) {
                 return Bool.Top;
             } else if (this.notPartialLessEqual(str) && str.notPartialLessEqual(this)) {
                 return Bool.False;
-            } else if (this instanceof SBot || str instanceof SBot) {
+            } else if (this.equals(SBot) || str.equals(SBot)) {
                 return Bool.Bot;
             } else {
                 return Bool.Top;
@@ -1152,164 +1128,164 @@ public class Domains {
         }
 
         public Str strConcat(Str str) {
-            if (this instanceof SBot || str instanceof SBot) {
+            if (this.equals(SBot) || str.equals(SBot)) {
                 return Bot;
-            } else if (this instanceof STop && str instanceof SConstNum) {
-                return new SNotSpl();
-            } else if (this instanceof STop && str instanceof SConstSpl) {
-                return new SNotNum();
-            } else if (this instanceof STop && str instanceof SNum) {
-                return new SNotSpl();
-            } else if (this instanceof STop && str instanceof SSpl) {
-                return new SNotNum();
-            } else if (this instanceof STop) {
+            } else if (this.equals(STop) && str instanceof SConstNum) {
+                return SNotSpl;
+            } else if (this.equals(STop) && str instanceof SConstSpl) {
+                return SNotNum;
+            } else if (this.equals(STop) && str.equals(SNum)) {
+                return SNotSpl;
+            } else if (this.equals(STop) && str.equals(SSpl)) {
+                return SNotNum;
+            } else if (this.equals(STop)) {
                 return Top;
             } else if (this.equals(Str.Empty)) {
                 return str;
             } else if (str.equals(Str.Empty)) {
                 return this;
             } else if (Str.isExact(this) && Str.isExact(str)) {
-                return Str.alpha(Str.getExact(this).get() + Str.getExact(str).get());
+                return Str.alpha(Str.getExact(this).some() + Str.getExact(str).some());
             } else if (this instanceof SConstNum) {
-                if (str instanceof SNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotSplNorNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SSpl) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotSpl) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotNum) {
-                    return new SNotSpl();
-                } else if (str instanceof STop) {
-                    return new SNotSpl();
+                if (str.equals(SNum)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotSplNorNum)) {
+                    return SNotSpl;
+                } else if (str.equals(SSpl)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotSpl)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotNum)) {
+                    return SNotSpl;
+                } else if (str.equals(STop)) {
+                    return SNotSpl;
                 }
             } else if (this instanceof SConstNotSplNorNum) {
-                if (str instanceof SNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotSplNorNum) {
-                    return new SNotNum();
-                } else if (str instanceof SSpl) {
-                    return new SNotNum();
-                } else if (str instanceof SNotSpl) {
+                if (str.equals(SNum)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotSplNorNum)) {
+                    return SNotNum;
+                } else if (str.equals(SSpl)) {
+                    return SNotNum;
+                } else if (str.equals(SNotSpl)) {
                     return Top;
-                } else if (str instanceof SNotNum) {
-                    return new SNotNum();
-                } else if (str instanceof STop) {
+                } else if (str.equals(SNotNum)) {
+                    return SNotNum;
+                } else if (str.equals(STop)) {
                     return Top;
                 }
             } else if (this instanceof SConstSpl) {
-                if (str instanceof SNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotSplNorNum) {
-                    return new SNotNum();
-                } else if (str instanceof SSpl) {
-                    return new SNotSplNorNum();
-                } else if (str instanceof SNotSpl) {
-                    return new SNotNum();
-                } else if (str instanceof SNotNum) {
-                    return new SNotNum();
-                } else if (str instanceof STop) {
-                    return new SNotNum();
+                if (str.equals(SNum)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotSplNorNum)) {
+                    return SNotNum;
+                } else if (str.equals(SSpl)) {
+                    return SNotSplNorNum;
+                } else if (str.equals(SNotSpl)) {
+                    return SNotNum;
+                } else if (str.equals(SNotNum)) {
+                    return SNotNum;
+                } else if (str.equals(STop)) {
+                    return SNotNum;
                 }
-            } else if (this instanceof SNum) {
+            } else if (this.equals(SNum)) {
                 if (str instanceof SConstNum) {
-                    return new SNotSpl();
+                    return SNotSpl;
                 } else if (str instanceof SConstNotSplNorNum) {
-                    return new SNotSpl();
+                    return SNotSpl;
                 } else if (str instanceof SConstSpl) {
-                    return new SNotSplNorNum();
-                } else if (str instanceof SNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotSplNorNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SSpl) {
-                    return new SNotSplNorNum();
-                } else if (str instanceof SNotSpl) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotNum) {
-                    return new SNotSpl();
-                } else if (str instanceof STop) {
-                    return new SNotSpl();
+                    return SNotSplNorNum;
+                } else if (str.equals(SNum)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotSplNorNum)) {
+                    return SNotSpl;
+                } else if (str.equals(SSpl)) {
+                    return SNotSplNorNum;
+                } else if (str.equals(SNotSpl)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotNum)) {
+                    return SNotSpl;
+                } else if (str.equals(STop)) {
+                    return SNotSpl;
                 }
-            } else if (this instanceof SNotSplNorNum) {
+            } else if (this.equals(SNotSplNorNum)) {
                 if (str instanceof SConstNum) {
-                    return new SNotSpl();
+                    return SNotSpl;
                 } else if (str instanceof SConstNotSplNorNum) {
-                    return new SNotNum();
+                    return SNotNum;
                 } else if (str instanceof SConstSpl) {
-                    return new SNotNum();
-                } else if (str instanceof SNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotSplNorNum) {
-                    return new SNotNum();
-                } else if (str instanceof SSpl) {
-                    return new SNotNum();
-                } else if (str instanceof SNotSpl) {
+                    return SNotNum;
+                } else if (str.equals(SNum)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotSplNorNum)) {
+                    return SNotNum;
+                } else if (str.equals(SSpl)) {
+                    return SNotNum;
+                } else if (str.equals(SNotSpl)) {
                     return Top;
-                } else if (str instanceof SNotNum) {
-                    return new SNotNum();
-                } else if (str instanceof STop) {
-                    return Top;
-                }
-            } else if (this instanceof SSpl) {
-                if (str instanceof SConstNum) {
-                    return new SNotSplNorNum();
-                } else if (str instanceof SConstNotSplNorNum) {
-                    return new SNotNum();
-                } else if (str instanceof SConstSpl) {
-                    return new SNotSplNorNum();
-                } else if (str instanceof SNum) {
-                    return new SNotSplNorNum();
-                } else if (str instanceof SNotSplNorNum) {
-                    return new SNotNum();
-                } else if (str instanceof SSpl) {
-                    return new SNotSplNorNum();
-                } else if (str instanceof SNotSpl) {
-                    return new SNotNum();
-                } else if (str instanceof SNotNum) {
-                    return new SNotNum();
-                } else if (str instanceof STop) {
-                    return new SNotNum();
-                }
-            } else if (this instanceof SNotSpl) {
-                if (str instanceof SConstNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SConstNotSplNorNum) {
-                    return Top;
-                } else if (str instanceof SConstSpl) {
-                    return new SNotNum();
-                } else if (str instanceof SNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotSplNorNum) {
-                    return Top;
-                } else if (str instanceof SSpl) {
-                    return new SNotNum();
-                } else if (str instanceof SNotSpl) {
-                    return Top;
-                } else if (str instanceof SNotNum) {
-                    return Top;
-                } else if (str instanceof STop) {
+                } else if (str.equals(SNotNum)) {
+                    return SNotNum;
+                } else if (str.equals(STop)) {
                     return Top;
                 }
-            } else if (this instanceof SNotNum) {
+            } else if (this.equals(SSpl)) {
                 if (str instanceof SConstNum) {
-                    return new SNotSpl();
+                    return SNotSplNorNum;
                 } else if (str instanceof SConstNotSplNorNum) {
-                    return new SNotNum();
+                    return SNotNum;
                 } else if (str instanceof SConstSpl) {
-                    return new SNotNum();
-                } else if (str instanceof SNum) {
-                    return new SNotSpl();
-                } else if (str instanceof SNotSplNorNum) {
-                    return new SNotNum();
-                } else if (str instanceof SSpl) {
-                    return new SNotNum();
-                } else if (str instanceof SNotSpl) {
+                    return SNotSplNorNum;
+                } else if (str.equals(SNum)) {
+                    return SNotSplNorNum;
+                } else if (str.equals(SNotSplNorNum)) {
+                    return SNotNum;
+                } else if (str.equals(SSpl)) {
+                    return SNotSplNorNum;
+                } else if (str.equals(SNotSpl)) {
+                    return SNotNum;
+                } else if (str.equals(SNotNum)) {
+                    return SNotNum;
+                } else if (str.equals(STop)) {
+                    return SNotNum;
+                }
+            } else if (this.equals(SNotSpl)) {
+                if (str instanceof SConstNum) {
+                    return SNotSpl;
+                } else if (str instanceof SConstNotSplNorNum) {
                     return Top;
-                } else if (str instanceof SNotNum) {
-                    return new SNotNum();
-                } else if (str instanceof STop) {
+                } else if (str instanceof SConstSpl) {
+                    return SNotNum;
+                } else if (str.equals(SNum)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotSplNorNum)) {
+                    return Top;
+                } else if (str.equals(SSpl)) {
+                    return SNotNum;
+                } else if (str.equals(SNotSpl)) {
+                    return Top;
+                } else if (str.equals(SNotNum)) {
+                    return Top;
+                } else if (str.equals(STop)) {
+                    return Top;
+                }
+            } else if (this.equals(SNotNum)) {
+                if (str instanceof SConstNum) {
+                    return SNotSpl;
+                } else if (str instanceof SConstNotSplNorNum) {
+                    return SNotNum;
+                } else if (str instanceof SConstSpl) {
+                    return SNotNum;
+                } else if (str.equals(SNum)) {
+                    return SNotSpl;
+                } else if (str.equals(SNotSplNorNum)) {
+                    return SNotNum;
+                } else if (str.equals(SSpl)) {
+                    return SNotNum;
+                } else if (str.equals(SNotSpl)) {
+                    return Top;
+                } else if (str.equals(SNotNum)) {
+                    return SNotNum;
+                } else if (str.equals(STop)) {
                     return Top;
                 }
             }
@@ -1317,19 +1293,19 @@ public class Domains {
         }
 
         public Bool strLessThan(Str str) {
-            if (this instanceof SBot || str instanceof SBot) {
+            if (this.equals(SBot) || str.equals(SBot)) {
                 return Bool.Bot;
             } else if (Str.isExact(this) && Str.isExact(str)) {
-                return Bool.alpha(Str.getExact(this).get().compareTo(Str.getExact(str).get()) < 0);
+                return Bool.alpha(Str.getExact(this).some().compareTo(Str.getExact(str).some()) < 0);
             } else if ((this instanceof SConstNum && str instanceof SConstSpl)
-                    || (this instanceof SConstNum && str instanceof SSpl)
-                    || (this instanceof SNum && str instanceof SConstSpl)
-                    || (this instanceof SNum && str instanceof SSpl)) {
+                    || (this instanceof SConstNum && str.equals(SSpl))
+                    || (this.equals(SNum) && str instanceof SConstSpl)
+                    || (this.equals(SNum) && str.equals(SSpl))) {
                 return Bool.True;
             } else if ((this instanceof SConstSpl && str instanceof SConstNum)
-                    || (this instanceof SConstSpl && str instanceof SNum)
-                    || (this instanceof SSpl && str instanceof SConstNum)
-                    || (this instanceof SSpl && str instanceof SNum)) {
+                    || (this instanceof SConstSpl && str.equals(SNum))
+                    || (this.equals(SSpl) && str instanceof SConstNum)
+                    || (this.equals(SSpl) && str.equals(SNum))) {
                 return Bool.False;
             } else {
                 return Bool.Top;
@@ -1337,19 +1313,19 @@ public class Domains {
         }
 
         public Bool strLessEqual(Str str) {
-            if (this instanceof SBot || str instanceof SBot) {
+            if (this.equals(SBot) || str.equals(SBot)) {
                 return Bool.Bot;
             } else if (Str.isExact(this) && Str.isExact(str)) {
-                return Bool.alpha(Str.getExact(this).get().compareTo(Str.getExact(str).get()) <= 0);
+                return Bool.alpha(Str.getExact(this).some().compareTo(Str.getExact(str).some()) <= 0);
             } else if ((this instanceof SConstNum && str instanceof SConstSpl)
-                    || (this instanceof SConstNum && str instanceof SSpl)
-                    || (this instanceof SNum && str instanceof SConstSpl)
-                    || (this instanceof SNum && str instanceof SSpl)) {
+                    || (this instanceof SConstNum && str.equals(SSpl))
+                    || (this.equals(SNum) && str instanceof SConstSpl)
+                    || (this.equals(SNum) && str.equals(SSpl))) {
                 return Bool.True;
             } else if ((this instanceof SConstSpl && str instanceof SConstNum)
-                    || (this instanceof SConstSpl && str instanceof SNum)
-                    || (this instanceof SSpl && str instanceof SConstNum)
-                    || (this instanceof SSpl && str instanceof SNum)) {
+                    || (this instanceof SConstSpl && str.equals(SNum))
+                    || (this.equals(SSpl) && str instanceof SConstNum)
+                    || (this.equals(SSpl) && str.equals(SNum))) {
                 return Bool.False;
             } else {
                 return Bool.Top;
@@ -1357,9 +1333,9 @@ public class Domains {
         }
 
         public Num toNum() {
-            if (this instanceof SBot) {
+            if (this.equals(SBot)) {
                 return Num.Bot;
-            } else if (this instanceof SNotNum || this instanceof SSpl || this instanceof SNotSplNorNum) {
+            } else if (this.equals(SNotNum) || this.equals(SSpl) || this.equals(SNotSplNorNum)) {
                 return Num.NaN;
             } else if (this instanceof SConstNotSplNorNum || this instanceof SConstSpl) {
                 return Num.NaN;
@@ -1375,20 +1351,20 @@ public class Domains {
         }
 
         public Boolean defNotEmpty() {
-            return (this instanceof SBot || this instanceof SNum || this instanceof SConstNum ||
-                    this instanceof SConstSpl || this instanceof SSpl ||
+            return (this.equals(SBot) || this.equals(SNum) || this instanceof SConstNum ||
+                    this instanceof SConstSpl || this.equals(SSpl) ||
                     (this instanceof SConstNotSplNorNum && !((SConstNotSplNorNum)this).str.isEmpty()));
         }
 
-        public static final Str Top = new STop();
-        public static final Str Bot = new SBot();
-        public static final Str U32 = new SNum();
-        public static final Str NumStr = new SNum();
+        public static final Str Top = STop;
+        public static final Str Bot = SBot;
+        public static final Str U32 = SNum;
+        public static final Str NumStr = SNum;
         public static final Str Empty = new SConstNotSplNorNum("");
-        public static final Str SingleChar = new SNotSpl();
-        public static final Str DateStr = new SNotSplNorNum();
-        public static final Str FunctionStr = new SNotSplNorNum();
-        public static final ImmutableSet<String> SplStrings = ImmutableSet.of(
+        public static final Str SingleChar = SNotSpl;
+        public static final Str DateStr = SNotSplNorNum;
+        public static final Str FunctionStr = SNotSplNorNum;
+        public static final Set<String> SplStrings = Set.set(Ord.stringOrd,
                 "valueOf",
                 "toString",
                 "length",
@@ -1420,22 +1396,22 @@ public class Domains {
         }
 
         public static BValue inject(Str str) {
-            return new BValue(Num.Bot, Bool.Bot, str, ImmutableSet.<AddressSpace.Address>of(), Null.Bot, Undef.Bot);
+            return new BValue(Num.Bot, Bool.Bot, str, Set.empty(Ord.hashOrd()), Null.Bot, Undef.Bot);
         }
 
         public static Boolean isExact(Str str) {
             return (str instanceof SConstSpl || str instanceof SConstNum || str instanceof SConstNotSplNorNum);
         }
 
-        public static Optional<String> getExact(Str str) {
+        public static Option<String> getExact(Str str) {
             if (str instanceof SConstSpl) {
-                return Optional.of(((SConstSpl) str).str);
+                return Option.fromString(((SConstSpl) str).str);
             } else if (str instanceof SConstNum) {
-                return Optional.of(((SConstNum) str).str);
+                return Option.fromString(((SConstNum) str).str);
             } else if (str instanceof SConstNotSplNorNum) {
-                return Optional.of(((SConstNotSplNorNum) str).str);
+                return Option.fromString(((SConstNotSplNorNum) str).str);
             } else {
-                return Optional.absent();
+                return Option.none();
             }
         }
 
@@ -1449,7 +1425,7 @@ public class Domains {
         }
 
         public static Boolean isSpl(String str) {
-            return SplStrings.contains(str);
+            return SplStrings.member(str);
         }
 
         public static Boolean isExactNum(Str str) {
@@ -1460,82 +1436,53 @@ public class Domains {
             return (str instanceof SConstSpl || str instanceof SConstNotSplNorNum);
         }
 
-        public static ImmutableSet<Str> minimize(ImmutableSet<Str> strs) {
-            if (strs.contains(Top)) {
-                return ImmutableSet.of(Top);
+        public static Set<Str> minimize(Set<Str> strs) {
+            assert !strs.member(Bot);
+            if (strs.member(Top)) {
+                return Set.set(Ord.hashOrd(), Top);
             } else {
-                boolean hasSNum = strs.contains(new SNum());
-                boolean hasSNotSpl = strs.contains(new SNotSpl());
-                boolean hasSNotSplNorNum = strs.contains(new SNotSplNorNum());
-                boolean hasSSpl = strs.contains(new SSpl());
-                boolean hasSNotNum = strs.contains(new SNotNum());
+                boolean hasSNum = strs.member(SNum);
+                boolean hasSNotSpl = strs.member(SNotSpl);
+                boolean hasSNotSplNorNum = strs.member(SNotSplNorNum);
+                boolean hasSSpl = strs.member(SSpl);
+                boolean hasSNotNum = strs.member(SNotNum);
 
-                ImmutableSet.Builder<Str> builder = ImmutableSet.<Str>builder();
-                for (Str str : strs) {
+                return strs.toList().foldLeft((acc, str) -> {
                     if (str instanceof SConstNum && (hasSNum || hasSNotSpl)) {
+                        return acc;
                     } else if (str instanceof SConstNotSplNorNum && (hasSNotSplNorNum || hasSNotSpl || hasSNotNum)) {
+                        return acc;
                     } else if (str instanceof SConstSpl && (hasSSpl || hasSNotNum)) {
-                    } else if (str instanceof SNum && (hasSNotSpl)) {
-                    } else if (str instanceof SNotSplNorNum && (hasSNotSpl || hasSNotNum)) {
-                    } else if (str instanceof SSpl && (hasSNotNum)) {
-                    } else if (str instanceof SBot) {
+                        return acc;
+                    } else if (str.equals(SNum) && (hasSNotSpl)) {
+                        return acc;
+                    } else if (str.equals(SNotSplNorNum) && (hasSNotSpl || hasSNotNum)) {
+                        return acc;
+                    } else if (str.equals(SSpl) && (hasSNotNum)) {
+                        return acc;
+                    } else if (str.equals(SBot)) {
+                        return acc;
                     } else {
-                        builder.add(str);
+                        return acc.insert(str);
                     }
-                }
-                return builder.build();
+                }, Set.empty(Ord.hashEqualsOrd()));
             }
         }
     }
 
-    public static class SBot extends Str {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof SBot);
-        }
-    }
+    public static final Str SBot = new Str() {};
 
-    public static class STop extends Str {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof STop);
-        }
-    }
+    public static final Str STop = new Str() {};
 
-    public static class SNum extends Str {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof SNum);
-        }
-    }
+    public static final Str SNum = new Str() {};
 
-    public static class SNotNum extends Str {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof SNotNum);
-        }
-    }
+    public static final Str SNotNum = new Str() {};
 
-    public static class SSpl extends Str {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof SSpl);
-        }
-    }
+    public static final Str SSpl = new Str() {};
 
-    public static class SNotSplNorNum extends Str {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof SNotSplNorNum);
-        }
-    }
+    public static final Str SNotSplNorNum = new Str() {};
 
-    public static class SNotSpl extends Str {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof SNotSpl);
-        }
-    }
+    public static final Str SNotSpl = new Str() {};
 
     public static class SConstNum extends Str {
         public String str;
@@ -1547,6 +1494,11 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof SConstNum && ((SConstNum) obj).str.equals(str));
+        }
+
+        @Override
+        public int hashCode() {
+            return str.hashCode();
         }
     }
 
@@ -1561,6 +1513,11 @@ public class Domains {
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof SConstNotSplNorNum && ((SConstNotSplNorNum) obj).str.equals(str));
         }
+
+        @Override
+        public int hashCode() {
+            return str.hashCode();
+        }
     }
 
     public static class SConstSpl extends Str {
@@ -1573,6 +1530,11 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof SConstSpl && ((SConstSpl) obj).str.equals(str));
+        }
+
+        @Override
+        public int hashCode() {
+            return str.hashCode();
         }
     }
 
@@ -1590,25 +1552,30 @@ public class Domains {
                 return (obj instanceof Address && loc.equals(((Address) obj).loc));
             }
 
+            @Override
+            public int hashCode() {
+                return loc.hashCode();
+            }
+
             public static Address apply(Integer x) {
                 return new Address(BigInteger.valueOf(x));
             }
 
             public static BValue inject(Address a) {
-                return new BValue(Num.Bot, Bool.Bot, Str.Bot, ImmutableSet.of(a), Null.Bot, Undef.Bot);
+                return new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.set(Ord.hashOrd(), a), Null.Bot, Undef.Bot);
             }
         }
 
         public static class Addresses {
 
-            public static ImmutableSet<Address> apply() {
-                return ImmutableSet.of();
+            public static Set<Address> apply() {
+                return Set.empty(Ord.hashOrd());
             }
-            public static ImmutableSet<Address> apply(Address a) {
-                return ImmutableSet.of(a);
+            public static Set<Address> apply(Address a) {
+                return Set.set(Ord.hashOrd(), a);
             }
 
-            public static BValue inject(ImmutableSet<Address> as) {
+            public static BValue inject(Set<Address> as) {
                 return new BValue(Num.Bot, Bool.Bot, Str.Bot, as, Null.Bot, Undef.Bot);
             }
         }
@@ -1626,7 +1593,7 @@ public class Domains {
         public static final Null Top = new MaybeNull();
         public static final Null Bot = new NotNull();
 
-        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, ImmutableSet.<AddressSpace.Address>of(), Top, Undef.Bot);
+        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Top, Undef.Bot);
     }
 
 
@@ -1656,7 +1623,7 @@ public class Domains {
         public static final Undef Top = new MaybeUndef();
         public static final Undef Bot = new NotUndef();
 
-        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, ImmutableSet.<AddressSpace.Address>of(), Null.Bot, Top);
+        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Top);
     }
 
     public static class MaybeUndef extends Undef {
@@ -1692,8 +1659,8 @@ public class Domains {
 
     public static class Object {
         public ExternMap extern;
-        public ImmutableMap<Str, java.lang.Object> intern;
-        public ImmutableSet<Str> present;
+        public TreeMap<Str, java.lang.Object> intern;
+        public Set<Str> present;
 
         JSClass myClass;
         BValue myProto;
@@ -1703,67 +1670,66 @@ public class Domains {
             return (obj instanceof Object && extern.equals(((Object) obj).extern) && intern.equals(((Object) obj).intern) && present.equals(((Object) obj).present));
         }
 
-        public Object(ExternMap extern, ImmutableMap<Str, java.lang.Object> intern, ImmutableSet<Str> present) {
+        public Object(ExternMap extern, TreeMap<Str, java.lang.Object> intern, Set<Str> present) {
             this.extern = extern;
             this.intern = intern;
             this.present = present;
-            myClass = (JSClass)intern.get(Utils.Fields.classname);
-            myProto = (BValue)intern.get(Utils.Fields.proto);
+            myClass = (JSClass)intern.get(Utils.Fields.classname).some();
+            myProto = (BValue)intern.get(Utils.Fields.proto).some();
         }
 
         public Object merge(Object o) {
             if (this.equals(o)) {
                 return this;
             } else {
+                assert myClass.equals(o.myClass);
+
                 ExternMap extern1 = extern.merge(o.extern);
-                ImmutableSet.Builder<Str> builder1 = ImmutableSet.<Str>builder();
-                for (Str str : present) {
-                    if (o.present.contains(str)) {
-                        builder1.add(str);
-                    }
-                }
-                ImmutableSet<Str> present1 = builder1.build();
-                ImmutableMap.Builder<Str, java.lang.Object> builder2 = ImmutableMap.<Str, java.lang.Object>builder();
-                for (Map.Entry<Str, java.lang.Object> entry : o.intern.entrySet()) {
-                    Str k = entry.getKey();
-                    java.lang.Object v = entry.getValue();
+                Set<Str> present1 = present.intersect(o.present);
+
+                TreeMap<Str, java.lang.Object> intern1 = TreeMap.treeMap(Ord.hashEqualsOrd(), o.intern.keys().map(k -> {
                     if (k.equals(Utils.Fields.code)) {
-                        ImmutableSet<Closure> me = (ImmutableSet<Closure>)intern.get(Utils.Fields.code);
-                        ImmutableSet<Closure> that = (ImmutableSet<Closure>)v;
-                        builder2.put(k, ImmutableSet.builder().addAll(me).addAll(that).build());
+                        Set<Closure> me = (Set<Closure>)intern.get(Utils.Fields.code).some();
+                        Set<Closure> that = (Set<Closure>)o.intern.get(k).some();
+                        return P.p(k, me.union(that));
                     } else if (k.equals(Utils.Fields.classname)) {
-                        builder2.put(k, myClass);
+                        assert o.intern.get(k).some().equals(myClass);
+                        return P.p(k, myClass);
                     } else if (k.equals(Utils.Fields.constructor)) {
-                        builder2.put(k, true);
+                        return P.p(k, true);
                     } else {
                         BValue me;
-                        if (intern.get(k) != null) {
-                            me = (BValue)intern.get(k);
+                        if (intern.contains(k)) {
+                            me = (BValue)intern.get(k).some();
                         } else {
                             me = BValue.Bot;
                         }
-                        BValue that = (BValue)v;
-                        builder2.put(k, me.merge(that));
+                        BValue that = (BValue)o.intern.get(k).some();
+                        return P.p(k, me.merge(that));
                     }
+                }));
+
+                TreeMap<Str, java.lang.Object> intern2;
+                if (intern.contains(Utils.Fields.constructor)) {
+                    intern2 = intern1.set(Utils.Fields.constructor, true);
+                } else {
+                    intern2 = intern1;
                 }
-                if (intern.containsKey(Utils.Fields.constructor)) {
-                    builder2.put(Utils.Fields.constructor, true);
-                }
-                ImmutableMap<Str, java.lang.Object> intern1 = builder2.build();
-                return new Object(extern1, intern1, present1);
+
+                return new Object(extern1, intern2, present1);
             }
         }
 
-        public Optional<BValue> apply(Str str) {
+        public Option<BValue> apply(Str str) {
             return extern.apply(str);
         }
 
         public Object strongUpdate(Str str, BValue bv) {
             if (Str.isExact(str)) {
-                if (Init.noupdate.get(myClass).contains(str)) {
+                if (Init.noupdate.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str)) {
                     return this;
                 } else {
-                    return new Object(extern.strongUpdate(str, bv), intern, ImmutableSet.<Str>builder().addAll(present).add(str).build());
+                    return new Object(extern.strongUpdate(str, bv), intern, present.insert(str));
                 }
             } else {
                 return new Object(extern.weakUpdate(str, bv), intern, present);
@@ -1772,7 +1738,7 @@ public class Domains {
 
         public Object weakUpdate(Str str, BValue bv) {
             if (Str.isExact(str)) {
-                if (Init.noupdate.get(myClass).contains(str)) {
+                if (Init.noupdate.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str)) {
                     return this;
                 } else {
                     return new Object(extern.weakUpdate(str, bv), intern, present);
@@ -1784,21 +1750,21 @@ public class Domains {
     }
 
     public static class ExternMap {
-        public Optional<BValue> top;
-        public Optional<BValue> notnum;
-        public Optional<BValue> num;
-        public ImmutableMap<Str, BValue> exactnotnum;
-        public ImmutableMap<Str, BValue> exactnum;
+        public Option<BValue> top;
+        public Option<BValue> notnum;
+        public Option<BValue> num;
+        public TreeMap<Str, BValue> exactnotnum;
+        public TreeMap<Str, BValue> exactnum;
 
         public ExternMap() {
-            this.top = Optional.absent();
-            this.notnum = Optional.absent();
-            this.num = Optional.absent();
-            this.exactnotnum = ImmutableMap.of();
-            this.exactnum = ImmutableMap.of();
+            this.top = Option.none();
+            this.notnum = Option.none();
+            this.num = Option.none();
+            this.exactnotnum = TreeMap.empty(Ord.hashEqualsOrd());
+            this.exactnum = TreeMap.empty(Ord.hashEqualsOrd());
         }
 
-        public ExternMap(Optional<BValue> top, Optional<BValue> notnum, Optional<BValue> num, ImmutableMap<Str, BValue> exactnotnum, ImmutableMap<Str, BValue> exactnum) {
+        public ExternMap(Option<BValue> top, Option<BValue> notnum, Option<BValue> num, TreeMap<Str, BValue> exactnotnum, TreeMap<Str, BValue> exactnum) {
             this.top = top;
             this.notnum = notnum;
             this.num = num;
@@ -1817,162 +1783,135 @@ public class Domains {
         }
 
         public ExternMap merge(ExternMap ext) {
-            Optional<BValue> top1;
-            if (top.isPresent() && ext.top.isPresent()) {
-                top1 = Optional.of(top.get().merge(ext.top.get()));
-            } else if (top.isPresent()) {
+            Option<BValue> top1;
+            if (top.isSome() && ext.top.isSome()) {
+                top1 = Option.some(top.some().merge(ext.top.some()));
+            } else if (top.isSome()) {
                 top1 = top;
-            } else if (ext.top.isPresent()) {
+            } else if (ext.top.isSome()) {
                 top1 = ext.top;
             } else {
-                top1 = Optional.absent();
+                top1 = Option.none();
             }
 
-            Optional<BValue> notnum1;
-            if (notnum.isPresent() && ext.notnum.isPresent()) {
-                notnum1 = Optional.of(notnum.get().merge(ext.notnum.get()));
-            } else if (notnum.isPresent()) {
+            Option<BValue> notnum1;
+            if (notnum.isSome() && ext.notnum.isSome()) {
+                notnum1 = Option.some(notnum.some().merge(ext.notnum.some()));
+            } else if (notnum.isSome()) {
                 notnum1 = notnum;
-            } else if (ext.notnum.isPresent()) {
+            } else if (ext.notnum.isSome()) {
                 notnum1 = ext.notnum;
             } else {
-                notnum1 = Optional.absent();
+                notnum1 = Option.none();
             }
 
-            Optional<BValue> num1;
-            if (num.isPresent() && ext.num.isPresent()) {
-                num1 = Optional.of(num.get().merge(ext.num.get()));
-            } else if (num.isPresent()) {
+            Option<BValue> num1;
+            if (num.isSome() && ext.num.isSome()) {
+                num1 = Option.some(num.some().merge(ext.num.some()));
+            } else if (num.isSome()) {
                 num1 = num;
-            } else if (ext.num.isPresent()) {
+            } else if (ext.num.isSome()) {
                 num1 = ext.num;
             } else {
-                num1 = Optional.absent();
+                num1 = Option.none();
             }
 
-            ImmutableMap<Str, BValue> _exactnotnum;
+            TreeMap<Str, BValue> _exactnotnum;
             if (exactnotnum.equals(ext.exactnotnum)) {
                 _exactnotnum = exactnotnum;
             } else {
-                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
-                builder.putAll(ext.exactnotnum);
-                for (Map.Entry<Str, BValue> entry : exactnotnum.entrySet()) {
-                    Str k = entry.getKey();
-                    BValue bv = entry.getValue();
-                    BValue bv1 = ext.exactnotnum.get(k);
-                    if (bv1 != null) {
-                        builder.put(k, bv.merge(bv1));
-                    } else {
-                        builder.put(k, bv);
-                    }
-                }
-                _exactnotnum = builder.build();
+                _exactnotnum = ext.exactnotnum.union(
+                        exactnotnum.keys().map(k -> {
+                            BValue bv = exactnotnum.get(k).some();
+                            Option<BValue> bv1 = ext.exactnotnum.get(k);
+                            if (bv1.isSome()) {
+                                return P.p(k, bv.merge(bv1.some()));
+                            } else {
+                                return P.p(k, bv);
+                            }
+                        })
+                );
             }
 
-            ImmutableMap<Str, BValue> _exactnum;
+            TreeMap<Str, BValue> _exactnum;
             if (exactnum.equals(ext.exactnum)) {
                 _exactnum = exactnum;
             } else {
-                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
-                builder.putAll(ext.exactnum);
-                for (Map.Entry<Str, BValue> entry : exactnum.entrySet()) {
-                    Str k = entry.getKey();
-                    BValue bv = entry.getValue();
-                    BValue bv1 = ext.exactnum.get(k);
-                    if (bv1 != null) {
-                        builder.put(k, bv.merge(bv1));
-                    } else {
-                        builder.put(k, bv);
-                    }
-                }
-                _exactnum = builder.build();
+                _exactnum = ext.exactnum.union(
+                        exactnum.keys().map(k -> {
+                            BValue bv = exactnum.get(k).some();
+                            Option<BValue> bv1 = ext.exactnum.get(k);
+                            if (bv1.isSome()) {
+                                return P.p(k, bv.merge(bv1.some()));
+                            } else {
+                                return P.p(k, bv);
+                            }
+                        })
+                );
             }
 
             return new ExternMap(top1, notnum1, num1, _exactnotnum, _exactnum);
         }
 
-        public Optional<BValue> apply(Str str) {
-            ImmutableSet.Builder<BValue> splBuilder = ImmutableSet.<BValue>builder();
-            for (Map.Entry<Str, BValue> entry : exactnotnum.entrySet()) {
-                Str x = entry.getKey();
-                if (Str.SplStrings.contains(Str.getExact(x).get())) {
-                    splBuilder.add(entry.getValue());
-                }
-            }
-            ImmutableSet<BValue> splValues = splBuilder.build();
-            ImmutableSet.Builder<BValue> nonSplBuilder = ImmutableSet.<BValue>builder();
-            for (Map.Entry<Str, BValue> entry : exactnotnum.entrySet()) {
-                Str x = entry.getKey();
-                if (!Str.SplStrings.contains(Str.getExact(x).get())) {
-                    nonSplBuilder.add(entry.getValue());
-                }
-            }
-            ImmutableSet<BValue> nonSplValues = nonSplBuilder.build();
+        public Option<BValue> apply(Str str) {
+            List<BValue> splValues = exactnotnum.keys().filter(k -> Str.SplStrings.member(Str.getExact(k).some())).map(s -> exactnotnum.get(s).some());
+            List<BValue> nonSplValues = exactnotnum.keys().filter(k -> !Str.SplStrings.member(Str.getExact(k).some())).map(s -> exactnotnum.get(s).some());
 
-            ImmutableSet.Builder<BValue> builder = ImmutableSet.<BValue>builder();
+            List<BValue> bvs = List.nil();
             if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
-                if (top.isPresent()) builder.add(top.get());
-                if (notnum.isPresent()) builder.add(notnum.get());
-                if (exactnotnum.containsKey(str)) builder.add(exactnotnum.get(str));
+                if (top.isSome()) bvs = bvs.snoc(top.some());
+                if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
+                if (exactnotnum.contains(str)) bvs = bvs.snoc(exactnotnum.get(str).some());
             } else if (str instanceof SConstNum) {
-                if (top.isPresent()) builder.add(top.get());
-                if (num.isPresent()) builder.add(num.get());
-                if (exactnum.containsKey(str)) builder.add(exactnum.get(str));
-            } else if (str instanceof SNum) {
-                if (top.isPresent()) builder.add(top.get());
-                if (num.isPresent()) builder.add(num.get());
-                builder.addAll(exactnum.values());
-            } else if (str instanceof SNotSplNorNum) {
-                if (top.isPresent()) builder.add(top.get());
-                if (notnum.isPresent()) builder.add(notnum.get());
-                builder.addAll(nonSplValues);
-            } else if (str instanceof SSpl) {
-                if (top.isPresent()) builder.add(top.get());
-                if (notnum.isPresent()) builder.add(notnum.get());
-                builder.addAll(splValues);
-            } else if (str instanceof SNotSpl) {
-                if (top.isPresent()) builder.add(top.get());
-                if (num.isPresent()) builder.add(num.get());
-                if (notnum.isPresent()) builder.add(notnum.get());
-                builder.addAll(exactnum.values());
-                builder.addAll(nonSplValues);
-            } else if (str instanceof SNotNum) {
-                if (top.isPresent()) builder.add(top.get());
-                if (notnum.isPresent()) builder.add(notnum.get());
-                builder.addAll(exactnotnum.values());
-            } else if (str instanceof STop) {
-                if (top.isPresent()) builder.add(top.get());
-                if (num.isPresent()) builder.add(num.get());
-                if (notnum.isPresent()) builder.add(notnum.get());
-                builder.addAll(exactnotnum.values());
-                builder.addAll(exactnum.values());
+                if (top.isSome()) bvs = bvs.snoc(top.some());
+                if (num.isSome()) bvs = bvs.snoc(num.some());
+                if (exactnum.contains(str)) bvs = bvs.snoc(exactnum.get(str).some());
+            } else if (str.equals(SNum)) {
+                if (top.isSome()) bvs = bvs.snoc(top.some());
+                if (num.isSome()) bvs = bvs.snoc(num.some());
+                bvs = bvs.append(exactnum.values());
+            } else if (str.equals(SNotSplNorNum)) {
+                if (top.isSome()) bvs = bvs.snoc(top.some());
+                if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
+                bvs = bvs.append(nonSplValues);
+            } else if (str.equals(SSpl)) {
+                if (top.isSome()) bvs = bvs.snoc(top.some());
+                if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
+                bvs = bvs.append(splValues);
+            } else if (str.equals(SNotSpl)) {
+                if (top.isSome()) bvs = bvs.snoc(top.some());
+                if (num.isSome()) bvs = bvs.snoc(num.some());
+                if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
+                bvs = bvs.append(exactnum.values());
+                bvs = bvs.append(nonSplValues);
+            } else if (str.equals(SNotNum)) {
+                if (top.isSome()) bvs = bvs.snoc(top.some());
+                if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
+                bvs = bvs.append(exactnotnum.values());
+            } else if (str.equals(STop)) {
+                if (top.isSome()) bvs = bvs.snoc(top.some());
+                if (num.isSome()) bvs = bvs.snoc(num.some());
+                if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
+                bvs = bvs.append(exactnotnum.values());
+                bvs = bvs.append(exactnum.values());
             } else {
                 throw new RuntimeException("used SBot with an object");
             }
-            ImmutableSet<BValue> bvs = builder.build();
 
             if (bvs.isEmpty()) {
-                return Optional.absent();
+                return Option.none();
             } else {
-                BValue bv = BValue.Bot;
-                for (BValue v : bvs) {
-                    bv = bv.merge(v);
-                }
-                return Optional.of(bv);
+                return Option.some(bvs.foldLeft(BValue::merge, BValue.Bot));
             }
         }
 
         public ExternMap strongUpdate(Str str, BValue bv) {
             if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
-                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
-                builder.putAll(exactnotnum);
-                builder.put(str, bv);
-                return new ExternMap(top, notnum, num, builder.build(), exactnum);
+                TreeMap<Str, BValue> exactnotnum1 = exactnotnum.set(str, bv);
+                return new ExternMap(top, notnum, num, exactnotnum1, exactnum);
             } else if (str instanceof SConstNum) {
-                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
-                builder.putAll(exactnum);
-                builder.put(str, bv);
-                return new ExternMap(top, notnum, num, exactnotnum, builder.build());
+                TreeMap<Str, BValue> exactnum1 = exactnum.set(str, bv);
+                return new ExternMap(top, notnum, num, exactnotnum, exactnum1);
             } else {
                 throw new RuntimeException("strong updated with inexact string");
             }
@@ -1980,49 +1919,45 @@ public class Domains {
 
         public ExternMap weakUpdate(Str str, BValue bv) {
             if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
-                BValue _bv = exactnotnum.get(str), bv1;
-                if (_bv != null) {
-                    bv1 = bv.merge(_bv);
+                Option<BValue> _bv = exactnotnum.get(str);
+                BValue bv1;
+                if (_bv.isSome()) {
+                    bv1 = bv.merge(_bv.some());
                 } else {
                     bv1 = bv;
                 }
-                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
-                builder.putAll(exactnotnum);
-                builder.put(str, bv1);
-                return new ExternMap(top, notnum, num, builder.build(), exactnum);
+                return new ExternMap(top, notnum, num, exactnotnum.set(str, bv1), exactnum);
             } else if (str instanceof SConstNum) {
-                BValue _bv = exactnum.get(str), bv1;
-                if (_bv != null) {
-                    bv1 = bv.merge(_bv);
+                Option<BValue> _bv = exactnum.get(str);
+                BValue bv1;
+                if (_bv.isSome()) {
+                    bv1 = bv.merge(_bv.some());
                 } else {
                     bv1 = bv;
                 }
-                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
-                builder.putAll(exactnum);
-                builder.put(str, bv1);
-                return new ExternMap(top, notnum, num, exactnotnum, builder.build());
-            } else if (str instanceof SNum) {
-                Optional<BValue> num1;
-                if (num.isPresent()) {
-                    num1 = Optional.of(num.get().merge(bv));
+                return new ExternMap(top, notnum, num, exactnotnum, exactnum.set(str, bv1));
+            } else if (str.equals(SNum)) {
+                Option<BValue> num1;
+                if (num.isSome()) {
+                    num1 = Option.some(num.some().merge(bv));
                 } else {
-                    num1 = Optional.of(bv);
+                    num1 = Option.some(bv);
                 }
                 return new ExternMap(top, notnum, num1, exactnotnum, exactnum);
-            } else if (str instanceof SSpl || str instanceof SNotSplNorNum || str instanceof SNotNum) {
-                Optional<BValue> notnum1;
-                if (notnum.isPresent()) {
-                    notnum1 = Optional.of(notnum.get().merge(bv));
+            } else if (str.equals(SSpl) || str.equals(SNotSplNorNum) || str.equals(SNotNum)) {
+                Option<BValue> notnum1;
+                if (notnum.isSome()) {
+                    notnum1 = Option.some(notnum.some().merge(bv));
                 } else {
-                    notnum1 = Optional.of(bv);
+                    notnum1 = Option.some(bv);
                 }
                 return new ExternMap(top, notnum1, num, exactnotnum, exactnum);
-            } else if (str instanceof SNotSpl || str instanceof STop) {
-                Optional<BValue> top1;
-                if (top.isPresent()) {
-                    top1 = Optional.of(top.get().merge(bv));
+            } else if (str.equals(SNotSpl) || str.equals(STop)) {
+                Option<BValue> top1;
+                if (top.isSome()) {
+                    top1 = Option.some(top.some().merge(bv));
                 } else {
-                    top1 = Optional.of(bv);
+                    top1 = Option.some(bv);
                 }
                 return new ExternMap(top1, notnum, num, exactnotnum, exactnum);
             } else {
@@ -2032,21 +1967,9 @@ public class Domains {
 
         public ExternMap delete(Str str) {
             if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
-                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
-                for (Map.Entry<Str, BValue> entry : exactnotnum.entrySet()) {
-                    if (!str.equals(entry.getKey())) {
-                        builder.put(entry);
-                    }
-                }
-                return new ExternMap(top, notnum, num, builder.build(), exactnum);
+                return new ExternMap(top, notnum, num, exactnotnum.delete(str), exactnum);
             } else if (str instanceof SConstNum) {
-                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
-                for (Map.Entry<Str, BValue> entry : exactnum.entrySet()) {
-                    if (!str.equals(entry.getKey())) {
-                        builder.put(entry);
-                    }
-                }
-                return new ExternMap(top, notnum, num, exactnotnum, builder.build());
+                return new ExternMap(top, notnum, num, exactnotnum, exactnum.delete(str));
             } else {
                 throw new RuntimeException("tried to delete inexact string");
             }
@@ -2063,9 +1986,9 @@ public class Domains {
     }
 
     public static class SeqKont extends Kont {
-        public ImmutableList<IRStmt> ss;
+        public List<IRStmt> ss;
 
-        public SeqKont(ImmutableList<IRStmt> ss) {
+        public SeqKont(List<IRStmt> ss) {
             this.ss = ss;
         }
     }
@@ -2126,9 +2049,9 @@ public class Domains {
     }
 
     public static class FinKont extends Kont {
-        public ImmutableSet<Value> vs;
+        public Set<Value> vs;
 
-        public FinKont(ImmutableSet<Value> vs) {
+        public FinKont(Set<Value> vs) {
             this.vs = vs;
         }
     }
@@ -2152,35 +2075,36 @@ public class Domains {
     }
 
     public static class KontStack {
-        public ImmutableList<Kont> ks;
-        public ImmutableList<Integer> exc;
+        public List<Kont> ks;
+        public List<Integer> exc;
 
-        public KontStack(ImmutableList<Kont> ks, ImmutableList<Integer> exc) {
+        public KontStack(List<Kont> ks, List<Integer> exc) {
             this.ks = ks;
             this.exc = exc;
         }
 
-        public KontStack(ImmutableList<Kont> ks) {
+        public KontStack(List<Kont> ks) {
             this.ks = ks;
-            this.exc = ImmutableList.of(0);
+            this.exc = List.list(0);
         }
 
         public KontStack merge(KontStack rhs) {
-            ImmutableList.Builder<Kont> builder = ImmutableList.<Kont>builder();
-            for (int i = 0; i < ks.size(); i += 1) {
-                Kont k1 = ks.get(i);
-                Kont k2 = rhs.ks.get(i);
+            assert ks.length() == rhs.ks.length();
+            ArrayList<Kont> l1 = new ArrayList<>();
+            for (int i = 0; i < ks.length(); i += 1) {
+                Kont k1 = ks.index(i);
+                Kont k2 = rhs.ks.index(i);
                 if (k1 instanceof FinKont && k2 instanceof FinKont) {
 
                 } else if (k1 instanceof ForKont && k2 instanceof ForKont) {
 
                 } else {
-                    builder.add(k1);
+                    l1.add(k1);
                 }
             }
-            ImmutableList<Kont> newks = builder.build();
-            ImmutableList<Integer> newexc;
-            if (exc.get(exc.size() - 1) < rhs.exc.get(rhs.exc.size() - 1)) {
+            List<Kont> newks = List.list(l1);
+            List<Integer> newexc;
+            if (exc.last() < rhs.exc.last()) {
                 newexc = rhs.exc;
             } else {
                 newexc = exc;
