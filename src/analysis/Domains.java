@@ -1,10 +1,7 @@
 package analysis;
 
 import analysis.init.Init;
-import fj.F;
-import fj.Ord;
-import fj.P;
-import fj.P2;
+import fj.*;
 import fj.data.*;
 import ir.*;
 
@@ -91,18 +88,20 @@ public class Domains {
         public TreeMap<AddressSpace.Address, BValue> toValue;
         public TreeMap<AddressSpace.Address, Object> toObject;
         public TreeMap<AddressSpace.Address, Set<KontStack>> toKonts;
+        public Set<AddressSpace.Address> weak;
 
-        public Store(TreeMap<AddressSpace.Address, BValue> toValue, TreeMap<AddressSpace.Address, Object> toObject, TreeMap<AddressSpace.Address, Set<KontStack>> toKonts) {
+        public Store(TreeMap<AddressSpace.Address, BValue> toValue, TreeMap<AddressSpace.Address, Object> toObject, TreeMap<AddressSpace.Address, Set<KontStack>> toKonts, Set<AddressSpace.Address> weak) {
             this.toValue = toValue;
             this.toObject = toObject;
             this.toKonts = toKonts;
+            this.weak = weak;
         }
 
         @Override
         public boolean equals(java.lang.Object obj) {
             if (obj instanceof Store) {
                 Store sigma = (Store)obj;
-                return (toValue.equals(((Store) obj).toValue) && toObject.equals(((Store) obj).toObject) && toKonts.equals(((Store) obj).toKonts));
+                return (toValue.equals(((Store) obj).toValue) && toObject.equals(((Store) obj).toObject) && toKonts.equals(((Store) obj).toKonts) && weak.equals(((Store) obj).weak));
             } else {
                 return false;
             }
@@ -154,7 +153,75 @@ public class Domains {
                         })
                 );
             }
-            return new Store(_toValue, _toObject, _toKonts);
+            return new Store(_toValue, _toObject, _toKonts, weak.union(sigma.weak));
+        }
+
+        public Store alloc(List<P2<AddressSpace.Address, BValue>> bind) {
+            return null; // TODO
+        }
+
+        public Store alloc(AddressSpace.Address a, Object o) {
+            return null; // TODO
+        }
+
+        public Store alloc(AddressSpace.Address a, KontStack ks) {
+            return null; // TODO
+        }
+
+        public BValue apply(Set<AddressSpace.Address> as) {
+            return null; // TODO
+        }
+
+        public BValue apply(AddressSpace.Address a) {
+            return null; // TODO
+        }
+
+        public Object getObj(AddressSpace.Address a, Str shint) {
+            return null; // TODO
+        }
+
+        public Set<KontStack> getKont(AddressSpace.Address a) {
+            return null; // TODO
+        }
+
+        public Store extend(Set<AddressSpace.Address> as, BValue bv) {
+            return null; // TODO
+        }
+
+        public Store putObj(AddressSpace.Address a, Object o) {
+            return null; // TODO
+        }
+
+        public Store putObjStrong(AddressSpace.Address a, Object o) {
+            return null; // TODO
+        }
+
+        public Store putObjWeak(AddressSpace.Address a, Object o) {
+            return null; // TODO
+        }
+
+        public Boolean isStrong(AddressSpace.Address a) {
+            return !(weak.member(a));
+        }
+
+        public Boolean toValueContains(Set<AddressSpace.Address> as) {
+            return false; // TODO
+        }
+
+        public Store weaken(Set<Integer> varIDs, Set<Integer> objIDs) {
+            return null; // TODO
+        }
+
+        public Store lightGC(Set<Integer> ids) {
+            return null; // TODO
+        }
+
+        public Store fullGC(Set<AddressSpace.Address> vRoots, Set<AddressSpace.Address> oRoots, Set<AddressSpace.Address> kRoots) {
+            return null; // TODO
+        }
+
+        public P2<Store, Store> prune(Set<AddressSpace.Address> vRoots, Set<AddressSpace.Address> oRoots) {
+            return null; // TODO
         }
     }
 
@@ -225,6 +292,11 @@ public class Domains {
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof EValue && bv.equals(((EValue) obj).bv));
         }
+
+        @Override
+        public int hashCode() {
+            return bv.hashCode();
+        }
     }
 
     public static class JValue extends Value {
@@ -239,6 +311,11 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof JValue && lbl.equals(((JValue) obj).lbl) && bv.equals(((JValue) obj).bv));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(lbl, bv).hashCode();
         }
     }
 
@@ -278,6 +355,11 @@ public class Domains {
             } else {
                 return false;
             }
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(n, b, str, as, nil, undef).hashCode();
         }
 
         public BValue merge(BValue bv) {
@@ -506,6 +588,10 @@ public class Domains {
             return AddressSpace.Addresses.inject(as);
         }
 
+        public BValue removeNullAndUndef() {
+            return new BValue(n, b, str, as, Null.Bot, Undef.Bot);
+        }
+
         public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Undef.Bot);
     }
 
@@ -513,11 +599,11 @@ public class Domains {
         public Num merge(Num n) {
             if (this.equals(n)) {
                 return this;
-            } else if (this instanceof NBot) {
+            } else if (this.equals(NBot)) {
                 return n;
-            } else if (n instanceof NBot) {
+            } else if (n.equals(NBot)) {
                 return this;
-            } else if (this instanceof NTop || n instanceof NTop) {
+            } else if (this.equals(NTop) || n.equals(NTop)) {
                 return Top;
             } else if (this.equals(NaN) || n.equals(NaN)) {
                 return Top;
@@ -526,26 +612,26 @@ public class Domains {
             } else if (this.equals(NInf) || n.equals(NInf)) {
                 return Top;
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Bool strictEqual(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bool.Bot;
             } else if (this.equals(NaN) || n.equals(NaN)) {
                 return Bool.False;
-            } else if (this instanceof NTop || n instanceof NTop) {
+            } else if (this.equals(NTop) || n.equals(NTop)) {
                 return Bool.Top;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return Bool.alpha(((NConst)this).d.equals(((NConst)n).d));
-            } else if (this.equals(Inf) && n instanceof NReal) {
+            } else if (this.equals(Inf) && n.equals(NReal)) {
                 return Bool.False;
-            } else if (this instanceof NReal && n.equals(Inf)) {
+            } else if (this.equals(NReal) && n.equals(Inf)) {
                 return Bool.False;
-            } else if (this.equals(NInf) && n instanceof NReal) {
+            } else if (this.equals(NInf) && n.equals(NReal)) {
                 return Bool.False;
-            } else if (this instanceof NReal && n.equals(NInf)) {
+            } else if (this.equals(NReal) && n.equals(NInf)) {
                 return Bool.False;
             } else {
                 return Bool.Top;
@@ -553,77 +639,77 @@ public class Domains {
         }
 
         public Num plus(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bot;
             } else if (this.equals(NaN) || n.equals(NaN)) {
                 return NaN;
-            } else if (this instanceof NTop || n instanceof NTop) {
+            } else if (this.equals(NTop) || n.equals(NTop)) {
                 return Top;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst(((NConst)this).d + ((NConst)n).d);
-            } else if (this instanceof NReal && n.equals(Inf)) {
+            } else if (this.equals(NReal) && n.equals(Inf)) {
                 return Inf;
-            } else if (this.equals(Inf) && n instanceof NReal) {
+            } else if (this.equals(Inf) && n.equals(NReal)) {
                 return Inf;
-            } else if (this instanceof NReal && n.equals(NInf)) {
+            } else if (this.equals(NReal) && n.equals(NInf)) {
                 return NInf;
-            } else if (this.equals(NInf) && n instanceof NReal) {
+            } else if (this.equals(NInf) && n.equals(NReal)) {
                 return NInf;
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Num minus(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bot;
             } else if (this.equals(NaN) || n.equals(NaN)) {
                 return NaN;
-            } else if (this instanceof NTop || n instanceof NTop) {
+            } else if (this.equals(NTop) || n.equals(NTop)) {
                 return Top;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst(((NConst)this).d - ((NConst)n).d);
-            } else if (this instanceof NReal && n.equals(Inf)) {
+            } else if (this.equals(NReal) && n.equals(Inf)) {
                 return NInf;
-            } else if (this.equals(NInf) && n instanceof NReal) {
+            } else if (this.equals(NInf) && n.equals(NReal)) {
                 return NInf;
-            } else if (this instanceof NReal && n.equals(NInf)) {
+            } else if (this.equals(NReal) && n.equals(NInf)) {
                 return Inf;
-            } else if (this.equals(Inf) && n instanceof NReal) {
+            } else if (this.equals(Inf) && n.equals(NReal)) {
                 return Inf;
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Num times(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bot;
             } else if (this.equals(NaN) || n.equals(NaN)) {
                 return NaN;
-            } else if (this instanceof NTop || n instanceof NTop) {
+            } else if (this.equals(NTop) || n.equals(NTop)) {
                 return Top;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst(((NConst)this).d * ((NConst)n).d);
-            } else if ((this instanceof NReal && n.equals(Inf)) || (this.equals(Inf) && n instanceof NReal)) {
+            } else if ((this.equals(NReal) && n.equals(Inf)) || (this.equals(Inf) && n.equals(NReal))) {
                 return Top;
-            } else if ((this instanceof NReal && n.equals(NInf) || (this.equals(NInf) && n instanceof NReal))) {
+            } else if ((this.equals(NReal) && n.equals(NInf) || (this.equals(NInf) && n.equals(NReal)))) {
                 return Top;
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Num divide(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bot;
             } else if (this.equals(NaN) || n.equals(NaN)) {
                 return NaN;
-            } else if (this instanceof NTop || n instanceof NTop) {
+            } else if (this.equals(NTop) || n.equals(NTop)) {
                 return Top;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst(((NConst)this).d / ((NConst)n).d);
-            } else if (this instanceof NReal && (n.equals(Inf) || n.equals(NInf))) {
+            } else if (this.equals(NReal) && (n.equals(Inf) || n.equals(NInf))) {
                 return new NConst(0.0);
             } else {
                 return Top;
@@ -631,65 +717,65 @@ public class Domains {
         }
 
         public Num mod(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bot;
             } else if (this.equals(NaN) || n.equals(NaN)) {
                 return NaN;
-            } else if (this instanceof NTop || n instanceof NTop) {
+            } else if (this.equals(NTop) || n.equals(NTop)) {
                 return Top;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst(((NConst)this).d % ((NConst)n).d);
-            } else if ((this.equals(Inf) || this.equals((NInf))) && (n instanceof NReal)) {
+            } else if ((this.equals(Inf) || this.equals((NInf))) && (n.equals(NReal))) {
                 return NaN;
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Num shl(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bot;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst((double)(((NConst)this).d.longValue() << ((NConst)n).d.longValue()));
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Num sar(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bot;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst((double)(((NConst)this).d.longValue() >> ((NConst)n).d.longValue()));
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Num shr(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bot;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst((double)(((NConst)this).d.longValue() >>> ((NConst)n).d.longValue()));
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Bool lessThan(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bool.Bot;
             } else if (this.equals(NaN) || n.equals(NaN)) {
                 return Bool.False;
-            } else if (this instanceof NTop || n instanceof NTop) {
+            } else if (this.equals(NTop) || n.equals(NTop)) {
                 return Bool.Top;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return Bool.alpha(((NConst)this).d < ((NConst)n).d);
-            } else if ((this instanceof NReal && n.equals(Inf))
-                    || (this.equals(NInf) && n instanceof NReal)) {
+            } else if ((this.equals(NReal) && n.equals(Inf))
+                    || (this.equals(NInf) && n.equals(NReal))) {
                 return Bool.True;
-            } else if ((this.equals(Inf) && n instanceof NReal)
-                    || (this instanceof NReal && n.equals(NInf))) {
+            } else if ((this.equals(Inf) && n.equals(NReal))
+                    || (this.equals(NReal) && n.equals(NInf))) {
                 return Bool.False;
             } else {
                 return Bool.Top;
@@ -697,19 +783,19 @@ public class Domains {
         }
 
         public Bool lessEqual(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Bool.Bot;
             } else if (this.equals(NaN) || n.equals(NaN)) {
                 return Bool.False;
-            } else if (this instanceof NTop || n instanceof NTop) {
+            } else if (this.equals(NTop) || n.equals(NTop)) {
                 return Bool.Top;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return Bool.alpha(((NConst)this).d <= ((NConst)n).d);
-            } else if ((this instanceof NReal && n.equals(Inf))
-                    || (this.equals(NInf) && n instanceof NReal)) {
+            } else if ((this.equals(NReal) && n.equals(Inf))
+                    || (this.equals(NInf) && n.equals(NReal))) {
                 return Bool.True;
-            } else if ((this.equals(Inf) && n instanceof NReal)
-                    || (this instanceof NReal && n.equals(NInf))) {
+            } else if ((this.equals(Inf) && n.equals(NReal))
+                    || (this.equals(NReal) && n.equals(NInf))) {
                 return Bool.False;
             } else {
                 return Bool.Top;
@@ -717,34 +803,34 @@ public class Domains {
         }
 
         public Num and(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Num.Bot;
             } else if (this.equals(NaN) || n.equals((NaN))) {
                 return Num.Zero;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst((double)(((NConst)this).d.longValue() & ((NConst)n).d.longValue()));
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Num or(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Num.Bot;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst((double)(((NConst)this).d.longValue() | ((NConst)n).d.longValue()));
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
         public Num xor(Num n) {
-            if (this instanceof NBot || n instanceof NBot) {
+            if (this.equals(NBot) || n.equals(NBot)) {
                 return Num.Bot;
             } else if (this instanceof NConst && n instanceof NConst) {
                 return new NConst((double)(((NConst)this).d.longValue() ^ ((NConst)n).d.longValue()));
             } else {
-                return new NReal();
+                return NReal;
             }
         }
 
@@ -767,9 +853,9 @@ public class Domains {
         public Str toStr() {
             if (this instanceof NConst) {
                 return Str.alpha(((NConst)this).d.toString());
-            } else if (this instanceof NTop) {
+            } else if (this.equals(NTop)) {
                 return Str.Top;
-            } else if (this instanceof NReal) {
+            } else if (this.equals(NReal)) {
                 return Str.NumStr;
             } else {
                 return Str.Bot;
@@ -792,13 +878,13 @@ public class Domains {
             return (this.equals(Bot) || (this instanceof NConst && ((NConst)this).d != 0));
         }
 
-        public static final Num Top = new NTop();
-        public static final Num Bot = new NBot();
+        public static final Num Top = NTop;
+        public static final Num Bot = NBot;
         public static final Num Zero = new NConst(0.0);
         public static final Num NaN = new NConst(Double.NaN);
         public static final Num Inf = new NConst(Double.POSITIVE_INFINITY);
         public static final Num NInf = new NConst(Double.NEGATIVE_INFINITY);
-        public static final Num U32 = new NReal();
+        public static final Num U32 = NReal;
         public static final Long maxU32 = 4294967295L;
 
         public static Num alpha(Double d) {
@@ -807,7 +893,7 @@ public class Domains {
 
         public static Boolean maybeU32(BValue bv) {
             Num n = bv.n;
-            if (n instanceof NTop || n instanceof NReal) {
+            if (n.equals(NTop) || n.equals(NReal)) {
                 return true;
             } else if (n instanceof NConst) {
                 Double d = ((NConst) n).d;
@@ -836,26 +922,11 @@ public class Domains {
         }
     }
 
-    public static class NBot extends Num {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof NBot);
-        }
-    }
+    public static final Num NBot = new Num() {};
 
-    public static class NTop extends Num {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof NTop);
-        }
-    }
+    public static final Num NTop = new Num() {};
 
-    public static class NReal extends Num {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof NReal);
-        }
-    }
+    public static final Num NReal = new Num() {};
 
     public static class NConst extends Num {
         public Double d;
@@ -872,17 +943,22 @@ public class Domains {
                 return false;
             }
         }
+
+        @Override
+        public int hashCode() {
+            return d.hashCode();
+        }
     }
 
     public static abstract class Bool {
         public Bool merge(Bool b) {
             if (this.equals(b)) {
                 return this;
-            } else if (this instanceof BTop || b instanceof BTop || (this instanceof BTrue && b instanceof BFalse) || (this instanceof BFalse && b instanceof BTrue)) {
+            } else if (this.equals(BTop) || b.equals(BTop) || (this.equals(BTrue) && b.equals(BFalse)) || (this.equals(BFalse) && b.equals(BTrue))) {
                 return Top;
-            } else if (this instanceof BBot) {
+            } else if (this.equals(BBot)) {
                 return b;
-            } else if (b instanceof BBot) {
+            } else if (b.equals(BBot)) {
                 return this;
             } else {
                 throw new RuntimeException("suppress false compiler warning");
@@ -890,12 +966,12 @@ public class Domains {
         }
 
         public Bool strictEqual(Bool b) {
-            if (this instanceof BBot || b instanceof BBot) {
+            if (this.equals(BBot) || b.equals(BBot)) {
                 return Bot;
-            } else if (this instanceof BTop || b instanceof BTop) {
+            } else if (this.equals(BTop) || b.equals(BTop)) {
                 return Top;
-            } else if ((this instanceof BTrue && b instanceof BTrue)
-                    || (this instanceof BFalse && b instanceof BFalse)) {
+            } else if ((this.equals(BTrue) && b.equals(BTrue))
+                    || (this.equals(BFalse) && b.equals(BFalse))) {
                 return True;
             } else {
                 return False;
@@ -903,11 +979,11 @@ public class Domains {
         }
 
         public Bool logicalAnd(Bool b) {
-            if (this instanceof BBot || b instanceof BBot) {
+            if (this.equals(BBot) || b.equals(BBot)) {
                 return Bot;
-            } else if (this instanceof BFalse || b instanceof BFalse) {
+            } else if (this.equals(BFalse) || b.equals(BFalse)) {
                 return False;
-            } else if (this instanceof BTop || b instanceof BTop) {
+            } else if (this.equals(BTop) || b.equals(BTop)) {
                 return Top;
             } else {
                 return True;
@@ -915,11 +991,11 @@ public class Domains {
         }
 
         public Bool logicalOr(Bool b) {
-            if (this instanceof BBot || b instanceof BBot) {
+            if (this.equals(BBot) || b.equals(BBot)) {
                 return Bot;
-            } else if (this instanceof BTrue || b instanceof BTrue) {
+            } else if (this.equals(BTrue) || b.equals(BTrue)) {
                 return True;
-            } else if (this instanceof BTop || b instanceof BTop) {
+            } else if (this.equals(BTop) || b.equals(BTop)) {
                 return Top;
             } else {
                 return False;
@@ -927,11 +1003,11 @@ public class Domains {
         }
 
         public Bool logicalNot() {
-            if (this instanceof BBot) {
+            if (this.equals(BBot)) {
                 return Bot;
-            } else if (this instanceof BTrue) {
+            } else if (this.equals(BTrue)) {
                 return False;
-            } else if (this instanceof BFalse) {
+            } else if (this.equals(BFalse)) {
                 return True;
             } else {
                 return Top;
@@ -939,11 +1015,11 @@ public class Domains {
         }
 
         public Num toNum() {
-            if (this instanceof BBot) {
+            if (this.equals(BBot)) {
                 return Num.Bot;
-            } else if (this instanceof BTrue) {
+            } else if (this.equals(BTrue)) {
                 return Num.alpha(1.0);
-            } else if (this instanceof BFalse) {
+            } else if (this.equals(BFalse)) {
                 return Num.alpha(0.0);
             } else {
                 return Num.Top;
@@ -951,21 +1027,21 @@ public class Domains {
         }
 
         public Str toStr() {
-            if (this instanceof BBot) {
+            if (this.equals(BBot)) {
                 return Str.Bot;
-            } else if (this instanceof BTrue) {
+            } else if (this.equals(BTrue)) {
                 return Str.alpha("true");
-            } else if (this instanceof BFalse) {
+            } else if (this.equals(BFalse)) {
                 return Str.alpha("false");
             } else {
                 return Str.Top;
             }
         }
 
-        public static final Bool Top = new BTop();
-        public static final Bool Bot = new BBot();
-        public static final Bool True = new BTrue();
-        public static final Bool False = new BFalse();
+        public static final Bool Top = BTop;
+        public static final Bool Bot = BBot;
+        public static final Bool True = BTrue;
+        public static final Bool False = BFalse;
 
         public static Bool alpha(Boolean b) {
             if (b) {
@@ -980,33 +1056,13 @@ public class Domains {
         }
     }
 
-    public static class BBot extends Bool {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof BBot);
-        }
-    }
+    public static final Bool BBot = new Bool() {};
 
-    public static class BTrue extends Bool {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof BTrue);
-        }
-    }
+    public static final Bool BTrue = new Bool() {};
 
-    public static class BFalse extends Bool {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof BFalse);
-        }
-    }
+    public static final Bool BFalse = new Bool() {};
 
-    public static class BTop extends Bool {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof BTop);
-        }
-    }
+    public static final Bool BTop = new Bool() {};
 
     public static abstract class Str {
         public Str merge(Str str) {
@@ -1439,7 +1495,7 @@ public class Domains {
         public static Set<Str> minimize(Set<Str> strs) {
             assert !strs.member(Bot);
             if (strs.member(Top)) {
-                return Set.set(Ord.hashOrd(), Top);
+                return Set.set(Ord.hashEqualsOrd(), Top);
             } else {
                 boolean hasSNum = strs.member(SNum);
                 boolean hasSNotSpl = strs.member(SNotSpl);
@@ -1583,62 +1639,41 @@ public class Domains {
 
     public static abstract class Null {
         public Null merge(Null nil) {
-            if (this instanceof MaybeNull || nil instanceof MaybeNull) {
+            if (this.equals(MaybeNull) || nil.equals(MaybeNull)) {
                 return Top;
             } else {
                 return Bot;
             }
         }
 
-        public static final Null Top = new MaybeNull();
-        public static final Null Bot = new NotNull();
+        public static final Null Top = MaybeNull;
+        public static final Null Bot = NotNull;
 
         public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Top, Undef.Bot);
     }
 
+    public static final Null MaybeNull = new Null() {};
 
-    public static class MaybeNull extends Null {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof MaybeNull);
-        }
-    }
-
-    public static class NotNull extends Null {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof NotNull);
-        }
-    }
+    public static final Null NotNull = new Null() {};
 
     public static abstract class Undef {
         public Undef merge(Undef undef) {
-            if (this instanceof MaybeUndef || undef instanceof MaybeUndef) {
+            if (this.equals(MaybeUndef) || undef.equals(MaybeUndef)) {
                 return Top;
             } else {
                 return Bot;
             }
         }
 
-        public static final Undef Top = new MaybeUndef();
-        public static final Undef Bot = new NotUndef();
+        public static final Undef Top = MaybeUndef;
+        public static final Undef Bot = NotUndef;
 
         public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Top);
     }
 
-    public static class MaybeUndef extends Undef {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof MaybeUndef);
-        }
-    }
+    public static final Undef MaybeUndef = new Undef() {};
 
-    public static class NotUndef extends Undef {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof NotUndef);
-        }
-    }
+    public static final Undef NotUndef = new Undef() {};
 
     public static abstract class Closure {}
 
@@ -1654,6 +1689,29 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Clo && rho.equals(((Clo) obj).rho) && m.equals(((Clo) obj).m));
+        }
+    }
+
+    public static class Native extends Closure {
+        public F8<BValue, BValue, IRVar, Env, Store, Scratchpad, KontStack, Trace, Set<Interpreter.State>> f;
+
+        Integer hash;
+
+        public Native(F8<BValue, BValue, IRVar, Env, Store, Scratchpad, KontStack, Trace, Set<Interpreter.State>> f) {
+            this.f = f;
+            this.hash = Native.freshHash();
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
+
+        private static Integer hashCounter = 0;
+        public static Integer freshHash() {
+            Integer retval = hashCounter;
+            hashCounter += 1;
+            return retval;
         }
     }
 
@@ -1746,6 +1804,65 @@ public class Domains {
             } else {
                 return new Object(extern.weakUpdate(str, bv), intern, present);
             }
+        }
+
+        public Object strongDelete(Str str) {
+            assert present.member(str) && !(Init.nodelete.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str));
+            return new Object(extern.delete(str), intern, present.delete(str));
+        }
+
+        public Object weakDelete(Str str) {
+            if (Str.isExact(str)) {
+                if (!(Init.nodelete.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str))) {
+                    return new Object(extern, intern, present.delete(str));
+                } else {
+                    return this;
+                }
+            } else {
+                Set<Str> le = extern.exactLE(str).minus(Init.nodelete.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())));
+                return new Object(extern, intern, present.minus(le));
+            }
+        }
+
+        public Set<Str> fields() {
+            return extern.reducedKeys().minus(Init.noenum.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())));
+        }
+
+        public JSClass getJSClass() {
+            return myClass;
+        }
+
+        public BValue getProto() {
+            return myProto;
+        }
+
+        public BValue getValue() {
+            return (BValue)intern.get(Utils.Fields.value).some();
+        }
+
+        public Set<Closure> getCode() {
+            Option<java.lang.Object> o = intern.get(Utils.Fields.code);
+            if (o.isSome()) {
+                return (Set<Closure>)o.some();
+            } else {
+                return Set.empty(Ord.hashEqualsOrd());
+            }
+        }
+
+        public Boolean calledAsCtor() {
+            return intern.contains(Utils.Fields.constructor);
+        }
+
+        public Boolean defField(Str str) {
+            return present.member(str);
+        }
+
+        public Boolean defNotField(Str str) {
+            return extern.notContains(str);
+        }
+
+        public Set<BValue> getAllValues() {
+            return extern.getAllValues().union(Set.set(Ord.hashEqualsOrd(), intern.values().filter(x -> x instanceof BValue).map(x -> (BValue)x)));
         }
     }
 
@@ -1974,16 +2091,87 @@ public class Domains {
                 throw new RuntimeException("tried to delete inexact string");
             }
         }
+
+        public Boolean notContains(Str str) {
+            List<BValue> splValues = exactnotnum.keys().filter(k -> Str.SplStrings.member(Str.getExact(k).some())).map(s -> exactnotnum.get(s).some());
+            List<BValue> nonSplValues = exactnotnum.keys().filter(k -> !Str.SplStrings.member(Str.getExact(k).some())).map(s -> exactnotnum.get(s).some());
+
+            if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
+                return top.isNone() && notnum.isNone() && !(exactnotnum.contains(str));
+            } else if (str instanceof SConstNum) {
+                return top.isNone() && num.isNone() && !(exactnum.contains(str));
+            } else if (str.equals(SNotSplNorNum)) {
+                return top.isNone() && notnum.isNone() && nonSplValues.isEmpty();
+            } else if (str.equals(SSpl)) {
+                return top.isNone() && notnum.isNone() && splValues.isEmpty();
+            } else if (str.equals(SNum)) {
+                return top.isNone() && num.isNone() && exactnum.isEmpty();
+            } else if (str.equals(SNotSpl)) {
+                return top.isNone() && num.isNone() && notnum.isNone() && exactnum.isEmpty() && nonSplValues.isEmpty();
+            } else if (str.equals(SNotNum)) {
+                return top.isNone() && notnum.isNone() && exactnotnum.isEmpty();
+            } else if (str.equals(STop)) {
+                return top.isNone() && notnum.isNone() && num.isNone() && exactnotnum.isEmpty() && exactnum.isEmpty();
+            } else {
+                throw new RuntimeException("used SBot with an object");
+            }
+        }
+
+        public Set<Str> exactLE(Str str) {
+            List<Str> nonSplKeys = exactnotnum.keys().filter(k -> !(Str.SplStrings.member(Str.getExact(k).some())));
+            if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
+                if (exactnotnum.contains(str)) {
+                    return Set.set(Ord.hashEqualsOrd(), str);
+                } else {
+                    return Set.empty(Ord.hashEqualsOrd());
+                }
+            } else if (str instanceof SConstNum) {
+                if (exactnum.contains(str)) {
+                    return Set.set(Ord.hashEqualsOrd(), str);
+                } else {
+                    return Set.empty(Ord.hashEqualsOrd());
+                }
+            } else if (str.equals(SNum)) {
+                return Set.set(Ord.hashEqualsOrd(), exactnum.keys());
+            } else if (str.equals(SNotSplNorNum)) {
+                return Set.set(Ord.hashEqualsOrd(), nonSplKeys);
+            } else if (str.equals(SSpl)) {
+                return Set.set(Ord.hashEqualsOrd(), exactnotnum.keys().filter(k -> Str.SplStrings.member(Str.getExact(k).some())));
+            } else if (str.equals(SNotSpl)) {
+                return Set.set(Ord.hashEqualsOrd(), exactnum.keys().append(nonSplKeys));
+            } else if (str.equals(SNotNum)) {
+                return Set.set(Ord.hashEqualsOrd(), exactnotnum.keys());
+            } else if (str.equals(STop)) {
+                return Set.set(Ord.hashEqualsOrd(), exactnotnum.keys().append(exactnum.keys()));
+            } else {
+                throw new RuntimeException("used SBot with an object");
+            }
+        }
+
+        public Set<Str> reducedKeys() {
+            if (top.isSome()) {
+                return Set.set(Ord.hashEqualsOrd(), STop);
+            } else {
+                List<Str> l1 = notnum.isSome() ? List.list(SNotNum) : exactnotnum.keys();
+                List<Str> l2 = num.isSome() ? List.list(SNum) : exactnum.keys();
+                return Set.set(Ord.hashEqualsOrd(), l1.append(l2));
+            }
+        }
+
+        public Set<BValue> getAllValues() {
+            List<BValue> list = List.list();
+            if (top.isSome()) list = list.snoc(top.some());
+            if (notnum.isSome()) list = list.snoc(notnum.some());
+            if (num.isSome()) list = list.snoc(num.some());
+            list = list.append(exactnotnum.values());
+            list = list.append(exactnum.values());
+            return Set.set(Ord.hashEqualsOrd(), list);
+        }
     }
 
     public static abstract class Kont {}
 
-    public static class HaltKont extends Kont {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof HaltKont);
-        }
-    }
+    public static final Kont HaltKont = new Kont() {};
 
     public static class SeqKont extends Kont {
         public List<IRStmt> ss;
@@ -2019,12 +2207,13 @@ public class Domains {
         public IRVar x;
         public Env rho;
         public Boolean isctor;
-        // TODO: trace
+        public Trace trace;
 
-        public RetKont(IRVar x, Env rho, Boolean isctor) {
+        public RetKont(IRVar x, Env rho, Boolean isctor, Trace trace) {
             this.x = x;
             this.rho = rho;
             this.isctor = isctor;
+            this.trace = trace;
         }
     }
 
@@ -2090,19 +2279,64 @@ public class Domains {
 
         public KontStack merge(KontStack rhs) {
             assert ks.length() == rhs.ks.length();
-            ArrayList<Kont> l1 = new ArrayList<>();
+            ArrayList<Kont> list = new ArrayList<>();
             for (int i = 0; i < ks.length(); i += 1) {
                 Kont k1 = ks.index(i);
                 Kont k2 = rhs.ks.index(i);
                 if (k1 instanceof FinKont && k2 instanceof FinKont) {
-
+                    FinKont fk1 = (FinKont)k1, fk2 = (FinKont)k2;
+                    Set<Value> bv;
+                    Set<Value> bvs1 = fk1.vs.filter(v -> v instanceof BValue);
+                    Set<Value> bvs2 = fk2.vs.filter(v -> v instanceof BValue);
+                    if (bvs1.isEmpty() && bvs2.isEmpty()) {
+                        bv = Set.empty(Ord.hashEqualsOrd());
+                    } else if (!bvs1.isEmpty() && !bvs2.isEmpty()) {
+                        bv = Set.set(Ord.hashEqualsOrd(), ((BValue)bvs1.toList().index(0)).merge((BValue)bvs2.toList().index(0)));
+                    } else if (!bvs1.isEmpty()) {
+                        bv = bvs1;
+                    } else {
+                        bv = bvs2;
+                    }
+                    Set<Value> ev;
+                    Set<Value> evs1 = fk1.vs.filter(v -> v instanceof EValue);
+                    Set<Value> evs2 = fk2.vs.filter(v -> v instanceof EValue);
+                    if (evs1.isEmpty() && evs2.isEmpty()) {
+                        ev = Set.empty(Ord.hashEqualsOrd());
+                    } else if (!evs1.isEmpty() && !evs2.isEmpty()) {
+                        ev = Set.set(Ord.hashEqualsOrd(), new EValue(((EValue)evs1.toList().index(0)).bv.merge(((EValue)evs2.toList().index(0)).bv)));
+                    } else if (!evs1.isEmpty()) {
+                        ev = evs1;
+                    } else {
+                        ev = evs2;
+                    }
+                    Set<Value> jv;
+                    Set<Value> jvs1 = fk1.vs.filter(v -> v instanceof JValue);
+                    Set<Value> jvs2 = fk2.vs.filter(v -> v instanceof JValue);
+                    if (jvs1.isEmpty() && jvs2.isEmpty()) {
+                        jv = Set.empty(Ord.hashEqualsOrd());
+                    } else if (!jvs1.isEmpty() && !jvs2.isEmpty()) {
+                        JValue jv1 = (JValue)jvs1.toList().index(0);
+                        JValue jv2 = (JValue)jvs2.toList().index(0);
+                        if (jv1.lbl.equals(jv2.lbl)) {
+                            jv = Set.set(Ord.hashEqualsOrd(), new JValue(jv1.lbl, jv1.bv.merge(jv2.bv)));
+                        } else {
+                            jv = Set.set(Ord.hashEqualsOrd(), jv1, jv2);
+                        }
+                    } else if (!jvs1.isEmpty()) {
+                        jv = jvs1;
+                    } else {
+                        jv = jvs2;
+                    }
+                    list.add(new FinKont(bv.union(ev).union(jv)));
                 } else if (k1 instanceof ForKont && k2 instanceof ForKont) {
-
+                    ForKont fk1 = (ForKont)k1, fk2 = (ForKont)k2;
+                    assert fk1.s.equals(fk2.s) && fk1.x.equals(fk2.x);
+                    list.add(new ForKont(fk1.bv.merge(fk2.bv), fk1.x, fk1.s));
                 } else {
-                    l1.add(k1);
+                    list.add(k1);
                 }
             }
-            List<Kont> newks = List.list(l1);
+            List<Kont> newks = List.list(list);
             List<Integer> newexc;
             if (exc.last() < rhs.exc.last()) {
                 newexc = rhs.exc;
@@ -2110,6 +2344,74 @@ public class Domains {
                 newexc = exc;
             }
             return new KontStack(newks, newexc);
+        }
+
+        public KontStack push(Kont k) {
+            List<Integer> newexc;
+            if (k instanceof TryKont || k instanceof CatchKont) {
+                newexc = exc.cons(2);
+            } else {
+                newexc = exc;
+            }
+            return new KontStack(ks.cons(k), newexc);
+        }
+
+        public KontStack pop() {
+            List<Integer> newexc;
+            if (ks.head() instanceof TryKont || ks.head() instanceof CatchKont) {
+                newexc = exc.tail();
+            } else {
+                newexc = exc;
+            }
+            return new KontStack(ks.tail(), newexc);
+        }
+
+        public KontStack repl(Kont k) {
+            List<Integer> newexc;
+            if (ks.head() instanceof TryKont && k instanceof CatchKont) {
+                newexc = exc;
+            } else if (k instanceof TryKont) {
+                newexc = exc.cons(2);
+            } else if (ks.head() instanceof TryKont || ks.head() instanceof CatchKont) {
+                newexc = exc.tail();
+            } else {
+                newexc = exc;
+            }
+            return new KontStack(ks.tail().cons(k), newexc);
+        }
+
+        public Kont top() {
+            return ks.head();
+        }
+
+        public Kont last() {
+            return ks.last();
+        }
+
+        public KontStack toHandler() {
+            List<Kont> newks = ks.dropWhile(k -> !(k instanceof TryKont || k instanceof CatchKont));
+            return new KontStack(newks, exc);
+        }
+
+        public KontStack toSpecial(String lbl) {
+            List<Kont> newks = ks.dropWhile(k -> {
+               if (k instanceof TryKont || k instanceof CatchKont || k.equals(HaltKont)) {
+                   return false;
+               } else if (k instanceof LblKont) {
+                   return (!((LblKont)k).lbl.equals(lbl));
+               } else {
+                   return true;
+               }
+            });
+            return new KontStack(newks, exc);
+        }
+
+        public static KontStack apply(Kont k) {
+            return new KontStack(List.list(k));
+        }
+
+        public static KontStack apply(Kont k, Integer exc) {
+            return new KontStack(List.list(k), List.list(exc));
         }
     }
 }
