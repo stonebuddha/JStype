@@ -3,14 +3,13 @@ package concrete;
 import com.google.common.collect.ImmutableList;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.sun.java.browser.plugin2.DOM;
 import com.sun.tools.corba.se.idl.constExpr.Negative;
 import concrete.init.Init;
 import ir.*;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by wayne on 15/10/28.
@@ -131,28 +130,99 @@ public class Utils {
     }
 
     public static Map.Entry<Domains.Value, Map.Entry<Domains.Store, Domains.Scratchpad>> delete(Domains.BValue bv1, Domains.BValue bv2, IRScratch x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
-        // TODO
-        return null;
+        if (bv1 instanceof Domains.Null || bv1 instanceof Domains.Undef) {
+            return new AbstractMap.SimpleImmutableEntry<Domains.Value, AbstractMap.SimpleImmutableEntry<Domains.Store, Domains.Scratchpad>>(Errors.typeError, new AbstractMap.SimpleEntry<Domains.Store, Domains.Scratchpad>(store, pad));
+        }
+        else if (bv1 instanceof Domains.Address && bv2 instanceof Domains.Str) {
+            Domains.Address a = (Domains.Address)bv1;
+            Domains.Str str = (Domains.Str)bv2;
+            Map.Entry<Domains.Object, Boolean> tmp = store.getObj(a).delete(str);
+            Domains.Object o1 = tmp.getKey();
+            Boolean del = tmp.getValue();
+            if (del) {
+                store.putObj(a, o1);
+                pad.update(x, Domains.Bool.True);
+                return new AbstractMap.SimpleImmutableEntry<Domains.Value, AbstractMap.SimpleImmutableEntry<Domains.Store, Domains.Scratchpad>>(new Domains.Undef(), new AbstractMap.SimpleImmutableEntry<Domains.Store, Domains.Scratchpad>(store, pad));
+            }
+            else {
+                pad.update(x, Domains.Bool.False);
+                return new AbstractMap.SimpleImmutableEntry<Domains.Value, AbstractMap.SimpleImmutableEntry<Domains.Store, Domains.Scratchpad>>(new Domains.Undef(), new AbstractMap.SimpleEntry<Domains.Store, Domains.Scratchpad>(store, pad));
+            }
+        }
+        else {
+            pad.update(x, Domains.Bool.True);
+            return new AbstractMap.SimpleImmutableEntry<Domains.Value, AbstractMap.SimpleImmutableEntry<Domains.Store, Domains.Scratchpad>>(new Domains.Undef(), new AbstractMap.SimpleEntry<Domains.Store, Domains.Scratchpad>(store, pad));
+        }
     }
 
     public static Domains.BValue lookup(Domains.Object o, Domains.Str str, Domains.Store store) {
-        // TODO
-        return null;
+        while (true) {
+            Domains.BValue tmp = o.apply(str);
+            if (tmp == null) {
+                tmp = o.getProto();
+                if (tmp instanceof Domains.Address) {
+                    Domains.Address a = (Domains.Address)tmp;
+                    o = store.getObj(a);
+                }
+                else {
+                    return new Domains.Undef();
+                }
+            }
+            else {
+                return tmp;
+            }
+        }
     }
 
     public static ImmutableList<Domains.Str> objAllKeys(Domains.BValue bv, Domains.Store store) {
-        // TODO
-        return null;
+        ImmutableList.Builder<Domains.Str> listBuilder = ImmutableList.builder();
+        ImmutableList<Domains.Str> list = listBuilder.build();
+        if (bv instanceof Domains.Address) {
+            Domains.Address a = (Domains.Address)bv;
+            Domains.Object o;
+            ImmutableSet<Domains.Str> flds, pflds;
+            while (true) {
+                o = store.getObj(a);
+                flds = o.fields();
+                for (Domains.Str str : flds) {
+                    list.add(str);
+                }
+                java.lang.Object tmpObject = o.intern.get(Fields.proto);
+                if (tmpObject instanceof Domains.Address) {
+                    a = (Domains.Address)tmpObject;
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        return list;
     }
 
     public static Domains.Store setConstr(Domains.Store store, Domains.Address a) {
-        // TODO
-        return null;
+        Domains.Object o = store.getObj(a);
+        ImmutableMap.Builder<Domains.Str, java.lang.Object> tmpBuilder = ImmutableMap.builder();
+        tmpBuilder.putAll(o.intern);
+        tmpBuilder.put(Fields.constructor, true);
+        ImmutableMap<Domains.Str, java.lang.Object> tmpIntern = tmpBuilder.build();
+        store.putObj(a, new Domains.Object(o.extern, tmpIntern));
+        return store;
     }
 
     public static Map.Entry<Domains.Value, Map.Entry<Domains.Store, Domains.Scratchpad>> toObj(Domains.BValue bv, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
-        // TODO
-        return null;
+        if (bv instanceof Domains.Null || bv instanceof Domains.Undef) {
+            return new AbstractMap.SimpleImmutableEntry<Domains.Value, AbstractMap.SimpleImmutableEntry<Domains.Store, Domains.Scratchpad>>(Errors.typeError, new AbstractMap.SimpleImmutableEntry<Domains.Store, Domains.Scratchpad>(store, pad));
+        }
+        else if (bv instanceof Domains.Address) {
+            if (x instanceof IRPVar) {
+                IRPVar pv = (IRPVar)x;
+                store = store.extend(new AbstractMap.SimpleImmutableEntry<Domains.Address, Domains.BValue>(env.apply(pv), bv));
+                return new AbstractMap.SimpleImmutableEntry<Domains.Value, AbstractMap.SimpleImmutableEntry<Domains.Store, Domains.Scratchpad>>(bv, new AbstractMap.SimpleImmutableEntry<Domains.Store, Domains.Scratchpad>(store, pad));
+            }
+        }
+        else {
+
+        }
     }
 
     public static Map.Entry<Domains.Value, Domains.Store> updateObj(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, Domains.Store store) {
