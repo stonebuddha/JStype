@@ -157,47 +157,94 @@ public class Domains {
         }
 
         public Store alloc(List<P2<AddressSpace.Address, BValue>> bind) {
-            return null; // TODO
+            assert bind.isNotEmpty();
+            P2<List<P2<AddressSpace.Address, BValue>>, List<P2<AddressSpace.Address, BValue>>> par = bind.partition(p -> toValue.contains(p._1()));
+            List<P2<AddressSpace.Address, BValue>> bindw = par._1();
+            List<P2<AddressSpace.Address, BValue>> bindn = par._2();
+            List<P2<AddressSpace.Address, BValue>> wToValue = bindw.map(p -> P.p(p._1(), toValue.get(p._1()).some().merge(p._2())));
+            return new Store(toValue.union(bindn).union(wToValue), toObject, toKonts, weak.union(Set.set(Ord.hashOrd(), List.unzip(bindw)._1())));
         }
 
         public Store alloc(AddressSpace.Address a, Object o) {
-            return null; // TODO
+            Option<Object> oo = toObject.get(a);
+            Object cod;
+            Set<AddressSpace.Address> wk;
+            if (oo.isSome()) {
+                cod = oo.some().merge(o);
+                wk = weak.insert(a);
+            } else {
+                cod = o;
+                wk = weak;
+            }
+            return new Store(toValue, toObject.set(a, cod), toKonts, wk);
         }
 
         public Store alloc(AddressSpace.Address a, KontStack ks) {
-            return null; // TODO
+            Option<Set<KontStack>> kss = toKonts.get(a);
+            Set<KontStack> cod;
+            if (kss.isSome()) {
+                cod = kss.some().insert(ks);
+            } else {
+                cod = Set.set(Ord.hashOrd(), ks);
+            }
+            return new Store(toValue, toObject, toKonts.set(a, cod), weak);
         }
 
-        public BValue apply(Set<AddressSpace.Address> as) {
-            return null; // TODO
+        public BValue applyAll(Set<AddressSpace.Address> as) {
+            assert !as.isEmpty();
+            if (as.size() == 1) {
+                return apply(as.toList().head());
+            } else {
+                return as.toList().map(this::apply).foldLeft1(BValue::merge);
+            }
         }
 
         public BValue apply(AddressSpace.Address a) {
-            return null; // TODO
+            Option<BValue> obv = toValue.get(a);
+            if (obv.isSome()) {
+                return obv.some();
+            } else {
+                throw new RuntimeException("address not found");
+            }
         }
 
-        public Object getObj(AddressSpace.Address a, Str shint) {
-            return null; // TODO
+        public Object getObj(AddressSpace.Address a) {
+            Option<Object> oo = toObject.get(a);
+            if (oo.isSome()) {
+                return oo.some();
+            } else {
+                throw new RuntimeException("address not found");
+            }
         }
 
         public Set<KontStack> getKont(AddressSpace.Address a) {
-            return null; // TODO
+            return toKonts.get(a).some();
         }
 
         public Store extend(Set<AddressSpace.Address> as, BValue bv) {
-            return null; // TODO
+            TreeMap<AddressSpace.Address, BValue> _toValue;
+            if (as.size() == 1 && !weak.member(as.toList().head())) {
+                _toValue = toValue.set(as.toList().head(), bv);
+            } else {
+                _toValue = as.toList().foldLeft((acc, a) -> acc.set(a, bv.merge(toValue.get(a).some())), toValue);
+            }
+            return new Store(_toValue, toObject, toKonts, weak);
         }
 
         public Store putObj(AddressSpace.Address a, Object o) {
-            return null; // TODO
+            if (weak.member(a)) {
+                return putObjWeak(a, o);
+            } else {
+                return putObjStrong(a, o);
+            }
         }
 
         public Store putObjStrong(AddressSpace.Address a, Object o) {
-            return null; // TODO
+            return new Store(toValue, toObject.set(a, o), toKonts, weak);
         }
 
         public Store putObjWeak(AddressSpace.Address a, Object o) {
-            return null; // TODO
+            return new Store(toValue, toObject.set(a, o.merge(toObject.get(a).some())), toKonts, weak);
         }
 
         public Boolean isStrong(AddressSpace.Address a) {
@@ -205,15 +252,20 @@ public class Domains {
         }
 
         public Boolean toValueContains(Set<AddressSpace.Address> as) {
-            return false; // TODO
+            return !as.filter(a -> toValue.contains(a)).isEmpty();
         }
 
-        public Store weaken(Set<Integer> varIDs, Set<Integer> objIDs) {
-            return null; // TODO
+        public Store weaken(Set<Integer> valIDs, Set<Integer> objIDs) {
+            Set<AddressSpace.Address> wkn = Set.set(Ord.hashOrd(),
+                    toValue.keys().filter(a -> valIDs.member(Trace.getBase(a))).append(
+                    toObject.keys().filter(a -> objIDs.member(Trace.getBase(a)))));
+            return new Store(toValue, toObject, toKonts, weak.union(wkn));
         }
 
         public Store lightGC(Set<Integer> ids) {
-            return null; // TODO
+            TreeMap<AddressSpace.Address, BValue> toKeep = TreeMap.treeMap(Ord.hashOrd(),
+                    toValue.keys().filter(a -> !ids.member(Trace.getBase(a)) || weak.member(a)).map(a -> P.p(a, toValue.get(a).some())));
+            return new Store(toKeep, toObject, toKonts, weak);
         }
 
         public Store fullGC(Set<AddressSpace.Address> vRoots, Set<AddressSpace.Address> oRoots, Set<AddressSpace.Address> kRoots) {
@@ -2179,6 +2231,16 @@ public class Domains {
         public SeqKont(List<IRStmt> ss) {
             this.ss = ss;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof SeqKont && ss.equals(((SeqKont) obj).ss));
+        }
+
+        @Override
+        public int hashCode() {
+            return ss.hashCode();
+        }
     }
 
     public static class WhileKont extends Kont {
@@ -2188,6 +2250,16 @@ public class Domains {
         public WhileKont(IRExp e, IRStmt s) {
             this.e = e;
             this.s = s;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof WhileKont && e.equals(((WhileKont) obj).e) && s.equals(((WhileKont) obj).s));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(e, s).hashCode();
         }
     }
 
@@ -2200,6 +2272,16 @@ public class Domains {
             this.bv = bv;
             this.x = x;
             this.s = s;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof ForKont && bv.equals(((ForKont) obj).bv) && x.equals(((ForKont) obj).x) && s.equals(((ForKont) obj).s));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(bv, x, s).hashCode();
         }
     }
 
@@ -2215,6 +2297,16 @@ public class Domains {
             this.isctor = isctor;
             this.trace = trace;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof RetKont && x.equals(((RetKont) obj).x) && rho.equals(((RetKont) obj).rho) && isctor.equals(((RetKont) obj).isctor) && trace.equals(((RetKont) obj).trace));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(x, rho, isctor, trace).hashCode();
+        }
     }
 
     public static class TryKont extends Kont {
@@ -2227,6 +2319,16 @@ public class Domains {
             this.sc = sc;
             this.sf = sf;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof TryKont && x.equals(((TryKont) obj).x) && sc.equals(((TryKont) obj).sc) && sf.equals(((TryKont) obj).sf));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(x, sc, sf).hashCode();
+        }
     }
 
     public static class CatchKont extends Kont {
@@ -2234,6 +2336,16 @@ public class Domains {
 
         public CatchKont(IRStmt sf) {
             this.sf = sf;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof CatchKont && sf.equals(((CatchKont) obj).sf));
+        }
+
+        @Override
+        public int hashCode() {
+            return sf.hashCode();
         }
     }
 
@@ -2243,6 +2355,16 @@ public class Domains {
         public FinKont(Set<Value> vs) {
             this.vs = vs;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof FinKont && vs.equals(((FinKont) obj).vs));
+        }
+
+        @Override
+        public int hashCode() {
+            return vs.hashCode();
+        }
     }
 
     public static class LblKont extends Kont {
@@ -2250,6 +2372,16 @@ public class Domains {
 
         public LblKont(String lbl) {
             this.lbl = lbl;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof LblKont && lbl.equals(((LblKont) obj).lbl));
+        }
+
+        @Override
+        public int hashCode() {
+            return lbl.hashCode();
         }
     }
 
@@ -2260,6 +2392,16 @@ public class Domains {
         public AddrKont(AddressSpace.Address a, IRMethod m) {
             this.a = a;
             this.m = m;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof AddrKont && a.equals(((AddrKont) obj).a) && m.equals(((AddrKont) obj).m));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(a, m).hashCode();
         }
     }
 
@@ -2275,6 +2417,16 @@ public class Domains {
         public KontStack(List<Kont> ks) {
             this.ks = ks;
             this.exc = List.list(0);
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof KontStack && ks.equals(((KontStack) obj).ks) && exc.equals(((KontStack) obj).exc));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(ks, exc).hashCode();
         }
 
         public KontStack merge(KontStack rhs) {

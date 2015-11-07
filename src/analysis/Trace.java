@@ -16,6 +16,10 @@ public abstract class Trace {
     public abstract Domains.AddressSpace.Address toAddr();
     public abstract Domains.AddressSpace.Address makeAddr(IRVar x);
     // TODO
+
+    public static Integer getBase(Domains.AddressSpace.Address a) {
+        return a.loc.intValue();
+    }
 }
 
 
