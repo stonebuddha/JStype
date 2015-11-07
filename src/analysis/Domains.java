@@ -572,7 +572,7 @@ public class Domains {
             return Str.inject(res);
         }
 
-        private BValue toNum() {
+        public BValue toNum() {
             Num res = Num.Bot;
             for (Domain dom : types) {
                 if (!res.equals(Num.Top)) {
@@ -1094,6 +1094,9 @@ public class Domains {
         public static final Bool Bot = BBot;
         public static final Bool True = BTrue;
         public static final Bool False = BFalse;
+        public static final BValue TrueBV = inject(True);
+        public static final BValue FalseBV = inject(False);
+        public static final BValue TopBV = inject(Top);
 
         public static Bool alpha(Boolean b) {
             if (b) {
@@ -1730,17 +1733,17 @@ public class Domains {
     public static abstract class Closure {}
 
     public static class Clo extends Closure {
-        public Env rho;
+        public Env env;
         public IRMethod m;
 
-        public Clo(Env rho, IRMethod m) {
-            this.rho = rho;
+        public Clo(Env env, IRMethod m) {
+            this.env = env;
             this.m = m;
         }
 
         @Override
         public boolean equals(java.lang.Object obj) {
-            return (obj instanceof Clo && rho.equals(((Clo) obj).rho) && m.equals(((Clo) obj).m));
+            return (obj instanceof Clo && env.equals(((Clo) obj).env) && m.equals(((Clo) obj).m));
         }
     }
 
@@ -2287,25 +2290,25 @@ public class Domains {
 
     public static class RetKont extends Kont {
         public IRVar x;
-        public Env rho;
+        public Env env;
         public Boolean isctor;
         public Trace trace;
 
-        public RetKont(IRVar x, Env rho, Boolean isctor, Trace trace) {
+        public RetKont(IRVar x, Env env, Boolean isctor, Trace trace) {
             this.x = x;
-            this.rho = rho;
+            this.env = env;
             this.isctor = isctor;
             this.trace = trace;
         }
 
         @Override
         public boolean equals(java.lang.Object obj) {
-            return (obj instanceof RetKont && x.equals(((RetKont) obj).x) && rho.equals(((RetKont) obj).rho) && isctor.equals(((RetKont) obj).isctor) && trace.equals(((RetKont) obj).trace));
+            return (obj instanceof RetKont && x.equals(((RetKont) obj).x) && env.equals(((RetKont) obj).env) && isctor.equals(((RetKont) obj).isctor) && trace.equals(((RetKont) obj).trace));
         }
 
         @Override
         public int hashCode() {
-            return P.p(x, rho, isctor, trace).hashCode();
+            return P.p(x, env, isctor, trace).hashCode();
         }
     }
 
