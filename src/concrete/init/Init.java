@@ -1,16 +1,14 @@
 package concrete.init;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import concrete.Domains;
 import concrete.Interpreter;
+import fj.Ord;
+import fj.data.List;
+import fj.data.Set;
+import fj.data.TreeMap;
 import ir.IRPVar;
 import ir.IRStmt;
 import ir.JSClass;
-
-import java.lang.reflect.Array;
-import java.util.Date;
 
 /**
  * Created by wayne on 15/10/29.
@@ -33,24 +31,23 @@ public class Init {
     // TODO
 
     public static Interpreter.State initState(IRStmt s) {
-        Domains.Env env = new Domains.Env(
-                ImmutableMap.<IRPVar, Domains.Address>of());
+        Domains.Env env = new Domains.Env(TreeMap.empty(Ord.hashEqualsOrd()));
         Domains.Store store = new Domains.Store(
-                ImmutableMap.<Domains.Address, Domains.BValue>of(),
-                ImmutableMap.<Domains.Address, Domains.Object>of());
+                TreeMap.empty(Ord.hashEqualsOrd()),
+                TreeMap.empty(Ord.hashEqualsOrd()));
         return new Interpreter.State(
                 new Domains.StmtTerm(s),
                 env,
                 store,
                 Domains.Scratchpad.apply(0),
-                new Domains.KontStack(ImmutableList.<Domains.Kont>of(new Domains.HaltKont())));
+                new Domains.KontStack(List.list(Domains.HaltKont)));
     }
 
-    public static final ImmutableMap<JSClass, ImmutableSet<Domains.Str>> noenum = null; // TODO
+    public static final TreeMap<JSClass, Set<Domains.Str>> noenum = null; // TODO
 
-    public static final ImmutableMap<JSClass, ImmutableSet<Domains.Str>> nodelete = null; // TODO
+    public static final TreeMap<JSClass, Set<Domains.Str>> nodelete = null; // TODO
 
-    public static final ImmutableMap<JSClass, ImmutableSet<Domains.Str>> noupdate = null; // TODO
+    public static final TreeMap<JSClass, Set<Domains.Str>> noupdate = null; // TODO
 
     public static final JSClass classFromAddress(Domains.Address a) {
         if (a == Function_Addr) {

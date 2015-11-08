@@ -1,14 +1,14 @@
 package ir;
 
-import com.google.common.collect.ImmutableList;
+import fj.data.List;
 
 /**
  * Created by wayne on 15/10/27.
  */
 public class IRSeq extends IRStmt {
-    public ImmutableList<IRStmt> ss;
+    public List<IRStmt> ss;
 
-    public IRSeq(ImmutableList<IRStmt> ss) {
+    public IRSeq(List<IRStmt> ss) {
         this.ss = ss;
     }
 

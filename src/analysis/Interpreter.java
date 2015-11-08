@@ -1,12 +1,7 @@
 package analysis;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import analysis.*;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import fj.data.HashMap;
+import fj.data.Set;
 
 /**
  * Created by BenZ on 15/11/5.
@@ -23,7 +18,7 @@ public class Interpreter {
         }
     }
 
-    public static Map<Integer, ImmutableSet<Domains.BValue>> runner(String[] args) {
+    public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) {
         // TODO
         return null;
     }

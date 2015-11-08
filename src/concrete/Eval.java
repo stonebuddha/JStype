@@ -1,8 +1,8 @@
 package concrete;
 
+import fj.F2;
+import fj.data.Option;
 import ir.*;
-
-import java.util.function.BiFunction;
 
 /**
  * Created by wayne on 15/10/28.
@@ -10,41 +10,35 @@ import java.util.function.BiFunction;
 public class Eval {
 
     public static Domains.BValue eval(IRExp exp, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
-        Utils.Recursive<BiFunction<Domains.Address, Domains.Address, Domains.Bool>> instance = new Utils.Recursive<>();
-        instance.func = new BiFunction<Domains.Address, Domains.Address, Domains.Bool>() {
-            @Override
-            public Domains.Bool apply(Domains.Address a1, Domains.Address a2) {
-                Domains.BValue proto = store.getObj(a1).getProto();
-                if (proto instanceof Domains.Address) {
-                    Domains.Address a = (Domains.Address)proto;
-                    if (a.equals(a2)) {
-                        return Domains.Bool.True;
-                    } else {
-                        return instance.func.apply(a, a2);
-                    }
-                } else if (proto instanceof Domains.Null) {
-                    return Domains.Bool.False;
+        Utils.Recursive<F2<Domains.Address, Domains.Address, Domains.Bool>> instance = new Utils.Recursive<>();
+        instance.func = (a1, a2) -> {
+            Domains.BValue proto = store.getObj(a1).getProto();
+            if (proto instanceof Domains.Address) {
+                Domains.Address a = (Domains.Address)proto;
+                if (a.equals(a2)) {
+                    return Domains.Bool.True;
                 } else {
-                    throw new RuntimeException("undefined");
+                    return instance.func.f(a, a2);
                 }
+            } else if (proto.equals(Domains.Null)) {
+                return Domains.Bool.False;
+            } else {
+                throw new RuntimeException("undefined");
             }
         };
 
-        Utils.Recursive<BiFunction<Domains.Str, Domains.Address, Domains.Bool>> find = new Utils.Recursive<>();
-        find.func = new BiFunction<Domains.Str, Domains.Address, Domains.Bool>() {
-            @Override
-            public Domains.Bool apply(Domains.Str str, Domains.Address a) {
-                Domains.Object obj = store.getObj(a);
-                Domains.BValue bv = obj.apply(str);
-                if (bv != null) {
-                    return Domains.Bool.True;
+        Utils.Recursive<F2<Domains.Str, Domains.Address, Domains.Bool>> find = new Utils.Recursive<>();
+        find.func = (str, a) -> {
+            Domains.Object obj = store.getObj(a);
+            Option<Domains.BValue> bv = obj.apply(str);
+            if (bv.isSome()) {
+                return Domains.Bool.True;
+            } else {
+                Domains.BValue proto = obj.getProto();
+                if (proto instanceof Domains.Address) {
+                    return find.func.f(str, (Domains.Address)proto);
                 } else {
-                    Domains.BValue proto = obj.getProto();
-                    if (proto instanceof Domains.Address) {
-                        return find.func.apply(str, (Domains.Address)proto);
-                    } else {
-                        return Domains.Bool.False;
-                    }
+                    return Domains.Bool.False;
                 }
             }
         };
@@ -67,11 +61,11 @@ public class Eval {
             }
             @Override
             public Object forUndef(IRUndef irUndef) {
-                return new Domains.Undef();
+                return Domains.Undef;
             }
             @Override
             public Object forNull(IRNull irNull) {
-                return new Domains.Null();
+                return Domains.Null;
             }
             @Override
             public Object forPVar(IRPVar irPVar) {
@@ -137,13 +131,13 @@ public class Eval {
                     }
                 } else if (op.equals(Bop.InstanceOf)) {
                     if (bv1 instanceof Domains.Address && bv2 instanceof Domains.Address) {
-                        return instance.func.apply((Domains.Address)bv1, (Domains.Address)bv2);
+                        return instance.func.f((Domains.Address)bv1, (Domains.Address)bv2);
                     } else {
                         return Domains.Bool.False;
                     }
                 } else if (op.equals(Bop.In)) {
                     if (bv1 instanceof Domains.Str && bv2 instanceof Domains.Address) {
-                        return find.func.apply((Domains.Str)bv1, (Domains.Address)bv2);
+                        return find.func.f((Domains.Str)bv1, (Domains.Address)bv2);
                     } else {
                         throw new RuntimeException("translator reneged");
                     }
@@ -178,11 +172,11 @@ public class Eval {
                             return new Domains.Str("string");
                         }
                         @Override
-                        public Object forNull(Domains.Null bNull) {
+                        public Object forNull(Domains.BValue bNull) {
                             return new Domains.Str("object");
                         }
                         @Override
-                        public Object forUndef(Domains.Undef bUndef) {
+                        public Object forUndef(Domains.BValue bUndef) {
                             return new Domains.Str("undefined");
                         }
                         @Override

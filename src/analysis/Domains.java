@@ -26,6 +26,11 @@ public class Domains {
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof StmtTerm && s.equals(((StmtTerm) obj).s));
         }
+
+        @Override
+        public int hashCode() {
+            return P.p(s).hashCode();
+        }
     }
 
     public static class ValueTerm extends Term {
@@ -38,6 +43,11 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof ValueTerm && v.equals(((ValueTerm) obj).v));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(v).hashCode();
         }
     }
 
@@ -53,6 +63,11 @@ public class Domains {
             return (obj instanceof Env && env.equals(((Env) obj).env));
         }
 
+        @Override
+        public int hashCode() {
+            return P.p(env).hashCode();
+        }
+
         public Env merge(Env rho) {
             if (this.equals(rho)) {
                 return this;
@@ -62,7 +77,7 @@ public class Domains {
                 for (P2<IRPVar, Set<AddressSpace.Address>> p2 : env) {
                     list.add(P.p(p2._1(), p2._2().union(rho.env.get(p2._1()).some())));
                 }
-                return new Env(TreeMap.treeMap(Ord.hashOrd(), List.list(list)));
+                return new Env(TreeMap.treeMap(Ord.hashEqualsOrd(), List.list(list)));
             }
         }
 
@@ -76,11 +91,11 @@ public class Domains {
         }
 
         public Env filter(F<IRPVar, Boolean> f) {
-            return new Env(TreeMap.treeMap(Ord.hashOrd(), env.keys().filter(f).map(k -> P.p(k, env.get(k).some()))));
+            return new Env(TreeMap.treeMap(Ord.hashEqualsOrd(), env.keys().filter(f).map(k -> P.p(k, env.get(k).some()))));
         }
 
         public Set<AddressSpace.Address> addrs() {
-            return env.values().foldLeft(Set.union(), Set.empty(Ord.hashOrd()));
+            return env.values().foldLeft(Set.union(), Set.empty(Ord.hashEqualsOrd()));
         }
     }
 
@@ -100,11 +115,15 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             if (obj instanceof Store) {
-                Store sigma = (Store)obj;
                 return (toValue.equals(((Store) obj).toValue) && toObject.equals(((Store) obj).toObject) && toKonts.equals(((Store) obj).toKonts) && weak.equals(((Store) obj).weak));
             } else {
                 return false;
             }
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(toValue, toObject, toKonts, weak).hashCode();
         }
 
         public Store merge(Store sigma) {
@@ -162,7 +181,7 @@ public class Domains {
             List<P2<AddressSpace.Address, BValue>> bindw = par._1();
             List<P2<AddressSpace.Address, BValue>> bindn = par._2();
             List<P2<AddressSpace.Address, BValue>> wToValue = bindw.map(p -> P.p(p._1(), toValue.get(p._1()).some().merge(p._2())));
-            return new Store(toValue.union(bindn).union(wToValue), toObject, toKonts, weak.union(Set.set(Ord.hashOrd(), List.unzip(bindw)._1())));
+            return new Store(toValue.union(bindn).union(wToValue), toObject, toKonts, weak.union(Set.set(Ord.hashEqualsOrd(), List.unzip(bindw)._1())));
         }
 
         public Store alloc(AddressSpace.Address a, Object o) {
@@ -185,7 +204,7 @@ public class Domains {
             if (kss.isSome()) {
                 cod = kss.some().insert(ks);
             } else {
-                cod = Set.set(Ord.hashOrd(), ks);
+                cod = Set.set(Ord.hashEqualsOrd(), ks);
             }
             return new Store(toValue, toObject, toKonts.set(a, cod), weak);
         }
@@ -256,14 +275,14 @@ public class Domains {
         }
 
         public Store weaken(Set<Integer> valIDs, Set<Integer> objIDs) {
-            Set<AddressSpace.Address> wkn = Set.set(Ord.hashOrd(),
+            Set<AddressSpace.Address> wkn = Set.set(Ord.hashEqualsOrd(),
                     toValue.keys().filter(a -> valIDs.member(Trace.getBase(a))).append(
                     toObject.keys().filter(a -> objIDs.member(Trace.getBase(a)))));
             return new Store(toValue, toObject, toKonts, weak.union(wkn));
         }
 
         public Store lightGC(Set<Integer> ids) {
-            TreeMap<AddressSpace.Address, BValue> toKeep = TreeMap.treeMap(Ord.hashOrd(),
+            TreeMap<AddressSpace.Address, BValue> toKeep = TreeMap.treeMap(Ord.hashEqualsOrd(),
                     toValue.keys().filter(a -> !ids.member(Trace.getBase(a)) || weak.member(a)).map(a -> P.p(a, toValue.get(a).some())));
             return new Store(toKeep, toObject, toKonts, weak);
         }
@@ -289,6 +308,11 @@ public class Domains {
             return (obj instanceof Scratchpad && mem.equals(((Scratchpad) obj).mem));
         }
 
+        @Override
+        public int hashCode() {
+            return P.p(mem).hashCode();
+        }
+
         public Scratchpad merge(Scratchpad pad) {
             assert mem.length() == pad.mem.length();
             if (this.equals(pad)) {
@@ -311,7 +335,7 @@ public class Domains {
         }
 
         public Set<AddressSpace.Address> addrs() {
-            return mem.foldLeft((sa, bv) -> sa.union(bv.as), Set.empty(Ord.hashOrd()));
+            return mem.foldLeft((sa, bv) -> sa.union(bv.as), Set.empty(Ord.hashEqualsOrd()));
         }
 
         public static Scratchpad apply(Integer len) {
@@ -347,7 +371,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return bv.hashCode();
+            return P.p(bv).hashCode();
         }
     }
 
@@ -396,7 +420,7 @@ public class Domains {
             if (!as.isEmpty()) doms.add(DAddr);
             if (!nil.equals(Null.Bot)) doms.add(DNull);
             if (!undef.equals(Undef.Bot)) doms.add(DUndef);
-            this.types = Set.set(Ord.hashOrd(), List.list(doms));
+            this.types = Set.set(Ord.hashEqualsOrd(), List.list(doms));
         }
 
         @Override
@@ -644,7 +668,7 @@ public class Domains {
             return new BValue(n, b, str, as, Null.Bot, Undef.Bot);
         }
 
-        public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Undef.Bot);
+        public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Undef.Bot);
     }
 
     public static abstract class Num {
@@ -970,7 +994,7 @@ public class Domains {
         }
 
         public static BValue inject(Num n) {
-            return new BValue(n, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Undef.Bot);
+            return new BValue(n, Bool.Bot, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Undef.Bot);
         }
     }
 
@@ -998,7 +1022,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return d.hashCode();
+            return P.p(d).hashCode();
         }
     }
 
@@ -1107,7 +1131,7 @@ public class Domains {
         }
 
         public static BValue inject(Bool b) {
-            return new BValue(Num.Bot, b, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Undef.Bot);
+            return new BValue(Num.Bot, b, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Undef.Bot);
         }
     }
 
@@ -1507,7 +1531,7 @@ public class Domains {
         }
 
         public static BValue inject(Str str) {
-            return new BValue(Num.Bot, Bool.Bot, str, Set.empty(Ord.hashOrd()), Null.Bot, Undef.Bot);
+            return new BValue(Num.Bot, Bool.Bot, str, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Undef.Bot);
         }
 
         public static Boolean isExact(Str str) {
@@ -1609,7 +1633,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return str.hashCode();
+            return P.p(str).hashCode();
         }
     }
 
@@ -1627,7 +1651,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return str.hashCode();
+            return P.p(str).hashCode();
         }
     }
 
@@ -1645,7 +1669,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return str.hashCode();
+            return P.p(str).hashCode();
         }
     }
 
@@ -1665,7 +1689,7 @@ public class Domains {
 
             @Override
             public int hashCode() {
-                return loc.hashCode();
+                return P.p(loc).hashCode();
             }
 
             public static Address apply(Integer x) {
@@ -1673,17 +1697,17 @@ public class Domains {
             }
 
             public static BValue inject(Address a) {
-                return new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.set(Ord.hashOrd(), a), Null.Bot, Undef.Bot);
+                return new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.set(Ord.hashEqualsOrd(), a), Null.Bot, Undef.Bot);
             }
         }
 
         public static class Addresses {
 
             public static Set<Address> apply() {
-                return Set.empty(Ord.hashOrd());
+                return Set.empty(Ord.hashEqualsOrd());
             }
             public static Set<Address> apply(Address a) {
-                return Set.set(Ord.hashOrd(), a);
+                return Set.set(Ord.hashEqualsOrd(), a);
             }
 
             public static BValue inject(Set<Address> as) {
@@ -1704,7 +1728,7 @@ public class Domains {
         public static final Null Top = MaybeNull;
         public static final Null Bot = NotNull;
 
-        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Top, Undef.Bot);
+        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Top, Undef.Bot);
     }
 
     public static final Null MaybeNull = new Null() {};
@@ -1723,7 +1747,7 @@ public class Domains {
         public static final Undef Top = MaybeUndef;
         public static final Undef Bot = NotUndef;
 
-        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashOrd()), Null.Bot, Top);
+        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Top);
     }
 
     public static final Undef MaybeUndef = new Undef() {};
@@ -1745,6 +1769,11 @@ public class Domains {
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Clo && env.equals(((Clo) obj).env) && m.equals(((Clo) obj).m));
         }
+
+        @Override
+        public int hashCode() {
+            return P.p(env, m).hashCode();
+        }
     }
 
     public static class Native extends Closure {
@@ -1755,6 +1784,11 @@ public class Domains {
         public Native(F8<BValue, BValue, IRVar, Env, Store, Scratchpad, KontStack, Trace, Set<Interpreter.State>> f) {
             this.f = f;
             this.hash = Native.freshHash();
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Native && f.equals(((Native) obj).f));
         }
 
         @Override
@@ -1781,6 +1815,11 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Object && extern.equals(((Object) obj).extern) && intern.equals(((Object) obj).intern) && present.equals(((Object) obj).present));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(extern, intern, present).hashCode();
         }
 
         public Object(ExternMap extern, TreeMap<Str, java.lang.Object> intern, Set<Str> present) {
@@ -1952,6 +1991,11 @@ public class Domains {
             } else {
                 return false;
             }
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(top, notnum, num, exactnotnum, exactnum).hashCode();
         }
 
         public ExternMap merge(ExternMap ext) {
@@ -2242,7 +2286,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return ss.hashCode();
+            return P.p(ss).hashCode();
         }
     }
 
@@ -2348,7 +2392,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return sf.hashCode();
+            return P.p(sf).hashCode();
         }
     }
 
@@ -2366,7 +2410,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return vs.hashCode();
+            return P.p(vs).hashCode();
         }
     }
 
@@ -2384,7 +2428,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return lbl.hashCode();
+            return P.p(lbl).hashCode();
         }
     }
 

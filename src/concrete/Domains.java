@@ -1,18 +1,11 @@
 package concrete;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedMap;
-import com.sun.istack.internal.Nullable;
 import concrete.init.Init;
+import fj.*;
+import fj.data.*;
 import ir.*;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
 
 /**
  * Created by wayne on 15/10/27.
@@ -27,6 +20,16 @@ public class Domains {
         public StmtTerm(IRStmt s) {
             this.s = s;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof StmtTerm && s.equals(((StmtTerm) obj).s));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(s).hashCode();
+        }
     }
 
     public static class ValueTerm extends Term {
@@ -35,87 +38,119 @@ public class Domains {
         public ValueTerm(Value v) {
             this.v = v;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof ValueTerm && v.equals(((ValueTerm) obj).v));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(v).hashCode();
+        }
     }
 
     public static class Env {
-        public ImmutableMap<IRPVar, Address> env;
+        public TreeMap<IRPVar, Address> env;
 
-        public Env(ImmutableMap<IRPVar, Address> env) {
+        public Env(TreeMap<IRPVar, Address> env) {
             this.env = env;
         }
 
-        public Address apply(IRPVar x) {
-            return env.get(x);
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Env && env.equals(((Env) obj).env));
         }
 
-        public Env extendAll(ImmutableList<Map.Entry<IRPVar, Address>> bind) {
-            ImmutableMap.Builder<IRPVar, Address> builder = ImmutableMap.<IRPVar, Address>builder().putAll(env);
-            for (Map.Entry<IRPVar, Address> entry : bind) {
-                builder = builder.put(entry);
-            }
-            return new Env(builder.build());
+        @Override
+        public int hashCode() {
+            return P.p(env).hashCode();
+        }
+
+        public Address apply(IRPVar x) {
+            return env.get(x).some();
+        }
+
+        public Env extendAll(List<P2<IRPVar, Address>> bind) {
+            return new Env(env.union(bind));
+        }
+
+        public Env filter(F<IRPVar, Boolean> f) {
+            return new Env(TreeMap.treeMap(Ord.hashEqualsOrd(), env.keys().filter(f).map(x -> P.p(x, env.get(x).some()))));
         }
     }
 
     public static class Store {
-        public ImmutableMap<Address, BValue> toValue;
-        public ImmutableMap<Address, Object> toObject;
+        public TreeMap<Address, BValue> toValue;
+        public TreeMap<Address, Object> toObject;
 
-        public Store(ImmutableMap<Address, BValue> toValue, ImmutableMap<Address, Object> toObject) {
+        public Store(TreeMap<Address, BValue> toValue, TreeMap<Address, Object> toObject) {
             this.toValue = toValue;
             this.toObject = toObject;
         }
 
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Store && toValue.equals(((Store) obj).toValue) && toObject.equals(((Store) obj).toObject));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(toValue, toObject).hashCode();
+        }
+
         public BValue apply(Address a) {
-            return toValue.get(a);
+            return toValue.get(a).some();
         }
 
         public Object getObj(Address a) {
-            return toObject.get(a);
+            return toObject.get(a).some();
         }
 
-        public Store extend(Map.Entry<Address, BValue> av) {
-            return new Store(ImmutableMap.<Address, BValue>builder().putAll(toValue).put(av).build(), toObject);
+        public Store extend(P2<Address, BValue> av) {
+            return new Store(toValue.set(av._1(), av._2()), toObject);
         }
 
-        public Store extendAll(ImmutableList<Map.Entry<Address, BValue>> avs) {
-            ImmutableMap.Builder<Address, BValue> builder = ImmutableMap.<Address, BValue>builder().putAll(toValue);
-            for (Map.Entry<Address, BValue> entry : avs) {
-                builder = builder.put(entry);
-            }
-            return new Store(builder.build(), toObject);
+        public Store extendAll(List<P2<Address, BValue>> avs) {
+            return new Store(toValue.union(avs), toObject);
         }
 
         public Store putObj(Address a, Object o) {
-            return new Store(toValue, ImmutableMap.<Address, Object>builder().putAll(toObject).put(a, o).build());
+            return new Store(toValue, toObject.set(a, o));
         }
     }
 
     public static class Scratchpad {
-        public ImmutableList<BValue> mem;
+        public Seq<BValue> mem;
 
-        public Scratchpad(ImmutableList<BValue> mem) {
+        public Scratchpad(Seq<BValue> mem) {
             this.mem = mem;
         }
 
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Scratchpad && mem.equals(((Scratchpad) obj).mem));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(mem).hashCode();
+        }
+
         public BValue apply(IRScratch x) {
-            return mem.get(x.n);
+            return mem.index(x.n);
         }
 
         public Scratchpad update(IRScratch x, BValue bv) {
-            int sz = mem.size();
-            return new Scratchpad(ImmutableList.<BValue>builder().
-                    addAll(mem.subList(0, x.n)).
-                    add(bv).addAll(mem.subList(x.n + 1, sz)).
-                    build());
+            return new Scratchpad(mem.update(x.n, bv));
         }
 
         public static Scratchpad apply(Integer len) {
             ArrayList<BValue> bvs = new ArrayList<>(len);
             for (int i = 0; i < len; i += 1) {
-                bvs.add(i, new Undef());
+                bvs.add(i, Undef);
             }
-            return new Scratchpad(ImmutableList.<BValue>builder().addAll(bvs).build());
+            return new Scratchpad(Seq.seq(List.list(bvs)));
         }
     }
 
@@ -127,6 +162,16 @@ public class Domains {
         public EValue(BValue bv) {
             this.bv = bv;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof EValue && bv.equals(((EValue) obj).bv));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(bv).hashCode();
+        }
     }
 
     public static class JValue extends Value {
@@ -137,14 +182,24 @@ public class Domains {
             this.lbl = lbl;
             this.bv = bv;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof JValue && lbl.equals(((JValue) obj).lbl) && bv.equals(((JValue) obj).bv));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(lbl, bv).hashCode();
+        }
     }
 
     public interface BValueVisitor {
         java.lang.Object forNum(Num bNum);
         java.lang.Object forBool(Bool bBool);
         java.lang.Object forStr(Str bStr);
-        java.lang.Object forNull(Null bNull);
-        java.lang.Object forUndef(Undef bUndef);
+        java.lang.Object forNull(BValue bNull);
+        java.lang.Object forUndef(BValue bUndef);
         java.lang.Object forAddress(Address bAddress);
     }
 
@@ -175,9 +230,9 @@ public class Domains {
         public BValue nonStrictEqual(BValue bv) {
             BValue bv1 = this.strictEqual(bv);
             BValue bv2 = Bool.False;
-            if (this instanceof Undef && bv instanceof Null) {
+            if (this.equals(Undef) && bv.equals(Null)) {
                 bv2 = Bool.True;
-            } else if (this instanceof Null && bv instanceof Undef) {
+            } else if (this.equals(Null) && bv.equals(Undef)) {
                 bv2 = Bool.True;
             } else if (this instanceof Num && bv instanceof Str) {
                 return this.strictEqual(bv.toNum());
@@ -211,6 +266,11 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Num && n.equals(((Num) obj).n));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(n).hashCode();
         }
 
         @Override
@@ -386,6 +446,11 @@ public class Domains {
         }
 
         @Override
+        public int hashCode() {
+            return P.p(str).hashCode();
+        }
+
+        @Override
         public BValue strConcat(BValue bv) {
             if (bv instanceof Str) {
                 return new Str(str + ((Str) bv).str);
@@ -445,6 +510,11 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Bool && b.equals(((Bool) obj).b));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(b).hashCode();
         }
 
         @Override
@@ -508,6 +578,10 @@ public class Domains {
             return (obj instanceof Address && a.equals(((Address) obj).a));
         }
 
+        @Override
+        public int hashCode() {
+            return P.p(a).hashCode();
+        }
 
         @Override
         public BValue isPrim() {
@@ -539,20 +613,17 @@ public class Domains {
         }
     }
 
-    public static class Undef extends BValue {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof Undef);
-        }
-
+    public static final BValue Undef = new BValue() {
         @Override
         public Bool toBool() {
             return Bool.False;
         }
+
         @Override
         public Str toStr() {
             return new Str("undefined");
         }
+
         @Override
         public Num toNum() {
             return new Num(Double.NaN);
@@ -562,22 +633,19 @@ public class Domains {
         public java.lang.Object accept(BValueVisitor ask) {
             return ask.forUndef(this);
         }
-    }
+    };
 
-    public static class Null extends BValue {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof Null);
-        }
-
+    public static final BValue Null = new BValue() {
         @Override
         public Bool toBool() {
             return Bool.False;
         }
+
         @Override
         public Str toStr() {
             return new Str("null");
         }
+
         @Override
         public Num toNum() {
             return new Num(0.0);
@@ -587,7 +655,7 @@ public class Domains {
         public java.lang.Object accept(BValueVisitor ask) {
             return ask.forNull(this);
         }
-    }
+    };
 
     public static abstract class Closure {}
 
@@ -599,63 +667,82 @@ public class Domains {
             this.env = env;
             this.m = m;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Clo && env.equals(((Clo) obj).env) && m.equals(((Clo) obj).m));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(env, m).hashCode();
+        }
+    }
+
+    public static class Native extends Closure {
+        public F7<Address, Address, IRVar, Env, Store, Scratchpad, KontStack, Interpreter.State> f;
+
+        public Native(F7<Address, Address, IRVar, Env, Store, Scratchpad, KontStack, Interpreter.State> f) {
+            this.f = f;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Native && f.equals(((Native) obj).f));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(f).hashCode();
+        }
     }
 
     public static class Object {
-        public ImmutableMap<Str, BValue> extern;
-        public ImmutableMap<Str, java.lang.Object> intern;
+        public TreeMap<Str, BValue> extern;
+        public TreeMap<Str, java.lang.Object> intern;
 
         JSClass myClass;
         BValue myProto;
 
-        public Object(ImmutableMap<Str, BValue> extern, ImmutableMap<Str, java.lang.Object> intern) {
+        public Object(TreeMap<Str, BValue> extern, TreeMap<Str, java.lang.Object> intern) {
             this.extern = extern;
             this.intern = intern;
-            myClass = (JSClass)intern.get(Utils.Fields.classname);
-            myProto = (BValue)intern.get(Utils.Fields.proto);
+            myClass = (JSClass)intern.get(Utils.Fields.classname).some();
+            myProto = (BValue)intern.get(Utils.Fields.proto).some();
         }
 
-        @Nullable
-        public BValue apply(Str str) {
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof Object && extern.equals(((Object) obj).extern) && intern.equals(((Object) obj).intern));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(extern, intern).hashCode();
+        }
+
+        public Option<BValue> apply(Str str) {
             return extern.get(str);
         }
 
         public Object update(Str str, BValue bv) {
-            if (Init.noupdate.getOrDefault(myClass, ImmutableSet.<Str>of()).contains(str)) {
+            if (Init.noupdate.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str)) {
                 return this;
             } else {
-                return new Object(ImmutableMap.<Str, BValue>builder().putAll(extern).put(str, bv).build(), intern);
+                return new Object(extern.set(str, bv), intern);
             }
         }
 
-        public Map.Entry<Object, Boolean> delete(Str str) {
-            if ((Init.nodelete.getOrDefault(myClass, ImmutableSet.<Str>of()).contains(str)) || !(extern.containsKey(str))) {
-                return new AbstractMap.SimpleImmutableEntry<>(this, false);
+        public P2<Object, Boolean> delete(Str str) {
+            if (Init.nodelete.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str) || !(extern.contains(str))) {
+                return P.p(this, false);
             } else {
-                // TODO: time complexity needs to be refined
-                ImmutableMap.Builder<Str, BValue> builder = ImmutableMap.<Str, BValue>builder();
-                for (Map.Entry<Str, BValue> entry : extern.entrySet()) {
-                    if (!entry.getKey().equals(str)) {
-                        builder = builder.put(entry);
-                    }
-                }
-                return new AbstractMap.SimpleImmutableEntry<>(
-                        new Object(builder.build(), intern),
-                        true
-                );
+                return P.p(new Object(extern.delete(str), intern), true);
             }
         }
 
-        public ImmutableSet<Str> fields() {
-            // TODO: time complexity needs to be refined
-            ImmutableSet.Builder<Str> builder = ImmutableSet.<Str>builder();
-            ImmutableSet<Str> noenum = Init.noenum.getOrDefault(myClass, ImmutableSet.<Str>of());
-            for (Str str : extern.keySet()) {
-                if (!noenum.contains(str)) {
-                    builder = builder.add(str);
-                }
-            }
-            return builder.build();
+        public Set<Str> fields() {
+            return Set.set(Ord.hashEqualsOrd(), extern.keys()).minus(Init.noenum.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())));
         }
 
         public JSClass getJSClass() {
@@ -667,44 +754,47 @@ public class Domains {
         }
 
         public Boolean calledAsCtor() {
-            return intern.containsKey(Utils.Fields.constructor);
+            return intern.contains(Utils.Fields.constructor);
         }
 
-        @Nullable
-        public Closure getCode() {
-            java.lang.Object code = intern.get(Utils.Fields.code);
-            if (code != null) {
-                return (Closure)code;
+        public Option<Closure> getCode() {
+            Option<java.lang.Object> code = intern.get(Utils.Fields.code);
+            if (code.isSome()) {
+                return Option.some((Closure)code.some());
             } else {
-                return null;
+                return Option.none();
             }
         }
 
-        @Nullable
-        public BValue getValue() {
-            java.lang.Object value = intern.get(Utils.Fields.value);
-            if (value != null) {
-                return (BValue)value;
+        public Option<BValue> getValue() {
+            Option<java.lang.Object> value = intern.get(Utils.Fields.value);
+            if (value.isSome()) {
+                return Option.some((BValue)value.some());
             } else {
-                return null;
+                return Option.none();
             }
         }
     }
 
     public static abstract class Kont {}
 
-    public static class HaltKont extends Kont {
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof HaltKont);
-        }
-    }
+    public static final Kont HaltKont = new Kont() {};
 
     public static class SeqKont extends Kont {
-        public ImmutableList<IRStmt> ss;
+        public List<IRStmt> ss;
 
-        public SeqKont(ImmutableList<IRStmt> ss) {
+        public SeqKont(List<IRStmt> ss) {
             this.ss = ss;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof SeqKont && ss.equals(((SeqKont) obj).ss));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(ss).hashCode();
         }
     }
 
@@ -716,17 +806,37 @@ public class Domains {
             this.e = e;
             this.s = s;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof WhileKont && e.equals(((WhileKont) obj).e) && s.equals(((WhileKont) obj).s));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(e, s).hashCode();
+        }
     }
 
     public static class ForKont extends Kont {
-        public ImmutableList<Str> strs;
+        public List<Str> strs;
         public IRVar x;
         public IRStmt s;
 
-        public ForKont(ImmutableList<Str> strs, IRVar x, IRStmt s) {
+        public ForKont(List<Str> strs, IRVar x, IRStmt s) {
             this.strs = strs;
             this.x = x;
             this.s = s;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof ForKont && strs.equals(((ForKont) obj).strs) && x.equals(((ForKont) obj).x) && s.equals(((ForKont) obj).s));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(strs, x, s).hashCode();
         }
     }
 
@@ -742,6 +852,16 @@ public class Domains {
             this.isctor = isctor;
             this.pad = pad;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof RetKont && x.equals(((RetKont) obj).x) && env.equals(((RetKont) obj).env) && isctor.equals(((RetKont) obj).isctor) && pad.equals(((RetKont) obj).pad));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(x, env, isctor, pad).hashCode();
+        }
     }
 
     public static class TryKont extends Kont {
@@ -754,6 +874,16 @@ public class Domains {
             this.sc = sc;
             this.sf = sf;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof TryKont && x.equals(((TryKont) obj).x) && sc.equals(((TryKont) obj).sc) && sf.equals(((TryKont) obj).sf));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(x, sc, sf).hashCode();
+        }
     }
 
     public static class CatchKont extends Kont {
@@ -761,6 +891,16 @@ public class Domains {
 
         public CatchKont(IRStmt sf) {
             this.sf = sf;
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof CatchKont && sf.equals(((CatchKont) obj).sf));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(sf).hashCode();
         }
     }
 
@@ -770,6 +910,16 @@ public class Domains {
         public FinKont(Value v) {
             this.v = v;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof FinKont && v.equals(((FinKont) obj).v));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(v).hashCode();
+        }
     }
 
     public static class LblKont extends Kont {
@@ -778,38 +928,53 @@ public class Domains {
         public LblKont(String lbl) {
             this.lbl = lbl;
         }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof LblKont && lbl.equals(((LblKont) obj).lbl));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(lbl).hashCode();
+        }
     }
 
     public static class KontStack {
-        public ImmutableList<Kont> ks;
+        public List<Kont> ks;
 
-        public KontStack(ImmutableList<Kont> ks) {
+        public KontStack(List<Kont> ks) {
             this.ks = ks;
         }
 
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return (obj instanceof KontStack && ks.equals(((KontStack) obj).ks));
+        }
+
+        @Override
+        public int hashCode() {
+            return P.p(ks).hashCode();
+        }
+
         public KontStack push(Kont k) {
-            return new KontStack(ImmutableList.<Kont>builder().add(k).addAll(ks).build());
+            return new KontStack(ks.snoc(k));
         }
 
         public KontStack pop() {
-            return new KontStack(ks.subList(1, ks.size()));
+            return new KontStack(ks.tail());
         }
 
         public KontStack repl(Kont k) {
-            return new KontStack(ImmutableList.<Kont>builder().add(k).addAll(ks.subList(1, ks.size())).build());
+            return new KontStack(ks.tail().snoc(k));
         }
 
         public Kont top() {
-            return ks.get(0);
+            return ks.head();
         }
 
-        public KontStack dropWhile(Predicate<Kont> f) {
-            for (int i = 0; i < ks.size(); i += 1) {
-                if (!f.test(ks.get(i))) {
-                    return new KontStack(ks.subList(i, ks.size()));
-                }
-            }
-            return new KontStack(ImmutableList.<Kont>of());
+        public KontStack dropWhile(F<Kont, Boolean> f) {
+            return new KontStack(ks.dropWhile(f));
         }
     }
 }
