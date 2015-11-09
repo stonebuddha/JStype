@@ -1,18 +1,18 @@
 package ast;
 
-import java.util.ArrayList;
+import fj.data.List;
 
 /**
  * Created by wayne on 15/10/15.
  */
 public class SequenceExpression extends Expression {
-    ArrayList<Expression> expressions;
+    List<Expression> expressions;
 
-    public SequenceExpression(ArrayList<Expression> expressions) {
+    public SequenceExpression(List<Expression> expressions) {
         this.expressions = expressions;
     }
 
-    public ArrayList<Expression> getExpressions() {
+    public List<Expression> getExpressions() {
         return expressions;
     }
 

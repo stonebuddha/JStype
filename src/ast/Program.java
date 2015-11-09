@@ -4,16 +4,16 @@
 
 package ast;
 
-import java.util.ArrayList;
+import fj.data.List;
 
 public class Program extends Node {
-    ArrayList<Statement> body;
+    List<Statement> body;
 
-    public Program(ArrayList<Statement> body) {
+    public Program(List<Statement> body) {
         this.body = body;
     }
 
-    public ArrayList<Statement> getBody() {
+    public List<Statement> getBody() {
         return body;
     }
 

@@ -5,6 +5,8 @@
 package translator;
 
 import ast.*;
+import fj.data.List;
+import fj.data.Seq;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import jdk.nashorn.internal.runtime.Context;
 import jdk.nashorn.internal.runtime.ErrorManager;
@@ -40,11 +42,7 @@ public class Parser {
     private static Program parseProgram(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         JsonArray array = object.get("body").getAsJsonArray();
-        ArrayList<Statement> body = new ArrayList<>();
-        for (JsonElement ele : array) {
-            body.add(parseStatement(ele));
-        }
-        return new Program(body);
+        return new Program(List.list(array).map(Parser::parseStatement));
     }
 
     private static Statement parseStatement(JsonElement element) {
@@ -54,11 +52,7 @@ public class Parser {
             return new EmptyStatement();
         } else if (type.equals("BlockStatement")) {
             JsonArray array = object.get("body").getAsJsonArray();
-            ArrayList<Statement> body = new ArrayList<>();
-            for (JsonElement ele : array) {
-                body.add(parseStatement(ele));
-            }
-            return new BlockStatement(body);
+            return new BlockStatement(List.list(array).map(Parser::parseStatement));
         } else if (type.equals("ExpressionStatement")) {
             JsonElement ele = object.get("expression");
             Expression expression = parseExpression(ele);
@@ -110,11 +104,7 @@ public class Parser {
             JsonElement ele1 = object.get("discriminant");
             JsonArray array = object.get("cases").getAsJsonArray();
             Expression discriminant = parseExpression(ele1);
-            ArrayList<SwitchCase> cases = new ArrayList<>();
-            for (JsonElement ele : array) {
-                cases.add(parseSwitchCase(ele));
-            }
-            return new SwitchStatement(discriminant, cases);
+            return new SwitchStatement(discriminant, List.list(array).map(Parser::parseSwitchCase));
         } else if (type.equals("ReturnStatement")) {
             JsonElement ele = object.get("argument");
             Expression argument;
@@ -216,24 +206,16 @@ public class Parser {
             return new ThisExpression();
         } else if (type.equals("ArrayExpression")) {
             JsonElement ele1 = object.get("elements");
-            ArrayList<Expression> elements = new ArrayList<>();
-            for (JsonElement ele : ele1.getAsJsonArray()) {
-                Expression exp;
+            return new ArrayExpression(Seq.seq(List.list(ele1.getAsJsonArray()).map(ele -> {
                 if (ele.isJsonNull()) {
-                    exp = null;
+                    return null;
                 } else {
-                    exp = parseExpression(ele);
+                    return parseExpression(ele);
                 }
-                elements.add(exp);
-            }
-            return new ArrayExpression(elements);
+            })));
         } else if (type.equals("ObjectExpression")) {
             JsonElement ele1 = object.get("properties");
-            ArrayList<Property> properties = new ArrayList<>();
-            for (JsonElement ele : ele1.getAsJsonArray()) {
-                properties.add(parseProperty(ele));
-            }
-            return new ObjectExpression(properties);
+            return new ObjectExpression(Seq.seq(List.list(ele1.getAsJsonArray()).map(Parser::parseProperty)));
         } else if (type.equals("FunctionExpression")) {
             JsonElement ele1 = object.get("id");
             IdentifierExpression id;
@@ -243,20 +225,15 @@ public class Parser {
                 id = (IdentifierExpression)parseExpression(ele1);
             }
             JsonElement ele2 = object.get("params");
-            ArrayList<IdentifierExpression> params = new ArrayList<>();
-            for (JsonElement ele : ele2.getAsJsonArray()) {
-                params.add((IdentifierExpression)parseExpression(ele));
-            }
             JsonElement ele3 = object.get("body");
             BlockStatement body = (BlockStatement)parseStatement(ele3);
-            return new FunctionExpression(id, params, body);
+            return new FunctionExpression(
+                    id,
+                    Seq.seq(List.list(ele2.getAsJsonArray()).map(ele -> (IdentifierExpression)parseExpression(ele))),
+                    body);
         } else if (type.equals("SequenceExpression")) {
             JsonElement ele1 = object.get("expressions");
-            ArrayList<Expression> expressions = new ArrayList<>();
-            for (JsonElement ele : ele1.getAsJsonArray()) {
-                expressions.add(parseExpression(ele));
-            }
-            return new SequenceExpression(expressions);
+            return new SequenceExpression(List.list(ele1.getAsJsonArray()).map(Parser::parseExpression));
         } else if (type.equals("UnaryExpression")) {
             JsonElement ele1 = object.get("operator");
             String operator = ele1.getAsString();
@@ -309,20 +286,12 @@ public class Parser {
             JsonElement ele1 = object.get("callee");
             Expression callee = parseExpression(ele1);
             JsonElement ele2 = object.get("arguments");
-            ArrayList<Expression> arguments = new ArrayList<>();
-            for (JsonElement ele : ele2.getAsJsonArray()) {
-                arguments.add(parseExpression(ele));
-            }
-            return new CallExpression(callee, arguments);
+            return new CallExpression(callee, Seq.seq(List.list(ele2.getAsJsonArray()).map(Parser::parseExpression)));
         } else if (type.equals("NewExpression")) {
             JsonElement ele1 = object.get("callee");
             Expression callee = parseExpression(ele1);
             JsonElement ele2 = object.get("arguments");
-            ArrayList<Expression> arguments = new ArrayList<>();
-            for (JsonElement ele : ele2.getAsJsonArray()) {
-                arguments.add(parseExpression(ele));
-            }
-            return new NewExpression(callee, arguments);
+            return new NewExpression(callee, Seq.seq(List.list(ele2.getAsJsonArray()).map(Parser::parseExpression)));
         } else if (type.equals("MemberExpression")) {
             JsonElement ele1 = object.get("object");
             Expression obj = parseExpression(ele1);
@@ -348,20 +317,15 @@ public class Parser {
         if (type.equals("FunctionDeclaration")) {
             JsonElement ele1 = object.get("id");
             IdentifierExpression id = (IdentifierExpression)parseExpression(ele1);
-            ArrayList<IdentifierExpression> params = new ArrayList<>();
             JsonElement ele2 = object.get("params");
-            for (JsonElement ele: ele2.getAsJsonArray()) {
-                params.add((IdentifierExpression)parseExpression(ele));
-            }
             JsonElement ele3 = object.get("body");
             BlockStatement body = (BlockStatement)parseStatement(ele3);
-            return new FunctionDeclaration(id, params, body);
+            return new FunctionDeclaration(
+                    id,
+                    Seq.seq(List.list(ele2.getAsJsonArray()).map(ele -> (IdentifierExpression)parseExpression(ele))),
+                    body);
         } else if (type.equals("VariableDeclaration")) {
-            ArrayList<VariableDeclarator> declarations = new ArrayList<>();
-            for (JsonElement ele : object.get("declarations").getAsJsonArray()) {
-                declarations.add(parseVariableDeclarator(ele));
-            }
-            return new VariableDeclaration(declarations);
+            return new VariableDeclaration(List.list(object.get("declarations").getAsJsonArray()).map(Parser::parseVariableDeclarator));
         } else {
             throw new RuntimeException("Cannot Parse Declaration");
         }
@@ -376,12 +340,8 @@ public class Parser {
         } else {
             test = parseExpression(ele1);
         }
-        ArrayList<Statement> consequent = new ArrayList<>();
         JsonElement ele2 = object.get("consequent");
-        for (JsonElement ele : ele2.getAsJsonArray()) {
-            consequent.add(parseStatement(ele));
-        }
-        return new SwitchCase(test, consequent);
+        return new SwitchCase(test, List.list(ele2.getAsJsonArray()).map(Parser::parseStatement));
     }
 
     private static CatchClause parseCatchClause(JsonElement element) {

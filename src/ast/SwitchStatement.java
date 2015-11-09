@@ -1,6 +1,6 @@
 package ast;
 
-import java.util.ArrayList;
+import fj.data.List;
 
 /**
  * Created by Hwhitetooth on 15/10/14.
@@ -8,9 +8,9 @@ import java.util.ArrayList;
 
 public class SwitchStatement extends Statement {
     Expression discriminant;
-    ArrayList<SwitchCase> cases;
+    List<SwitchCase> cases;
 
-    public SwitchStatement(Expression discriminant, ArrayList<SwitchCase> cases) {
+    public SwitchStatement(Expression discriminant, List<SwitchCase> cases) {
         this.discriminant = discriminant;
         this.cases = cases;
     }
@@ -18,7 +18,7 @@ public class SwitchStatement extends Statement {
     public Expression getDiscriminant() {
         return discriminant;
     }
-    public ArrayList<SwitchCase> getCases() {
+    public List<SwitchCase> getCases() {
         return cases;
     }
 

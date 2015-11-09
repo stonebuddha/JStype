@@ -1,18 +1,18 @@
 package ast;
 
-import java.util.ArrayList;
+import fj.data.List;
 
 /**
  * Created by wayne on 10/15/15.
  */
 public class VariableDeclaration extends Declaration {
-    ArrayList<VariableDeclarator> declarations;
+    List<VariableDeclarator> declarations;
 
-    public VariableDeclaration(ArrayList<VariableDeclarator> declarations) {
+    public VariableDeclaration(List<VariableDeclarator> declarations) {
         this.declarations = declarations;
     }
 
-    public ArrayList<VariableDeclarator> getDeclarations() {
+    public List<VariableDeclarator> getDeclarations() {
         return declarations;
     }
 

@@ -1,16 +1,16 @@
 package ast;
 
-import java.util.ArrayList;
+import fj.data.Seq;
 
 /**
  * Created by wayne on 15/10/15.
  */
 public class FunctionExpression extends Expression {
     IdentifierExpression id;
-    ArrayList<IdentifierExpression> params;
+    Seq<IdentifierExpression> params;
     BlockStatement body;
 
-    public FunctionExpression(IdentifierExpression id, ArrayList<IdentifierExpression> params, BlockStatement body) {
+    public FunctionExpression(IdentifierExpression id, Seq<IdentifierExpression> params, BlockStatement body) {
         this.id = id;
         this.params = params;
         this.body = body;
@@ -19,7 +19,7 @@ public class FunctionExpression extends Expression {
     public IdentifierExpression getId() {
         return id;
     }
-    public ArrayList<IdentifierExpression> getParams() {
+    public Seq<IdentifierExpression> getParams() {
         return params;
     }
     public BlockStatement getBody() {

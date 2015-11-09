@@ -1,15 +1,15 @@
 package ast;
 
-import java.util.ArrayList;
+import fj.data.Seq;
 
 /**
  * Created by wayne on 15/10/15.
  */
 public class CallExpression extends Expression {
     Expression callee;
-    ArrayList<Expression> arguments;
+    Seq<Expression> arguments;
 
-    public CallExpression(Expression callee, ArrayList<Expression> arguments) {
+    public CallExpression(Expression callee, Seq<Expression> arguments) {
         this.callee = callee;
         this.arguments = arguments;
     }
@@ -17,7 +17,7 @@ public class CallExpression extends Expression {
     public Expression getCallee() {
         return callee;
     }
-    public ArrayList<Expression> getArguments() {
+    public Seq<Expression> getArguments() {
         return arguments;
     }
 

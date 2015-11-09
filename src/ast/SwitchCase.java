@@ -1,15 +1,15 @@
 package ast;
 
-import java.util.ArrayList;
+import fj.data.List;
 
 /**
  * Created by Hwhitetooth on 15/10/14.
  */
 public class SwitchCase extends Node {
     Expression test;
-    ArrayList<Statement> consequent;
+    List<Statement> consequent;
 
-    public SwitchCase(Expression test, ArrayList<Statement> consequent) {
+    public SwitchCase(Expression test, List<Statement> consequent) {
         this.test = test;
         this.consequent = consequent;
     }
@@ -17,7 +17,7 @@ public class SwitchCase extends Node {
     public Expression getTest() {
         return test;
     }
-    public ArrayList<Statement> getConsequent() {
+    public List<Statement> getConsequent() {
         return consequent;
     }
 

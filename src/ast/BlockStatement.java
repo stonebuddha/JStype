@@ -4,16 +4,16 @@
 
 package ast;
 
-import java.util.ArrayList;
+import fj.data.List;
 
 public class BlockStatement extends Statement {
-    ArrayList<Statement> body;
+    List<Statement> body;
 
-    public BlockStatement(ArrayList<Statement> body) {
+    public BlockStatement(List<Statement> body) {
         this.body = body;
     }
 
-    public ArrayList<Statement> getBody() {
+    public List<Statement> getBody() {
         return body;
     }
 
