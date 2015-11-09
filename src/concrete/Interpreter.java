@@ -12,13 +12,15 @@ import ir.*;
  */
 public class Interpreter {
 
+    public static void main(String[] args) {
+        runner(args);
+    }
+
     public static class Mutable {
 
-        public static Boolean catchExc = false;
         public static HashMap<Integer, Set<Domains.BValue>> outputMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
 
         public static void clear() {
-            catchExc = false;
             outputMap.clear();
         }
     }
@@ -33,11 +35,8 @@ public class Interpreter {
             }
             return Mutable.outputMap;
         } catch (Exception e) {
-            if (Mutable.catchExc) {
-                return Mutable.outputMap;
-            } else {
-                return Mutable.outputMap;
-            }
+            System.out.println("Exception occurred: "+ e.getMessage() + "\n" + e.getStackTrace());
+            return Mutable.outputMap;
         }
     }
 

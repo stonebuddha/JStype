@@ -50,7 +50,7 @@ public class Utils {
     }
 
     public static P2<Domains.Store, Domains.Address> allocObj(Domains.Address a, Domains.Store store) {
-        JSClass c = Init.classFromAddress(a);
+        JSClass c = Init.classFromAddress.get(a).orSome(JSClass.CObject);
         Domains.Address a1 = Domains.Address.generate();
         Domains.Address a2;
         Option<Domains.BValue> tmp = store.getObj(a).apply(Fields.prototype);
