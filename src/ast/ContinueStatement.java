@@ -4,14 +4,16 @@
 
 package ast;
 
-public class ContinueStatement extends Statement {
-    IdentifierExpression label;
+import fj.data.Option;
 
-    public ContinueStatement(IdentifierExpression label) {
+public class ContinueStatement extends Statement {
+    Option<IdentifierExpression> label;
+
+    public ContinueStatement(Option<IdentifierExpression> label) {
         this.label = label;
     }
 
-    public IdentifierExpression getLabel() {
+    public Option<IdentifierExpression> getLabel() {
         return label;
     }
 

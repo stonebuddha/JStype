@@ -4,12 +4,14 @@
 
 package ast;
 
+import fj.data.Option;
+
 public class IfStatement extends Statement {
     Expression test;
     Statement consequent;
-    Statement alternate;
+    Option<Statement> alternate;
 
-    public IfStatement(Expression test, Statement consequent, Statement alternate) {
+    public IfStatement(Expression test, Statement consequent, Option<Statement> alternate) {
         this.test = test;
         this.consequent = consequent;
         this.alternate = alternate;
@@ -21,7 +23,7 @@ public class IfStatement extends Statement {
     public Statement getConsequent() {
         return consequent;
     }
-    public Statement getAlternate() {
+    public Option<Statement> getAlternate() {
         return alternate;
     }
 

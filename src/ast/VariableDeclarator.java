@@ -1,13 +1,15 @@
 package ast;
 
+import fj.data.Option;
+
 /**
  * Created by Hwhitetooth on 15/10/14.
  */
 public class VariableDeclarator extends Node {
     IdentifierExpression id;
-    Expression init;
+    Option<Expression> init;
 
-    public VariableDeclarator(IdentifierExpression id, Expression init) {
+    public VariableDeclarator(IdentifierExpression id, Option<Expression> init) {
         this.id = id;
         this.init = init;
     }
@@ -15,7 +17,7 @@ public class VariableDeclarator extends Node {
     public IdentifierExpression getId() {
         return id;
     }
-    public Expression getInit() {
+    public Option<Expression> getInit() {
         return init;
     }
 

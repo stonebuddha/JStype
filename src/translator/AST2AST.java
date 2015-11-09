@@ -1,7 +1,10 @@
 package translator;
 
 import ast.*;
+import fj.P;
+import fj.P2;
 import fj.data.List;
+import fj.data.Option;
 import fj.data.Seq;
 
 /**
@@ -70,15 +73,20 @@ public class AST2AST {
 
         @Override
         public Object forForStatement(ForStatement forStatement) {
-            Node init = forStatement.getInit();
-            Expression test = forStatement.getTest();
-            Expression update = forStatement.getUpdate();
+            Option<Node> init = forStatement.getInit();
+            Option<Expression> test = forStatement.getTest();
+            Option<Expression> update = forStatement.getUpdate();
             Statement body = forStatement.getBody();
-            Node _init;
-            if (init instanceof VariableDeclaration) {
-                _init = (Node)((VariableDeclaration)init).accept(this);
+            Option<Node> _init;
+            if (init.isNone()) {
+                _init = Option.none();
             } else {
-                _init = init;
+                Node initNode = init.some();
+                if (initNode instanceof VariableDeclaration) {
+                    _init = Option.some((Node)((VariableDeclaration)initNode).accept(this));
+                } else {
+                    _init = init;
+                }
             }
             return new ForStatement(_init, test, update, (Statement)body.accept(this));
         }
@@ -95,8 +103,8 @@ public class AST2AST {
         public Object forIfStatement(IfStatement ifStatement) {
             Expression test = ifStatement.getTest();
             Statement consequent = ifStatement.getConsequent();
-            Statement alternate = ifStatement.getAlternate();
-            return new IfStatement(test, (Statement)consequent.accept(this), (Statement)alternate.accept(this));
+            Option<Statement> alternate = ifStatement.getAlternate();
+            return new IfStatement(test, (Statement)consequent.accept(this), alternate.map(stmt -> (Statement)stmt.accept(this)));
         }
 
         @Override
@@ -115,7 +123,7 @@ public class AST2AST {
         public Object forSwitchStatement(SwitchStatement switchStatement) {
             Expression discriminant = switchStatement.getDiscriminant();
             List<SwitchCase> cases = switchStatement.getCases();
-            return new SwitchStatement(discriminant, cases.map(kase -> (SwitchCase)kase.accept(this)));
+            return new SwitchStatement(discriminant, cases.map(sc -> (SwitchCase)sc.accept(this)));
         }
 
         @Override
@@ -126,9 +134,12 @@ public class AST2AST {
         @Override
         public Object forTryStatement(TryStatement tryStatement) {
             BlockStatement block = tryStatement.getBlock();
-            CatchClause handler = tryStatement.getHandler();
-            BlockStatement finalizer = tryStatement.getFinalizer();
-            return new TryStatement((BlockStatement)block.accept(this), (CatchClause)handler.accept(this), (BlockStatement)finalizer.accept(this));
+            Option<CatchClause> handler = tryStatement.getHandler();
+            Option<BlockStatement> finalizer = tryStatement.getFinalizer();
+            return new TryStatement(
+                    (BlockStatement)block.accept(this),
+                    handler.map(cc -> (CatchClause)cc.accept(this)),
+                    finalizer.map(stmt -> (BlockStatement)stmt.accept(this)));
         }
 
         @Override
@@ -150,7 +161,7 @@ public class AST2AST {
 
         @Override
         public Object forSwitchCase(SwitchCase switchCase) {
-            Expression test = switchCase.getTest();
+            Option<Expression> test = switchCase.getTest();
             List<Statement> consequent = switchCase.getConsequent();
             return new SwitchCase(test, consequent.map(stmt -> (Statement)stmt.accept(this)));
         }
@@ -170,7 +181,7 @@ public class AST2AST {
         }
     }
 
-    public static class MakeAllAssignmentsSimpleV implements ProgramVisitor, StatementVisitor, ExpressionVisitor {
+    public static class MakeAllAssignmentsSimpleV implements ProgramVisitor, StatementVisitor, ExpressionVisitor, SwitchCaseVisitor, CatchClauseVisitor, VariableDeclaratorVisitor {
         @Override
         public Object forProgram(Program program) {
             List<Statement> body = program.getBody();
@@ -212,62 +223,115 @@ public class AST2AST {
 
         @Override
         public Object forExpressionStatement(ExpressionStatement expressionStatement) {
-            return null;
+            Expression expression = expressionStatement.getExpression();
+            return new ExpressionStatement((Expression)expression.accept(this));
         }
 
         @Override
         public Object forForInStatement(ForInStatement forInStatement) {
-            return null;
+            Node left = forInStatement.getLeft();
+            Expression right = forInStatement.getRight();
+            Statement body = forInStatement.getBody();
+            Node _left;
+            if (left instanceof VariableDeclaration) {
+                _left = (Node)((VariableDeclaration)left).accept(this);
+            } else {
+                _left = (Node)((Expression)left).accept(this);
+            }
+            return new ForInStatement(_left, (Expression)right.accept(this), (Statement)right.accept(this));
         }
 
         @Override
         public Object forForStatement(ForStatement forStatement) {
-            return null;
+            Option<Node> init = forStatement.getInit();
+            Option<Expression> test = forStatement.getTest();
+            Option<Expression> update = forStatement.getUpdate();
+            Statement body = forStatement.getBody();
+            Option<Node> _init;
+            if (init.isNone()) {
+                _init = Option.none();
+            } else {
+                Node initNode = init.some();
+                if (initNode instanceof VariableDeclaration) {
+                    _init = Option.some((Node)((VariableDeclaration)initNode).accept(this));
+                } else {
+                    _init = Option.some((Node)((Expression)initNode).accept(this));
+                }
+            }
+            return new ForStatement(
+                    _init,
+                    test.map(exp -> (Expression)exp.accept(this)),
+                    update.map(exp -> (Expression)exp.accept(this)),
+                    (Statement)body.accept(this));
         }
 
         @Override
         public Object forFunctionDeclaration(FunctionDeclaration functionDeclaration) {
-            return null;
+            IdentifierExpression id = functionDeclaration.getId();
+            Seq<IdentifierExpression> params = functionDeclaration.getParams();
+            BlockStatement body = functionDeclaration.getBody();
+            return new FunctionDeclaration(id, params, (BlockStatement)body.accept(this));
         }
 
         @Override
         public Object forIfStatement(IfStatement ifStatement) {
-            return null;
+            Expression test = ifStatement.getTest();
+            Statement consequent = ifStatement.getConsequent();
+            Option<Statement> alternate = ifStatement.getAlternate();
+            return new IfStatement(
+                    (Expression)test.accept(this),
+                    (Statement)consequent.accept(this),
+                    alternate.map(stmt -> (Statement)stmt.accept(this)));
         }
 
         @Override
         public Object forLabeledStatement(LabeledStatement labeledStatement) {
-            return null;
+            IdentifierExpression label = labeledStatement.getLabel();
+            Statement body = labeledStatement.getBody();
+            return new LabeledStatement(label, (Statement)body.accept(this));
         }
 
         @Override
         public Object forReturnStatement(ReturnStatement returnStatement) {
-            return null;
+            Option<Expression> argument = returnStatement.getArgument();
+            return new ReturnStatement(argument.map(exp -> (Expression)exp.accept(this)));
         }
 
         @Override
         public Object forSwitchStatement(SwitchStatement switchStatement) {
-            return null;
+            Expression discriminant = switchStatement.getDiscriminant();
+            List<SwitchCase> cases = switchStatement.getCases();
+            return new SwitchStatement((Expression)discriminant.accept(this), cases.map(sc -> (SwitchCase)sc.accept(this)));
         }
 
         @Override
         public Object forThrowStatement(ThrowStatement throwStatement) {
-            return null;
+            Expression argument = throwStatement.getArgument();
+            return new ThrowStatement((Expression)argument.accept(this));
         }
 
         @Override
         public Object forTryStatement(TryStatement tryStatement) {
-            return null;
+            BlockStatement block = tryStatement.getBlock();
+            Option<CatchClause> handler = tryStatement.getHandler();
+            Option<BlockStatement> finalizer = tryStatement.getFinalizer();
+            return new TryStatement(
+                    (BlockStatement)block.accept(this),
+                    handler.map(cc -> (CatchClause)cc.accept(this)),
+                    finalizer.map(stmt -> (BlockStatement)stmt.accept(this)));
         }
 
         @Override
         public Object forVariableDeclaration(VariableDeclaration variableDeclaration) {
-            return null;
+            List<VariableDeclarator> declarations = variableDeclaration.getDeclarations();
+            return new VariableDeclaration(declarations.map(decl -> (VariableDeclarator)decl.accept(this)));
         }
 
         @Override
         public Object forWhileStatement(WhileStatement whileStatement) {
-            return null;
+            Expression test = whileStatement.getTest();
+            Statement body = whileStatement.getBody();
+            return new WhileStatement((Expression)test.accept(this), (Statement)body.accept(this));
         }
 
         @Override
@@ -357,6 +421,21 @@ public class AST2AST {
 
         @Override
         public Object forUpdateExpression(UpdateExpression updateExpression) {
+            return null;
+        }
+
+        @Override
+        public Object forSwitchCase(SwitchCase switchCase) {
+            return null;
+        }
+
+        @Override
+        public Object forCatchClause(CatchClause catchClause) {
+            return null;
+        }
+
+        @Override
+        public Object forVariableDeclarator(VariableDeclarator variableDeclarator) {
             return null;
         }
     }

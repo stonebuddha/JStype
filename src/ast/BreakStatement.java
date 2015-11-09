@@ -4,14 +4,16 @@
 
 package ast;
 
-public class BreakStatement extends Statement {
-    IdentifierExpression label;
+import fj.data.Option;
 
-    public BreakStatement(IdentifierExpression label) {
+public class BreakStatement extends Statement {
+    Option<IdentifierExpression> label;
+
+    public BreakStatement(Option<IdentifierExpression> label) {
         this.label = label;
     }
 
-    public IdentifierExpression getLabel() {
+    public Option<IdentifierExpression> getLabel() {
         return label;
     }
 

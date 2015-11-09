@@ -1,28 +1,30 @@
 package ast;
 
+import fj.data.Option;
+
 /**
  * Created by wayne on 10/15/15.
  */
 public class ForStatement extends Statement {
-    Node init;
-    Expression test;
-    Expression update;
+    Option<Node> init;
+    Option<Expression> test;
+    Option<Expression> update;
     Statement body;
 
-    public ForStatement(Node init, Expression test, Expression update, Statement body) {
+    public ForStatement(Option<Node> init, Option<Expression> test, Option<Expression> update, Statement body) {
         this.init = init;
         this.test = test;
         this.update = update;
         this.body = body;
     }
 
-    public Node getInit() {
+    public Option<Node> getInit() {
         return init;
     }
-    public Expression getTest() {
+    public Option<Expression> getTest() {
         return test;
     }
-    public Expression getUpdate() {
+    public Option<Expression> getUpdate() {
         return update;
     }
     public Statement getBody() {

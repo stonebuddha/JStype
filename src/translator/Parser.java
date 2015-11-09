@@ -6,6 +6,7 @@ package translator;
 
 import ast.*;
 import fj.data.List;
+import fj.data.Option;
 import fj.data.Seq;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import jdk.nashorn.internal.runtime.Context;
@@ -16,6 +17,11 @@ import com.google.gson.*;
 import java.util.ArrayList;
 
 public class Parser {
+
+    public static void main(String[] args) {
+        init();
+        System.out.println(rawParse("a = [1,2,3];", ""));
+    }
 
     public static void init() {
         Options options = new Options("nashorn");
@@ -63,11 +69,11 @@ public class Parser {
             JsonElement ele3 = object.get("alternate");
             Expression test = parseExpression(ele1);
             Statement consequent = parseStatement(ele2);
-            Statement alternate;
+            Option<Statement> alternate;
             if (ele3.isJsonNull()) {
-                alternate = null;
+                alternate = Option.none();
             } else {
-                alternate = parseStatement(ele3);
+                alternate = Option.some(parseStatement(ele3));
             }
             return new IfStatement(test, consequent, alternate);
         } else if (type.equals("LabeledStatement")) {
@@ -78,20 +84,20 @@ public class Parser {
             return new LabeledStatement(label, body);
         } else if (type.equals("BreakStatement")) {
             JsonElement ele = object.get("label");
-            IdentifierExpression label;
+            Option<IdentifierExpression> label;
             if (ele.isJsonNull()) {
-                label = null;
+                label = Option.none();
             } else {
-                label = (IdentifierExpression)parseExpression(ele);
+                label = Option.some((IdentifierExpression)parseExpression(ele));
             }
             return new BreakStatement(label);
         } else if (type.equals("ContinueStatement")) {
             JsonElement ele = object.get("label");
-            IdentifierExpression label;
+            Option<IdentifierExpression> label;
             if (ele.isJsonNull()) {
-                label = null;
+                label = Option.none();
             } else {
-                label = (IdentifierExpression)parseExpression(ele);
+                label = Option.some((IdentifierExpression)parseExpression(ele));
             }
             return new ContinueStatement(label);
         } else if (type.equals("WithStatement")) {
@@ -107,11 +113,11 @@ public class Parser {
             return new SwitchStatement(discriminant, List.list(array).map(Parser::parseSwitchCase));
         } else if (type.equals("ReturnStatement")) {
             JsonElement ele = object.get("argument");
-            Expression argument;
+            Option<Expression> argument;
             if (ele.isJsonNull()) {
-                argument = null;
+                argument = Option.none();
             } else {
-                argument = parseExpression(ele);
+                argument = Option.some(parseExpression(ele));
             }
             return new ReturnStatement(argument);
         } else if (type.equals("ThrowStatement")) {
@@ -123,17 +129,17 @@ public class Parser {
             JsonElement ele2 = object.get("handler");
             JsonElement ele4 = object.get("finalizer");
             BlockStatement block = (BlockStatement)parseStatement(ele1);
-            CatchClause handler;
+            Option<CatchClause> handler;
             if (ele2.isJsonNull()) {
-                handler = null;
+                handler = Option.none();
             } else {
-                handler = parseCatchClause(ele2);
+                handler = Option.some(parseCatchClause(ele2));
             }
-            BlockStatement finalizer;
+            Option<BlockStatement> finalizer;
             if (ele4.isJsonNull()) {
-                finalizer = null;
+                finalizer = Option.none();
             } else {
-                finalizer = (BlockStatement)parseStatement(ele4);
+                finalizer = Option.some((BlockStatement)parseStatement(ele4));
             }
             return new TryStatement(block, handler, finalizer);
         } else if (type.equals("WhileStatement")) {
@@ -150,30 +156,30 @@ public class Parser {
             return new DoWhileStatement(body, test);
         } else if (type.equals("ForStatement")) {
             JsonElement ele1 = object.get("init");
-            Node init;
+            Option<Node> init;
             if (ele1.isJsonNull()) {
-                init = null;
+                init = Option.none();
             } else {
                 String type1 = ele1.getAsJsonObject().get("type").getAsString();
                 if (type1.equals("VariableDeclaration")) {
-                    init = parseDeclaration(ele1);
+                    init = Option.some(parseDeclaration(ele1));
                 } else {
-                    init = parseExpression(ele1);
+                    init = Option.some(parseExpression(ele1));
                 }
             }
             JsonElement ele2 = object.get("test");
-            Expression test;
+            Option<Expression> test;
             if (ele2.isJsonNull()) {
-                test = null;
+                test = Option.none();
             } else {
-                test = parseExpression(ele2);
+                test = Option.some(parseExpression(ele2));
             }
             JsonElement ele3 = object.get("update");
-            Expression update;
+            Option<Expression> update;
             if (ele3.isJsonNull()) {
-                update = null;
+                update = Option.none();
             } else {
-                update = parseExpression(ele3);
+                update = Option.some(parseExpression(ele3));
             }
             JsonElement ele4 = object.get("body");
             Statement body = parseStatement(ele4);
@@ -208,9 +214,9 @@ public class Parser {
             JsonElement ele1 = object.get("elements");
             return new ArrayExpression(Seq.seq(List.list(ele1.getAsJsonArray()).map(ele -> {
                 if (ele.isJsonNull()) {
-                    return null;
+                    return Option.none();
                 } else {
-                    return parseExpression(ele);
+                    return Option.some(parseExpression(ele));
                 }
             })));
         } else if (type.equals("ObjectExpression")) {
@@ -218,11 +224,11 @@ public class Parser {
             return new ObjectExpression(Seq.seq(List.list(ele1.getAsJsonArray()).map(Parser::parseProperty)));
         } else if (type.equals("FunctionExpression")) {
             JsonElement ele1 = object.get("id");
-            IdentifierExpression id;
+            Option<IdentifierExpression> id;
             if (ele1.isJsonNull()) {
-                id = null;
+                id = Option.none();
             } else {
-                id = (IdentifierExpression)parseExpression(ele1);
+                id = Option.some((IdentifierExpression)parseExpression(ele1));
             }
             JsonElement ele2 = object.get("params");
             JsonElement ele3 = object.get("body");
@@ -334,11 +340,11 @@ public class Parser {
     private static SwitchCase parseSwitchCase(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         JsonElement ele1 = object.get("test");
-        Expression test;
+        Option<Expression> test;
         if (ele1.isJsonNull()) {
-            test = null;
+            test = Option.none();
         } else {
-            test = parseExpression(ele1);
+            test = Option.some(parseExpression(ele1));
         }
         JsonElement ele2 = object.get("consequent");
         return new SwitchCase(test, List.list(ele2.getAsJsonArray()).map(Parser::parseStatement));
@@ -356,12 +362,12 @@ public class Parser {
     private static VariableDeclarator parseVariableDeclarator(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         IdentifierExpression id = (IdentifierExpression)parseExpression(object.get("id"));
-        Expression init;
+        Option<Expression> init;
         JsonElement ele = object.get("init");
         if (ele.isJsonNull()) {
-            init = null;
+            init = Option.none();
         } else {
-            init = parseExpression(ele);
+            init = Option.some(parseExpression(ele));
         }
         return new VariableDeclarator(id, init);
     }

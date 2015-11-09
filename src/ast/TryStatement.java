@@ -1,5 +1,7 @@
 package ast;
 
+import fj.data.Option;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -8,10 +10,10 @@ import java.util.Calendar;
  */
 public class TryStatement extends Statement {
     BlockStatement block;
-    CatchClause handler;
-    BlockStatement finalizer;
+    Option<CatchClause> handler;
+    Option<BlockStatement> finalizer;
 
-    public TryStatement(BlockStatement block, CatchClause handler, BlockStatement finalizer) {
+    public TryStatement(BlockStatement block, Option<CatchClause> handler, Option<BlockStatement> finalizer) {
         this.block = block;
         this.handler = handler;
         this.finalizer = finalizer;
@@ -20,10 +22,10 @@ public class TryStatement extends Statement {
     public BlockStatement getBlock() {
         return block;
     }
-    public CatchClause getHandler() {
+    public Option<CatchClause> getHandler() {
         return handler;
     }
-    public BlockStatement getFinalizer() {
+    public Option<BlockStatement> getFinalizer() {
         return finalizer;
     }
 

@@ -1,16 +1,18 @@
 package ast;
 
+import fj.data.Option;
+
 /**
  * Created by Hwhitetooth on 15/10/14.
  */
 public class ReturnStatement extends Statement {
-    Expression argument;
+    Option<Expression> argument;
 
-    public ReturnStatement(Expression argument) {
+    public ReturnStatement(Option<Expression> argument) {
         this.argument = argument;
     }
 
-    public Expression getArgument() {
+    public Option<Expression> getArgument() {
         return argument;
     }
 

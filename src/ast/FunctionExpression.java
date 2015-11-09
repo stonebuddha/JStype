@@ -1,22 +1,23 @@
 package ast;
 
+import fj.data.Option;
 import fj.data.Seq;
 
 /**
  * Created by wayne on 15/10/15.
  */
 public class FunctionExpression extends Expression {
-    IdentifierExpression id;
+    Option<IdentifierExpression> id;
     Seq<IdentifierExpression> params;
     BlockStatement body;
 
-    public FunctionExpression(IdentifierExpression id, Seq<IdentifierExpression> params, BlockStatement body) {
+    public FunctionExpression(Option<IdentifierExpression> id, Seq<IdentifierExpression> params, BlockStatement body) {
         this.id = id;
         this.params = params;
         this.body = body;
     }
 
-    public IdentifierExpression getId() {
+    public Option<IdentifierExpression> getId() {
         return id;
     }
     public Seq<IdentifierExpression> getParams() {
