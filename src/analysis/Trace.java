@@ -6,7 +6,7 @@ import ir.*;
  * Created by BenZ on 15/11/6.
  */
 public abstract class Trace {
-    public abstract Trace update(Domains.StmtTerm s);
+    public abstract Trace update(IRStmt s);
     public abstract Trace update(Domains.Env env, Domains.Store store, Domains.BValue self, Domains.BValue args, Domains.StmtTerm s);
 
     public Trace update(Trace trace) {
