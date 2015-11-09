@@ -9,4 +9,5 @@ public interface LiteralVisitor {
     Object forNumberLiteral(NumberLiteral numberLiteral);
     Object forRegExpLiteral(RegExpLiteral regExpLiteral);
     Object forStringLiteral(StringLiteral stringLiteral);
+    Object forUndefinedLiteral(UndefinedLiteral undefinedLiteral);
 }

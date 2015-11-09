@@ -10,12 +10,13 @@ public interface ExpressionVisitor {
     Object forCallExpression(CallExpression callExpression);
     Object forConditionalExpression(ConditionalExpression conditionalExpression);
     Object forFunctionExpression(FunctionExpression functionExpression);
-    Object forIdentifierExpression(IdentifierExpression identifierExpression);
     Object forLiteralExpression(LiteralExpression literalExpression);
     Object forLogicalExpression(LogicalExpression logicalExpression);
     Object forMemberExpression(MemberExpression memberExpression);
     Object forNewExpression(NewExpression newExpression);
     Object forObjectExpression(ObjectExpression objectExpression);
+    Object forRealIdentifierExpression(RealIdentifierExpression realIdentifierExpression);
+    Object forScratchIdentifierExpression(ScratchIdentifierExpression scratchIdentifierExpression);
     Object forSequenceExpression(SequenceExpression sequenceExpression);
     Object forThisExpression(ThisExpression thisExpression);
     Object forUnaryExpression(UnaryExpression unaryExpression);

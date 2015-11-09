@@ -303,7 +303,7 @@ public class Parser {
         } else if (type.equals("Identifier")) {
             JsonElement ele1 = object.get("name");
             String name = ele1.getAsString();
-            return new IdentifierExpression(name);
+            return new RealIdentifierExpression(name);
         } else if (type.equals("Literal")) {
             return new LiteralExpression(parseLiteral(element));
         } else {
