@@ -1,7 +1,11 @@
 package analysis;
 
+import com.google.common.collect.ImmutableSet;
+import fj.P2;
 import fj.data.HashMap;
 import fj.data.Set;
+import fj.data.List;
+import ir.*;
 
 /**
  * Created by BenZ on 15/11/5.
@@ -39,7 +43,44 @@ public class Interpreter {
             this.ks = ks;
             this.trace = trace;
         }
-        
+
+        public State merge(State sigma) {
+            // assert( t == ς.t && τ == ς.τ )
+            return new State(t, env.merge(sigma.env), store.merge(sigma.store), pad.merge(sigma.pad), ks.merge(sigma.ks), trace);
+        }
+
+        public Boolean merge() {
+            // TODO
+            return null;
+        }
+
+        public Integer order() {
+            // TODO
+            return null;
+        }
+
+        public Domains.BValue eval(IRExp e) {
+            return Eval.eval(e, env, store, pad);
+        }
+
+        public ImmutableSet<State> next() {
+            if (t instanceof Domains.StmtTerm) {
+                IRStmt s = ((Domains.StmtTerm) t).s;
+                if (s instanceof IRDecl) {
+                    List<P2<IRPVar, IRExp>> bind = ((IRDecl) s).bind;
+                    IRStmt s1 = ((IRDecl) s).s;
+                    // TODO
+                }
+                else if (s instanceof IRSDecl) {
+                    Integer num = ((IRSDecl) s).num;
+                    IRStmt s1 = ((IRSDecl) s).s;
+                    return ImmutableSet.of(new State(new Domains.StmtTerm(s1), env, store, Domains.Scratchpad.apply(num), ks, trace.update(s1)));
+                }
+                else // TODO
+            }
+            return null;
+        }
+
         // TODO
     }
 }
