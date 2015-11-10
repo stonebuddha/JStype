@@ -1,8 +1,11 @@
 package analysis;
 
 import fj.Ord;
+import fj.P;
 import fj.P2;
+import fj.P3;
 import fj.data.HashMap;
+import fj.data.Option;
 import fj.data.Set;
 import fj.data.List;
 import ir.*;
@@ -91,25 +94,63 @@ public class Interpreter {
                     IRExp e = irIf.e;
                     IRStmt s1 = irIf.s1;
                     IRStmt s2 = irIf.s2;
-                    // TODO
+                    Domains.Bool b = eval(e).b;
+                    if (b == Domains.Bool.True) {
+                        ret.insert(new State(new Domains.StmtTerm(s1), env, store, pad, ks, trace.update(s1)));
+                    }
+                    else if (b == Domains.Bool.False) {
+                        ret.insert(new State(new Domains.StmtTerm(s2), env, store, pad, ks, trace.update(s2)));
+                    }
+                    else if (b == Domains.Bool.Top) {
+                        ret.insert(new State(new Domains.StmtTerm(s1), env, store, pad, ks, trace.update(s1)));
+                        ret.insert(new State(new Domains.StmtTerm(s2), env, store, pad, ks, trace.update(s2)));
+                    }
                 }
                 else if (stmt instanceof IRAssign) {
                     IRAssign irAssign = (IRAssign) stmt;
                     IRVar x = irAssign.x;
                     IRExp e = irAssign.e;
-                    // TODO
+                    Domains.BValue bv = eval(e);
+                    if (x instanceof IRPVar) {
+                        ret.union(advanceBV(bv, store.extend(env.apply(((IRPVar) x)).some(), bv), pad, ks));
+                    }
+                    else if (x instanceof IRScratch) {
+                        ret.union(advanceBV(bv, store, pad.update(((IRScratch) x), bv), ks));
+                    }
+
                 }
                 else if (stmt instanceof IRWhile) {
                     IRWhile irWhile = (IRWhile) stmt;
                     IRExp e = irWhile.e;
                     IRStmt s = irWhile.s;
-                    // TODO
+                    Domains.Bool b = eval(e).b;
+                    if (b == Domains.Bool.True) {
+                        ret.insert(new State(new Domains.StmtTerm(s),
+                                            env,
+                                            store,
+                                            pad,
+                                            ks.push(new Domains.WhileKont(e, s)),
+                                            trace.update(s)));
+                    }
+                    else if (b == Domains.Bool.False) {
+                        ret.union(advanceBV(Domains.Undef.BV, store, pad, ks));
+                    }
+                    else if (b == Domains.Bool.Top) {
+                        ret.union(advanceBV(Domains.Undef.BV, store, pad, ks));
+                        ret.insert(new State(new Domains.StmtTerm(s),
+                                env,
+                                store,
+                                pad,
+                                ks.push(new Domains.WhileKont(e, s)),
+                                trace.update(s)));
+                    }
                 }
                 else if (stmt instanceof IRNewfun) {
                     IRNewfun irNewfun = (IRNewfun) stmt;
                     IRVar x = irNewfun.x;
                     IRMethod m = irNewfun.m;
                     IRNum n = irNewfun.n;
+                    Domains.AddressSpace.Address a1 = trace.makeAddr(x);
                     // TODO
                 }
                 else if (stmt instanceof IRNew) {
@@ -117,67 +158,161 @@ public class Interpreter {
                     IRVar x = irNew.x;
                     IRExp e1 = irNew.e1;
                     IRExp e2 = irNew.e2;
-                    // TODO
+                    Domains.AddressSpace.Address a1 = trace.makeAddr(x);
+                    Domains.BValue bv1 = eval(e1), bv2 = eval(e2);
+                    P2<Domains.Store, Domains.BValue> sa = Utils.allocObj(bv1, a1, store, trace);
+                    Domains.Store store1 = sa._1();
+                    Domains.BValue bv = sa._2();
+                    P2<Domains.Store, Domains.Scratchpad> ss;
+                    if (x instanceof IRPVar) {
+                        ss = P.p(store.extend(env.apply(((IRPVar) x)).some(), bv), pad);
+                    }
+                    else {
+                        ss = P.p(store1, pad.update(((IRScratch) x), bv));
+                    }
+                    Domains.Store store2 = ss._1();
+                    Domains.Scratchpad pad1 = ss._2();
+                    Domains.Store store3 = Utils.setConstr(store2, bv2);
+                    if (!bv1.defAddr()) {
+                        ret.insert(new State(new Domains.ValueTerm(Utils.Errors.typeError), env, store, pad, ks, trace));
+                    }
+                    P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e1, store3, env, pad1, Utils.Filters.IsFunc);
+                    Domains.Store _store3 = sr._1();
+                    Domains.Scratchpad _pad1 = sr._2();
+                    ret.union(Utils.applyClo(bv1, bv, bv2, x, env, _store3, _pad1, ks, trace));
+
                 }
                 else if (stmt instanceof IRToObj) {
                     IRToObj irToObj = (IRToObj) stmt;
                     IRVar x = irToObj.x;
                     IRExp e = irToObj.e;
-                    // TODO
+                    P2<Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> st = Utils.toObj(eval(e), x, env, store, pad, trace);
+                    Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>> noexc = st._1();
+                    Option<Domains.EValue> exc = st._2();
+                    if (noexc.isSome()) {
+                        Domains.BValue bv = noexc.some()._1();
+                        Domains.Store store1 = noexc.some()._2();
+                        Domains.Scratchpad pad1 = noexc.some()._3();
+                        P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e, store1, env, pad1, Utils.Filters.IsUndefNull);
+                        Domains.Store _store1 = sr._1();
+                        Domains.Scratchpad _pad1 = sr._2();
+                        ret.union(advanceBV(bv, _store1, _pad1, ks));
+                    }
+                    if (exc.isSome()) {
+                        Domains.EValue ev = exc.some();
+                        ret.union(advanceEV(ev, env, store, pad, ks, trace));
+                    }
                 }
                 else if (stmt instanceof IRUpdate) {
                     IRUpdate irUpdate = (IRUpdate) stmt;
                     IRExp e1 = irUpdate.e1;
                     IRExp e2 = irUpdate.e2;
                     IRExp e3 = irUpdate.e3;
-                    // TODO
+                    P2<Option<P2<Domains.BValue, Domains.Store>>, Option<Domains.EValue>> su = Utils.updateObj(eval(e1), eval(e2), eval(e3), store);
+                    Option<P2<Domains.BValue, Domains.Store>> noexc = su._1();
+                    Option<Domains.EValue> exc = su._2();
+                    if (noexc.isSome()) {
+                        Domains.BValue bv = noexc.some()._1();
+                        Domains.Store store1 = noexc.some()._2();
+                        P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e1, store1, env, pad, Utils.Filters.IsUndefNull);
+                        Domains.Store _store1 = sr._1();
+                        Domains.Scratchpad _pad = sr._2();
+                        ret.union(advanceBV(bv, _store1, _pad, ks));
+                    }
+                    if (exc.isSome()) {
+                        Domains.EValue ev = exc.some();
+                        ret.union(advanceEV(ev, env, store, pad, ks, trace));
+                    }
                 }
                 else if (stmt instanceof IRDel) {
                     IRDel irDel = (IRDel) stmt;
                     IRScratch x = irDel.x;
                     IRExp e1 = irDel.e1;
                     IRExp e2 = irDel.e2;
-                    // TODO
+                    P2<Option<P2<Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> sd = Utils.delete(eval(e1), eval(e2), x, env, store, pad);
+                    Option<P2<Domains.Store, Domains.Scratchpad>> noexc = sd._1();
+                    Option<Domains.EValue> exc = sd._2();
+                    if (noexc.isSome()) {
+                        Domains.Store store1 = noexc.some()._1();
+                        Domains.Scratchpad pad1 = noexc.some()._2();
+                        P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e1, store1, env, pad, Utils.Filters.IsUndefNull);
+                        Domains.Store _store1 = sr._1();
+                        Domains.Scratchpad _pad1 = sr._2();
+                        ret.union(advanceBV(Domains.Undef.BV, _store1, _pad1, ks));
+                    }
+                    if (exc.isSome()) {
+                        Domains.EValue ev = exc.some();
+                        ret.union(advanceEV(ev, env, store, pad, ks, trace));
+                    }
                 }
                 else if (stmt instanceof IRTry) {
                     IRTry irTry = (IRTry) stmt;
                     IRStmt s1 = irTry.s1, s2 = irTry.s2, s3 = irTry.s3;
                     IRPVar x = irTry.x;
-                    // TODO
+                    ret.insert(new State(new Domains.StmtTerm(s1),
+                            env,
+                            store,
+                            pad,
+                            ks.push(new Domains.TryKont(x, s2, s3)),
+                            trace.update(s1)));
                 }
                 else if (stmt instanceof IRThrow) {
                     IRThrow irThrow = (IRThrow) stmt;
                     IRExp e = irThrow.e;
-                    // TODO
+                    ret.union(advanceEV(new Domains.EValue(eval(e)), env, store, pad, ks, trace));
                 }
                 else if (stmt instanceof IRJump) {
                     IRJump irJump = (IRJump) stmt;
                     String lbl = irJump.lbl;
                     IRExp e = irJump.e;
-                    // TODO
+                    ret.union(advanceJV(new Domains.JValue(lbl, eval(e)), store, pad, ks));
                 }
                 else if (stmt instanceof IRLbl) {
                     IRLbl irLbl = (IRLbl) stmt;
                     String lbl = irLbl.lbl;
                     IRStmt s = irLbl.s;
-                    // TODO
+                    ret.insert(new State(new Domains.StmtTerm(s),
+                            env,
+                            store,
+                            pad,
+                            ks.push(new Domains.LblKont(lbl)),
+                            trace.update(s)));
                 }
                 else if (stmt instanceof IRCall) {
                     IRCall irCall = (IRCall) stmt;
                     IRExp e1 = irCall.e1, e2 = irCall.e2, e3 = irCall.e3;
                     IRVar x = irCall.x;
-                    // TODO
+                    Domains.BValue bv1 = eval(e1);
+                    if (!bv1.defAddr()) {
+                        ret.insert(new State(new Domains.ValueTerm(Utils.Errors.typeError), env, store, pad, ks, trace));
+                    }
+                    P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e1, store, env, pad, Utils.Filters.IsFunc);
+                    Domains.Store _store = sr._1();
+                    Domains.Scratchpad _pad = sr._2();
+                    ret.union(Utils.applyClo(bv1,
+                                            eval(e2),
+                                            eval(e3),
+                                            x,
+                                            env,
+                                            _store,
+                                            _pad,
+                                            ks,
+                                            trace));
                 }
                 else if (stmt instanceof IRFor) {
                     IRFor irFor = (IRFor) stmt;
                     IRExp e = irFor.e;
                     IRVar x = irFor.x;
                     IRStmt s = irFor.s;
+                    Set<State> keys = Utils.objAllKeys(eval(e), store);
+                    if (keys.size() > 0) {
+
+                    }
                     // TODO
                 }
                 else if (stmt instanceof IRMerge) {
                     IRMerge irMerge = (IRMerge) stmt;
-                    // TODO
+                    ret.union(advanceBV(Domains.Undef.BV, store, pad, ks));
                 }
                 else {
                     throw new RuntimeException("malformed program");
@@ -201,7 +336,23 @@ public class Interpreter {
 
             return ret;
         }
-        
+
+        public Set<State> advanceBV(Domains.BValue bv, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1){
+            Set<State> ret = Set.empty(Ord.hashEqualsOrd());
+            // TODO
+            return ret;
+        }
+
+        public Set<State> advanceEV(Domains.EValue ev, Domains.Env env1, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1, Trace trace) {
+            // TODO
+            return null;
+        }
+
+        public Set<State> advanceJV(Domains.JValue jv, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1) {
+            // TODO
+            return null;
+        }
+
         // TODO
     }
 }
