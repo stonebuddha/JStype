@@ -1,6 +1,6 @@
 package analysis;
 
-import com.google.common.collect.ImmutableSet;
+import fj.Ord;
 import fj.P2;
 import fj.data.HashMap;
 import fj.data.Set;
@@ -63,20 +63,19 @@ public class Interpreter {
             return Eval.eval(e, env, store, pad);
         }
 
-        public ImmutableSet<State> next() {
+        public Set<State> next() {
             if (t instanceof Domains.StmtTerm) {
                 IRStmt s = ((Domains.StmtTerm) t).s;
                 if (s instanceof IRDecl) {
                     List<P2<IRPVar, IRExp>> bind = ((IRDecl) s).bind;
                     IRStmt s1 = ((IRDecl) s).s;
                     // TODO
-                }
-                else if (s instanceof IRSDecl) {
+                } else if (s instanceof IRSDecl) {
                     Integer num = ((IRSDecl) s).num;
                     IRStmt s1 = ((IRSDecl) s).s;
-                    return ImmutableSet.of(new State(new Domains.StmtTerm(s1), env, store, Domains.Scratchpad.apply(num), ks, trace.update(s1)));
+                    return Set.set(Ord.hashEqualsOrd(), new State(new Domains.StmtTerm(s1), env, store, Domains.Scratchpad.apply(num), ks, trace.update(s1)));
                 }
-                else // TODO
+                // TODO
             }
             return null;
         }

@@ -341,11 +341,15 @@ public class AST2AST {
 
         @Override
         public Object forArrayExpression(ArrayExpression arrayExpression) {
-            return null;
+            Seq<Option<Expression>> elements = arrayExpression.getElements();
+            return new ArrayExpression(elements.map(oe -> oe.map(exp -> (Expression)exp.accept(this))));
         }
 
         @Override
         public Object forAssignmentExpression(AssignmentExpression assignmentExpression) {
+            String operator = assignmentExpression.getOperator();
+            Expression left = assignmentExpression.getLeft();
+            Expression right = assignmentExpression.getRight();
             return null;
         }
 
