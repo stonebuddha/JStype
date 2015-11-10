@@ -8,6 +8,8 @@ import fj.data.Set;
 import fj.data.TreeMap;
 import ir.*;
 
+import java.util.ArrayList;
+
 /**
  * Created by wayne on 15/10/28.
  */
@@ -162,12 +164,54 @@ public class Utils {
     }
 
     public static P3<Domains.Value, Domains.Store, Domains.Scratchpad> toObj(Domains.BValue bv, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
-        // TODO
-        return null;
+        if (bv.equals(Domains.Null) || bv.equals(Domains.Undef)) {
+            return P.p(Errors.typeError, store, pad);
+        } else if (bv instanceof Domains.Address) {
+            Domains.Address a = (Domains.Address)bv;
+            if (x instanceof IRPVar) {
+                IRPVar pv = (IRPVar)x;
+                return P.p(bv, store.extend(P.p(env.apply(pv), bv)), pad);
+            } else {
+                IRScratch sc = (IRScratch)x;
+                return P.p(bv, store, pad.update(sc, bv));
+            }
+        } else {
+            Domains.Address a;
+            if (bv instanceof Domains.Num) {
+                a = Init.Number_Addr;
+            } else if (bv instanceof Domains.Bool) {
+                a = Init.Boolean_Addr;
+            } else if (bv instanceof Domains.Address) {
+                a = Init.String_Addr;
+            } else {
+                //sys.error("can't happen")
+                return null;
+            }
+            P2<Domains.Store, Domains.Address> tmp = allocObj(a, store);
+            Domains.Store store1 = tmp._1();
+            Domains.Address a1 = tmp._2();
+            Domains.Object o = store1.getObj(a1);
+            Domains.Object updatedO;
+            if (bv instanceof Domains.Str) {
+                Domains.Str s = (Domains.Str)bv;
+                TreeMap<Domains.Str, Domains.BValue> init = TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Fields.length, new Domains.Num((double)s.str.length())));
+                updatedO = new Domains.Object(o.extern.union(List.range(0, s.str.length()).foldLeft((acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(s.str.substring(e.intValue(), e.intValue() + 1))), init)), o.intern);
+            } else {
+                updatedO = o;
+            }
+            Domains.Store store2 = store1.putObj(a1, new Domains.Object(updatedO.extern, updatedO.intern.set(Fields.value, bv)));
+            if (x instanceof IRPVar) {
+                IRPVar pv = (IRPVar)x;
+                return P.p(a1, store2.extend(P.p(env.apply(pv), a1)), pad);
+            } else {
+                IRScratch sc = (IRScratch)x;
+                return P.p(a1, store2, pad.update(sc, a1));
+            }
+        }
     }
 
     public static P2<Domains.Value, Domains.Store> updateObj(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, Domains.Store store) {
-        // TODO
+        //TODO
         return null;
     }
 }
