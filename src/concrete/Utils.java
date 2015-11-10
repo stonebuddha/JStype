@@ -211,7 +211,51 @@ public class Utils {
     }
 
     public static P2<Domains.Value, Domains.Store> updateObj(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, Domains.Store store) {
-        //TODO
-        return null;
+        if (bv1 instanceof Domains.Address && bv2 instanceof Domains.Str) {
+            Domains.Address a = (Domains.Address)bv1;
+            Domains.Str str = (Domains.Str)bv2;
+            Domains.Object o = store.getObj(a);
+            Domains.Object o1 = o.update(str, bv3);
+            if (o1.getJSClass() == JSClass.CArray) {
+                Domains.Num bv2num = bv2.toNum();
+                Domains.BValue bv3num;
+                if (bv3 instanceof Domains.Address) {
+                    bv3num = bv3;
+                } else {
+                    bv3num = bv3.toNum();
+                }
+                if (str.equals(Fields.length) && !Domains.Num.isU32(bv3num)) {
+                    return P.p(Errors.rangeError, store);
+                } else if (str.equals(Fields.length)) {
+                    if (o.apply(Fields.length).some().lessEqual(bv3num) == Domains.Bool.True) {
+                        return P.p(bv3, store.putObj(a, o.update(str, bv3num)));
+                    } else {
+                        Long n1, n2;
+                        if (bv3num instanceof Domains.Num && o.apply(Fields.length).some() instanceof Domains.Num) {
+                            n1 = ((Domains.Num)bv3num).n.longValue();
+                            n2 = ((Domains.Num)o.apply(Fields.length).some()).n.longValue();
+                        } else {
+                            //sys.error
+                            return null;
+                        }
+                        Domains.Object o2 = List.range(n1.intValue(), n2.intValue()).foldLeft((acc, n) -> (acc.delete(new Domains.Str(n.toString())))._1(), o.update(str, bv3num));
+                        return P.p(bv3, store.putObj(a, o2));
+                    }
+                } else if (Domains.Num.isU32(bv2num)) {
+                    if ((bv2num.lessThan(o.apply(Fields.length).some())) == Domains.Bool.True || bv2num == new Domains.Num((double)Domains.Num.maxU32)) {
+                        return P.p(bv3, store.putObj(a, o1));
+                    } else {
+                        Domains.Object o2 = o1.update(Fields.length, bv2num.plus(new Domains.Num(1.0)));
+                        return P.p(bv3, store.putObj(a, o2));
+                    }
+                } else {
+                    return P.p(bv3, store.putObj(a, o1));
+                }
+            } else {
+                return P.p(bv3, store.putObj(a, o1));
+            }
+        } else {
+            return P.p(Errors.typeError, store);
+        }
     }
 }
