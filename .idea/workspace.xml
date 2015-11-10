@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="00892aec-1b0e-43d6-bacf-29199b2b2fca" name="Default" comment="" />
+    <list default="true" id="00892aec-1b0e-43d6-bacf-29199b2b2fca" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/ast/ScratchSequenceExpression.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ExpressionVisitor.java" afterPath="$PROJECT_DIR$/src/ast/ExpressionVisitor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/translator/AST2AST.java" afterPath="$PROJECT_DIR$/src/translator/AST2AST.java" />
+    </list>
     <ignored path="JStype.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -26,58 +31,28 @@
       <file leaf-file-name="AST2AST.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/translator/AST2AST.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.55128205">
-              <caret line="353" column="24" selection-start-line="353" selection-start-column="24" selection-end-line="353" selection-end-column="24" />
+            <state vertical-scroll-proportion="0.7863248">
+              <caret line="417" column="0" selection-start-line="417" selection-start-column="0" selection-end-line="417" selection-end-column="0" />
               <folding>
-                <element signature="e#14069#14070#0" expanded="true" />
-                <element signature="e#14104#14105#0" expanded="true" />
-                <element signature="e#14214#14215#0" expanded="true" />
-                <element signature="e#14249#14250#0" expanded="true" />
-                <element signature="e#14347#14348#0" expanded="true" />
-                <element signature="e#14382#14383#0" expanded="true" />
-                <element signature="e#14474#14475#0" expanded="true" />
-                <element signature="e#14509#14510#0" expanded="true" />
-                <element signature="e#14622#14623#0" expanded="true" />
-                <element signature="e#14657#14658#0" expanded="true" />
-                <element signature="e#14761#14762#0" expanded="true" />
-                <element signature="e#14796#14797#0" expanded="true" />
-                <element signature="e#14897#14898#0" expanded="true" />
-                <element signature="e#14932#14933#0" expanded="true" />
-                <element signature="e#15033#15034#0" expanded="true" />
-                <element signature="e#15068#15069#0" expanded="true" />
-                <element signature="e#15166#15167#0" expanded="true" />
-                <element signature="e#15201#15202#0" expanded="true" />
-                <element signature="e#15290#15291#0" expanded="true" />
-                <element signature="e#15325#15326#0" expanded="true" />
-                <element signature="e#15423#15424#0" expanded="true" />
-                <element signature="e#15458#15459#0" expanded="true" />
-                <element signature="e#15580#15581#0" expanded="true" />
-                <element signature="e#15615#15616#0" expanded="true" />
-                <element signature="e#15885#15886#0" expanded="true" />
-                <element signature="e#15920#15921#0" expanded="true" />
-                <element signature="e#16012#16013#0" expanded="true" />
-                <element signature="e#16047#16048#0" expanded="true" />
-                <element signature="e#16142#16143#0" expanded="true" />
-                <element signature="e#16177#16178#0" expanded="true" />
-                <element signature="e#16275#16276#0" expanded="true" />
-                <element signature="e#16310#16311#0" expanded="true" />
-                <element signature="e#16390#16391#0" expanded="true" />
-                <element signature="e#16425#16426#0" expanded="true" />
-                <element signature="e#16508#16509#0" expanded="true" />
-                <element signature="e#16543#16544#0" expanded="true" />
-                <element signature="e#16647#16648#0" expanded="true" />
-                <element signature="e#16682#16683#0" expanded="true" />
+                <element signature="e#1513#1514#0" expanded="true" />
+                <element signature="e#1561#1562#0" expanded="true" />
+                <element signature="e#1978#1979#0" expanded="true" />
+                <element signature="e#2023#2024#0" expanded="true" />
+                <element signature="e#13415#13416#0" expanded="true" />
+                <element signature="e#13460#13461#0" expanded="true" />
+                <element signature="e#15383#15384#0" expanded="true" />
+                <element signature="e#15428#15429#0" expanded="true" />
+                <element signature="e#15511#15512#0" expanded="true" />
+                <element signature="e#15553#15554#0" expanded="true" />
+                <element signature="e#15642#15643#0" expanded="true" />
+                <element signature="e#15686#15687#0" expanded="true" />
+                <element signature="e#15775#15776#0" expanded="true" />
+                <element signature="e#15819#15820#0" expanded="true" />
+                <element signature="e#15908#15909#0" expanded="true" />
+                <element signature="e#15952#15953#0" expanded="true" />
+                <element signature="e#16050#16051#0" expanded="true" />
+                <element signature="e#16097#16098#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Main.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Main.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -114,7 +89,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/ir/IRBinop.java" />
         <option value="$PROJECT_DIR$/src/ir/IRBool.java" />
         <option value="$PROJECT_DIR$/src/ir/IRCall.java" />
         <option value="$PROJECT_DIR$/src/ir/IRDecl.java" />
@@ -126,7 +100,6 @@
         <option value="$PROJECT_DIR$/src/ir/IRSeq.java" />
         <option value="$PROJECT_DIR$/src/concrete/Eval.java" />
         <option value="$PROJECT_DIR$/src/analysis/init/Init.java" />
-        <option value="$PROJECT_DIR$/src/analysis/Interpreter.java" />
         <option value="$PROJECT_DIR$/src/analysis/Domains.java" />
         <option value="$PROJECT_DIR$/src/concrete/init/Utils.java" />
         <option value="$PROJECT_DIR$/src/concrete/Domains.java" />
@@ -151,7 +124,6 @@
         <option value="$PROJECT_DIR$/src/Main.java" />
         <option value="$PROJECT_DIR$/src/ast/IdentifierExpression.java" />
         <option value="$PROJECT_DIR$/src/ast/RealIdentifierExpression.java" />
-        <option value="$PROJECT_DIR$/src/ast/ExpressionVisitor.java" />
         <option value="$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java" />
         <option value="$PROJECT_DIR$/src/ast/ForStatement.java" />
         <option value="$PROJECT_DIR$/src/ast/ArrayExpression.java" />
@@ -163,7 +135,10 @@
         <option value="$PROJECT_DIR$/src/ast/ContinueStatement.java" />
         <option value="$PROJECT_DIR$/src/ast/ReturnStatement.java" />
         <option value="$PROJECT_DIR$/src/ast/TryStatement.java" />
+        <option value="$PROJECT_DIR$/src/analysis/Interpreter.java" />
         <option value="$PROJECT_DIR$/src/translator/Parser.java" />
+        <option value="$PROJECT_DIR$/src/ast/ExpressionVisitor.java" />
+        <option value="$PROJECT_DIR$/src/ast/ScratchSequenceExpression.java" />
         <option value="$PROJECT_DIR$/src/translator/AST2AST.java" />
       </list>
     </option>
@@ -185,7 +160,7 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="width" value="1280" />
+    <option name="width" value="876" />
     <option name="height" value="800" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -327,7 +302,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="concrete" />
+              <option name="myItemId" value="ast" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -901,13 +876,7 @@
       <workItem from="1447054483922" duration="2107000" />
       <workItem from="1447058604801" duration="1335000" />
       <workItem from="1447063013525" duration="163000" />
-      <workItem from="1447063298979" duration="8557000" />
-    </task>
-    <task id="LOCAL-00007" summary="add rest of statements &amp; declarations, as well as some of the expressions">
-      <created>1444841536423</created>
-      <option name="number" value="00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1444841536423</updated>
+      <workItem from="1447063298979" duration="17221000" />
     </task>
     <task id="LOCAL-00008" summary="add rest of expressions &amp; literals">
       <created>1444899308670</created>
@@ -1197,19 +1166,25 @@
       <option name="project" value="LOCAL" />
       <updated>1447091799480</updated>
     </task>
-    <option name="localTasksCounter" value="56" />
+    <task id="LOCAL-00056" summary="refactor">
+      <created>1447122096177</created>
+      <option name="number" value="00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1447122096177</updated>
+    </task>
+    <option name="localTasksCounter" value="57" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="196170000" />
+    <option name="totallyTimeSpent" value="204834000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1280" height="800" extended-state="0" />
+    <frame x="0" y="0" width="876" height="800" extended-state="0" />
     <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3280255" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32739726" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -1217,7 +1192,7 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.43150684" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32961783" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22374798" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22302158" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1271,7 +1246,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="remove PrettyPrinter for it's a trouble to fix it with new ast structure" />
     <MESSAGE value="add ir structure" />
     <MESSAGE value="add concrete interpreter" />
     <MESSAGE value="finish domains of concrete interpreter" />
@@ -1296,7 +1270,8 @@
     <MESSAGE value="refactor AST to use functional data structures; add AST2AST pass to start" />
     <MESSAGE value="start to work on passes of ast to ast" />
     <MESSAGE value="use Option in ast to replace null; start to implement MakeAllAssignmentsSimple pass" />
-    <option name="LAST_COMMIT_MESSAGE" value="use Option in ast to replace null; start to implement MakeAllAssignmentsSimple pass" />
+    <MESSAGE value="refactor" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1307,27 +1282,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/ast/LogicalExpression.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="5" column="13" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/MemberExpression.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="5" column="13" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/Node.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="6" column="21" selection-start-line="6" selection-start-column="21" selection-end-line="6" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ast/NewExpression.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1346,13 +1300,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/Property.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="5" column="13" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
         </state>
       </provider>
     </entry>
@@ -1434,13 +1381,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/VariableDeclaration.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ast/VariableDeclaratorVisitor.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1506,29 +1446,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/ExpressionVisitor.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="99" selection-start-line="18" selection-start-column="99" selection-end-line="18" selection-end-column="99" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="24" column="54" selection-start-line="24" selection-start-column="54" selection-end-line="24" selection-end-column="54" />
-          <folding>
-            <element signature="e#196#197#0" expanded="false" />
-            <element signature="e#226#227#0" expanded="false" />
-            <element signature="e#257#258#0" expanded="false" />
-            <element signature="e#283#284#0" expanded="false" />
-            <element signature="e#348#349#0" expanded="false" />
-            <element signature="e#411#412#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ast/IdentifierExpression.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1548,17 +1465,6 @@
             <element signature="e#280#281#0" expanded="false" />
             <element signature="e#345#346#0" expanded="false" />
             <element signature="e#405#406#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/SequenceExpression.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="44" selection-start-line="18" selection-start-column="44" selection-end-line="18" selection-end-column="44" />
-          <folding>
-            <element signature="e#225#226#0" expanded="false" />
-            <element signature="e#271#272#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1659,14 +1565,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/VariableDeclarator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.36324787">
-          <caret line="19" column="29" selection-start-line="19" selection-start-column="29" selection-end-line="19" selection-end-column="29" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ast/FunctionExpression.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.4059829">
@@ -1705,57 +1603,125 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/ir/IRAssign.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.10683761">
+          <caret line="5" column="13" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/ExpressionVisitor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4059829">
+          <caret line="19" column="93" selection-start-line="19" selection-start-column="93" selection-end-line="19" selection-end-column="93" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/ScratchSequenceExpression.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5555556">
+          <caret line="26" column="54" selection-start-line="26" selection-start-column="54" selection-end-line="26" selection-end-column="54" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#515#516#0" expanded="true" />
+            <element signature="e#550#551#0" expanded="true" />
+            <element signature="e#584#585#0" expanded="true" />
+            <element signature="e#611#612#0" expanded="true" />
+            <element signature="e#676#677#0" expanded="true" />
+            <element signature="e#737#738#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/Property.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.10683761">
+          <caret line="5" column="13" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/VariableDeclaration.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.08547009">
+          <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/VariableDeclarator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.36324787">
+          <caret line="19" column="29" selection-start-line="19" selection-start-column="29" selection-end-line="19" selection-end-column="29" />
+          <folding>
+            <element signature="e#435#436#0" expanded="true" />
+            <element signature="e#462#463#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/SequenceExpression.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.2991453">
+          <caret line="18" column="44" selection-start-line="18" selection-start-column="44" selection-end-line="18" selection-end-column="44" />
+          <folding>
+            <element signature="e#404#405#0" expanded="true" />
+            <element signature="e#458#459#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3846154">
+          <caret line="24" column="54" selection-start-line="24" selection-start-column="54" selection-end-line="24" selection-end-column="54" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/analysis/Interpreter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="17" selection-start-line="0" selection-start-column="17" selection-end-line="0" selection-end-column="17" />
+          <folding>
+            <element signature="imports" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/translator/Parser.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.51282054">
-          <caret line="18" column="21" selection-start-line="18" selection-start-column="21" selection-end-line="18" selection-end-column="21" />
+        <state vertical-scroll-proportion="0.21367522">
+          <caret line="22" column="49" selection-start-line="22" selection-start-column="49" selection-end-line="22" selection-end-column="49" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/translator/AST2AST.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.55128205">
-          <caret line="353" column="24" selection-start-line="353" selection-start-column="24" selection-end-line="353" selection-end-column="24" />
+        <state vertical-scroll-proportion="0.7863248">
+          <caret line="417" column="0" selection-start-line="417" selection-start-column="0" selection-end-line="417" selection-end-column="0" />
           <folding>
-            <element signature="e#14069#14070#0" expanded="true" />
-            <element signature="e#14104#14105#0" expanded="true" />
-            <element signature="e#14214#14215#0" expanded="true" />
-            <element signature="e#14249#14250#0" expanded="true" />
-            <element signature="e#14347#14348#0" expanded="true" />
-            <element signature="e#14382#14383#0" expanded="true" />
-            <element signature="e#14474#14475#0" expanded="true" />
-            <element signature="e#14509#14510#0" expanded="true" />
-            <element signature="e#14622#14623#0" expanded="true" />
-            <element signature="e#14657#14658#0" expanded="true" />
-            <element signature="e#14761#14762#0" expanded="true" />
-            <element signature="e#14796#14797#0" expanded="true" />
-            <element signature="e#14897#14898#0" expanded="true" />
-            <element signature="e#14932#14933#0" expanded="true" />
-            <element signature="e#15033#15034#0" expanded="true" />
-            <element signature="e#15068#15069#0" expanded="true" />
-            <element signature="e#15166#15167#0" expanded="true" />
-            <element signature="e#15201#15202#0" expanded="true" />
-            <element signature="e#15290#15291#0" expanded="true" />
-            <element signature="e#15325#15326#0" expanded="true" />
-            <element signature="e#15423#15424#0" expanded="true" />
-            <element signature="e#15458#15459#0" expanded="true" />
-            <element signature="e#15580#15581#0" expanded="true" />
-            <element signature="e#15615#15616#0" expanded="true" />
-            <element signature="e#15885#15886#0" expanded="true" />
-            <element signature="e#15920#15921#0" expanded="true" />
-            <element signature="e#16012#16013#0" expanded="true" />
-            <element signature="e#16047#16048#0" expanded="true" />
-            <element signature="e#16142#16143#0" expanded="true" />
-            <element signature="e#16177#16178#0" expanded="true" />
-            <element signature="e#16275#16276#0" expanded="true" />
-            <element signature="e#16310#16311#0" expanded="true" />
-            <element signature="e#16390#16391#0" expanded="true" />
-            <element signature="e#16425#16426#0" expanded="true" />
-            <element signature="e#16508#16509#0" expanded="true" />
-            <element signature="e#16543#16544#0" expanded="true" />
-            <element signature="e#16647#16648#0" expanded="true" />
-            <element signature="e#16682#16683#0" expanded="true" />
+            <element signature="e#1513#1514#0" expanded="true" />
+            <element signature="e#1561#1562#0" expanded="true" />
+            <element signature="e#1978#1979#0" expanded="true" />
+            <element signature="e#2023#2024#0" expanded="true" />
+            <element signature="e#13415#13416#0" expanded="true" />
+            <element signature="e#13460#13461#0" expanded="true" />
+            <element signature="e#15383#15384#0" expanded="true" />
+            <element signature="e#15428#15429#0" expanded="true" />
+            <element signature="e#15511#15512#0" expanded="true" />
+            <element signature="e#15553#15554#0" expanded="true" />
+            <element signature="e#15642#15643#0" expanded="true" />
+            <element signature="e#15686#15687#0" expanded="true" />
+            <element signature="e#15775#15776#0" expanded="true" />
+            <element signature="e#15819#15820#0" expanded="true" />
+            <element signature="e#15908#15909#0" expanded="true" />
+            <element signature="e#15952#15953#0" expanded="true" />
+            <element signature="e#16050#16051#0" expanded="true" />
+            <element signature="e#16097#16098#0" expanded="true" />
           </folding>
         </state>
       </provider>

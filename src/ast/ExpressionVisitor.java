@@ -17,6 +17,7 @@ public interface ExpressionVisitor {
     Object forObjectExpression(ObjectExpression objectExpression);
     Object forRealIdentifierExpression(RealIdentifierExpression realIdentifierExpression);
     Object forScratchIdentifierExpression(ScratchIdentifierExpression scratchIdentifierExpression);
+    Object forScratchSequenceExpression(ScratchSequenceExpression scratchSequenceExpression);
     Object forSequenceExpression(SequenceExpression sequenceExpression);
     Object forThisExpression(ThisExpression thisExpression);
     Object forUnaryExpression(UnaryExpression unaryExpression);
