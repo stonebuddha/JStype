@@ -2,73 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="00892aec-1b0e-43d6-bacf-29199b2b2fca" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/ast/SimpleTransformVisitor.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/ast/TransformVisitor.java" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/functionaljava.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/google_collections_1_01.xml" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/JStype.iml" afterPath="$PROJECT_DIR$/JStype.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ArrayExpression.java" afterPath="$PROJECT_DIR$/src/ast/ArrayExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/AssignmentExpression.java" afterPath="$PROJECT_DIR$/src/ast/AssignmentExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/BinaryExpression.java" afterPath="$PROJECT_DIR$/src/ast/BinaryExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/BlockStatement.java" afterPath="$PROJECT_DIR$/src/ast/BlockStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/BooleanLiteral.java" afterPath="$PROJECT_DIR$/src/ast/BooleanLiteral.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/BreakStatement.java" afterPath="$PROJECT_DIR$/src/ast/BreakStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/CallExpression.java" afterPath="$PROJECT_DIR$/src/ast/CallExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/CatchClause.java" afterPath="$PROJECT_DIR$/src/ast/CatchClause.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/CatchClauseVisitor.java" afterPath="$PROJECT_DIR$/src/ast/CatchClauseVisitor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ConditionalExpression.java" afterPath="$PROJECT_DIR$/src/ast/ConditionalExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ContinueStatement.java" afterPath="$PROJECT_DIR$/src/ast/ContinueStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/DebuggerStatement.java" afterPath="$PROJECT_DIR$/src/ast/DebuggerStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/DoWhileStatement.java" afterPath="$PROJECT_DIR$/src/ast/DoWhileStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/EmptyStatement.java" afterPath="$PROJECT_DIR$/src/ast/EmptyStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/Expression.java" afterPath="$PROJECT_DIR$/src/ast/Expression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ExpressionStatement.java" afterPath="$PROJECT_DIR$/src/ast/ExpressionStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ExpressionVisitor.java" afterPath="$PROJECT_DIR$/src/ast/ExpressionVisitor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ForInStatement.java" afterPath="$PROJECT_DIR$/src/ast/ForInStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ForStatement.java" afterPath="$PROJECT_DIR$/src/ast/ForStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/FunctionDeclaration.java" afterPath="$PROJECT_DIR$/src/ast/FunctionDeclaration.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/FunctionExpression.java" afterPath="$PROJECT_DIR$/src/ast/FunctionExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/IfStatement.java" afterPath="$PROJECT_DIR$/src/ast/IfStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/LabeledStatement.java" afterPath="$PROJECT_DIR$/src/ast/LabeledStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/Literal.java" afterPath="$PROJECT_DIR$/src/ast/Literal.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/LiteralExpression.java" afterPath="$PROJECT_DIR$/src/ast/LiteralExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/LiteralVisitor.java" afterPath="$PROJECT_DIR$/src/ast/LiteralVisitor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/LogicalExpression.java" afterPath="$PROJECT_DIR$/src/ast/LogicalExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/MemberExpression.java" afterPath="$PROJECT_DIR$/src/ast/MemberExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/NewExpression.java" afterPath="$PROJECT_DIR$/src/ast/NewExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/NullLiteral.java" afterPath="$PROJECT_DIR$/src/ast/NullLiteral.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/NumberLiteral.java" afterPath="$PROJECT_DIR$/src/ast/NumberLiteral.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ObjectExpression.java" afterPath="$PROJECT_DIR$/src/ast/ObjectExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/Program.java" afterPath="$PROJECT_DIR$/src/ast/Program.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ProgramVisitor.java" afterPath="$PROJECT_DIR$/src/ast/ProgramVisitor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/Property.java" afterPath="$PROJECT_DIR$/src/ast/Property.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/PropertyVisitor.java" afterPath="$PROJECT_DIR$/src/ast/PropertyVisitor.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/RealIdentifierExpression.java" afterPath="$PROJECT_DIR$/src/ast/RealIdentifierExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/RegExpLiteral.java" afterPath="$PROJECT_DIR$/src/ast/RegExpLiteral.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ReturnStatement.java" afterPath="$PROJECT_DIR$/src/ast/ReturnStatement.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java" afterPath="$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ScratchSequenceExpression.java" afterPath="$PROJECT_DIR$/src/ast/ScratchSequenceExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/SequenceExpression.java" afterPath="$PROJECT_DIR$/src/ast/SequenceExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/Statement.java" afterPath="$PROJECT_DIR$/src/ast/Statement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/StatementVisitor.java" afterPath="$PROJECT_DIR$/src/ast/StatementVisitor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/StringLiteral.java" afterPath="$PROJECT_DIR$/src/ast/StringLiteral.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/SwitchCase.java" afterPath="$PROJECT_DIR$/src/ast/SwitchCase.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/SwitchCaseVisitor.java" afterPath="$PROJECT_DIR$/src/ast/SwitchCaseVisitor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/SwitchStatement.java" afterPath="$PROJECT_DIR$/src/ast/SwitchStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ThisExpression.java" afterPath="$PROJECT_DIR$/src/ast/ThisExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ThrowStatement.java" afterPath="$PROJECT_DIR$/src/ast/ThrowStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/TryStatement.java" afterPath="$PROJECT_DIR$/src/ast/TryStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/UnaryExpression.java" afterPath="$PROJECT_DIR$/src/ast/UnaryExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/UndefinedLiteral.java" afterPath="$PROJECT_DIR$/src/ast/UndefinedLiteral.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/UpdateExpression.java" afterPath="$PROJECT_DIR$/src/ast/UpdateExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/VariableDeclaration.java" afterPath="$PROJECT_DIR$/src/ast/VariableDeclaration.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/VariableDeclarator.java" afterPath="$PROJECT_DIR$/src/ast/VariableDeclarator.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/VariableDeclaratorVisitor.java" afterPath="$PROJECT_DIR$/src/ast/VariableDeclaratorVisitor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/WhileStatement.java" afterPath="$PROJECT_DIR$/src/ast/WhileStatement.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/WithStatement.java" afterPath="$PROJECT_DIR$/src/ast/WithStatement.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/translator/AST2AST.java" afterPath="$PROJECT_DIR$/src/translator/AST2AST.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/translator/Parser.java" afterPath="$PROJECT_DIR$/src/translator/Parser.java" />
     </list>
     <ignored path="JStype.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -95,8 +32,10 @@
         <entry file="file://$PROJECT_DIR$/src/translator/Parser.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
-              <folding />
+              <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -104,42 +43,56 @@
       <file leaf-file-name="AST2AST.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/translator/AST2AST.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-17.97436">
-              <caret line="4" column="12" selection-start-line="4" selection-start-column="12" selection-end-line="4" selection-end-column="12" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="UndefinedLiteral.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ast/UndefinedLiteral.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="18" column="44" selection-start-line="18" selection-start-column="44" selection-end-line="18" selection-end-column="44" />
+            <state vertical-scroll-proportion="0.6367521">
+              <caret line="1400" column="0" selection-start-line="1400" selection-start-column="0" selection-end-line="1400" selection-end-column="0" />
               <folding>
-                <element signature="e#185#186#0" expanded="true" />
-                <element signature="e#237#238#0" expanded="true" />
-                <element signature="e#315#316#0" expanded="true" />
-                <element signature="e#367#368#0" expanded="true" />
-                <element signature="e#430#431#0" expanded="true" />
-                <element signature="e#482#483#0" expanded="true" />
+                <element signature="imports" expanded="true" />
+                <element signature="e#19708#19709#0" expanded="true" />
+                <element signature="e#19752#19753#0" expanded="true" />
+                <element signature="e#69767#69768#0" expanded="true" />
+                <element signature="e#69809#69810#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="UpdateExpression.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ast/UpdateExpression.java">
+      <file leaf-file-name="TransformVisitor.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ast/TransformVisitor.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="38" column="44" selection-start-line="38" selection-start-column="44" selection-end-line="38" selection-end-column="44" />
+              <caret line="26" column="17" selection-start-line="26" selection-start-column="17" selection-end-line="26" selection-end-column="17" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="RealIdentifierExpression.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ast/RealIdentifierExpression.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="22" column="36" selection-start-line="22" selection-start-column="36" selection-end-line="22" selection-end-column="36" />
               <folding>
-                <element signature="e#645#646#0" expanded="true" />
-                <element signature="e#697#698#0" expanded="true" />
-                <element signature="e#778#779#0" expanded="true" />
-                <element signature="e#830#831#0" expanded="true" />
-                <element signature="e#896#897#0" expanded="true" />
-                <element signature="e#948#949#0" expanded="true" />
+                <element signature="imports" expanded="true" />
+                <element signature="e#466#467#0" expanded="true" />
+                <element signature="e#509#510#0" expanded="true" />
+                <element signature="e#908#909#0" expanded="true" />
+                <element signature="e#968#969#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ScratchIdentifierExpression.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="22" column="35" selection-start-line="22" selection-start-column="35" selection-end-line="22" selection-end-column="35" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#474#475#0" expanded="true" />
+                <element signature="e#516#517#0" expanded="true" />
+                <element signature="e#920#921#0" expanded="true" />
+                <element signature="e#983#984#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -220,23 +173,6 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="UnaryExpression.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ast/UnaryExpression.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="38" column="43" selection-start-line="38" selection-start-column="43" selection-end-line="38" selection-end-column="43" />
-              <folding>
-                <element signature="e#643#644#0" expanded="true" />
-                <element signature="e#694#695#0" expanded="true" />
-                <element signature="e#775#776#0" expanded="true" />
-                <element signature="e#826#827#0" expanded="true" />
-                <element signature="e#892#893#0" expanded="true" />
-                <element signature="e#943#944#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -269,8 +205,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/ast/BinaryExpression.java" />
-        <option value="$PROJECT_DIR$/src/ast/Statement.java" />
         <option value="$PROJECT_DIR$/src/ast/BlockStatement.java" />
         <option value="$PROJECT_DIR$/src/ast/Literal.java" />
         <option value="$PROJECT_DIR$/src/ast/BooleanLiteral.java" />
@@ -298,10 +232,8 @@
         <option value="$PROJECT_DIR$/src/ast/NumberLiteral.java" />
         <option value="$PROJECT_DIR$/src/ast/ObjectExpression.java" />
         <option value="$PROJECT_DIR$/src/ast/Program.java" />
-        <option value="$PROJECT_DIR$/src/ast/RealIdentifierExpression.java" />
         <option value="$PROJECT_DIR$/src/ast/RegExpLiteral.java" />
         <option value="$PROJECT_DIR$/src/ast/ReturnStatement.java" />
-        <option value="$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java" />
         <option value="$PROJECT_DIR$/src/ast/ScratchSequenceExpression.java" />
         <option value="$PROJECT_DIR$/src/ast/SequenceExpression.java" />
         <option value="$PROJECT_DIR$/src/ast/StatementVisitor.java" />
@@ -320,6 +252,10 @@
         <option value="$PROJECT_DIR$/src/ast/WhileStatement.java" />
         <option value="$PROJECT_DIR$/src/ast/WithStatement.java" />
         <option value="$PROJECT_DIR$/src/translator/Parser.java" />
+        <option value="$PROJECT_DIR$/src/concrete/Domains.java" />
+        <option value="$PROJECT_DIR$/src/ast/RealIdentifierExpression.java" />
+        <option value="$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java" />
+        <option value="$PROJECT_DIR$/src/translator/AST2AST.java" />
       </list>
     </option>
   </component>
@@ -1070,13 +1006,7 @@
       <workItem from="1447054483922" duration="2107000" />
       <workItem from="1447058604801" duration="1335000" />
       <workItem from="1447063013525" duration="163000" />
-      <workItem from="1447063298979" duration="33882000" />
-    </task>
-    <task id="LOCAL-00009" summary="add node visitor for further functions">
-      <created>1444961085602</created>
-      <option name="number" value="00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1444961085602</updated>
+      <workItem from="1447063298979" duration="44900000" />
     </task>
     <task id="LOCAL-00010" summary="fix some typo">
       <created>1444961915073</created>
@@ -1366,11 +1296,17 @@
       <option name="project" value="LOCAL" />
       <updated>1447164609529</updated>
     </task>
-    <option name="localTasksCounter" value="58" />
+    <task id="LOCAL-00058" summary="refactor ast">
+      <created>1447223925034</created>
+      <option name="number" value="00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1447223925034</updated>
+    </task>
+    <option name="localTasksCounter" value="59" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="221495000" />
+    <option name="totallyTimeSpent" value="232513000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1280" height="800" extended-state="0" />
@@ -1386,7 +1322,7 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.43150684" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32961783" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22213247" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22213247" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1440,7 +1376,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add concrete interpreter" />
     <MESSAGE value="finish domains of concrete interpreter" />
     <MESSAGE value="start concrete interpreter" />
     <MESSAGE value="start to implement the small-step concrete interpreter" />
@@ -1465,7 +1400,8 @@
     <MESSAGE value="use Option in ast to replace null; start to implement MakeAllAssignmentsSimple pass" />
     <MESSAGE value="refactor" />
     <MESSAGE value="complete 2 passes" />
-    <option name="LAST_COMMIT_MESSAGE" value="complete 2 passes" />
+    <MESSAGE value="refactor ast" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor ast" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1476,21 +1412,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/ast/ExpressionStatement.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="48" selection-start-line="29" selection-start-column="48" selection-end-line="29" selection-end-column="48" />
-          <folding>
-            <element signature="e#405#406#0" expanded="true" />
-            <element signature="e#460#461#0" expanded="true" />
-            <element signature="e#532#533#0" expanded="true" />
-            <element signature="e#587#588#0" expanded="true" />
-            <element signature="e#652#653#0" expanded="true" />
-            <element signature="e#707#708#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ast/ExpressionVisitor.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1765,21 +1686,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/RealIdentifierExpression.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="28" column="52" selection-start-line="28" selection-start-column="52" selection-end-line="28" selection-end-column="52" />
-          <folding>
-            <element signature="e#369#370#0" expanded="true" />
-            <element signature="e#429#430#0" expanded="true" />
-            <element signature="e#510#511#0" expanded="true" />
-            <element signature="e#570#571#0" expanded="true" />
-            <element signature="e#636#637#0" expanded="true" />
-            <element signature="e#696#697#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ast/RegExpLiteral.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1807,21 +1713,6 @@
             <element signature="e#611#612#0" expanded="true" />
             <element signature="e#676#677#0" expanded="true" />
             <element signature="e#727#728#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="28" column="56" selection-start-line="28" selection-start-column="56" selection-end-line="28" selection-end-column="56" />
-          <folding>
-            <element signature="e#372#373#0" expanded="true" />
-            <element signature="e#435#436#0" expanded="true" />
-            <element signature="e#516#517#0" expanded="true" />
-            <element signature="e#579#580#0" expanded="true" />
-            <element signature="e#645#646#0" expanded="true" />
-            <element signature="e#708#709#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1983,14 +1874,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/TransformVisitor.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="7" column="17" selection-start-line="7" selection-start-column="17" selection-end-line="7" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ast/TryStatement.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -2116,19 +1999,73 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/concrete/Domains.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.36324787">
+          <caret line="17" column="23" selection-start-line="17" selection-start-column="23" selection-end-line="17" selection-end-column="23" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="22" column="35" selection-start-line="22" selection-start-column="35" selection-end-line="22" selection-end-column="35" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#474#475#0" expanded="true" />
+            <element signature="e#516#517#0" expanded="true" />
+            <element signature="e#920#921#0" expanded="true" />
+            <element signature="e#983#984#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/RealIdentifierExpression.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="22" column="36" selection-start-line="22" selection-start-column="36" selection-end-line="22" selection-end-column="36" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#466#467#0" expanded="true" />
+            <element signature="e#509#510#0" expanded="true" />
+            <element signature="e#908#909#0" expanded="true" />
+            <element signature="e#968#969#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/TransformVisitor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="26" column="17" selection-start-line="26" selection-start-column="17" selection-end-line="26" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/translator/Parser.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
-          <folding />
+          <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/translator/AST2AST.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-17.97436">
-          <caret line="4" column="12" selection-start-line="4" selection-start-column="12" selection-end-line="4" selection-end-column="12" />
-          <folding />
+        <state vertical-scroll-proportion="0.6367521">
+          <caret line="1400" column="0" selection-start-line="1400" selection-start-column="0" selection-end-line="1400" selection-end-column="0" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#19708#19709#0" expanded="true" />
+            <element signature="e#19752#19753#0" expanded="true" />
+            <element signature="e#69767#69768#0" expanded="true" />
+            <element signature="e#69809#69810#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

@@ -1,5 +1,6 @@
 package ast;
 
+import fj.P;
 import fj.P2;
 
 /**
@@ -10,6 +11,16 @@ public class ScratchIdentifierExpression extends IdentifierExpression {
 
     public ScratchIdentifierExpression(Integer num) {
         this.num = num;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof ScratchIdentifierExpression && num.equals(((ScratchIdentifierExpression) obj).num));
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(num).hashCode();
     }
 
     public Integer getNum() {
