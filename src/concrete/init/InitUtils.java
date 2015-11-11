@@ -16,7 +16,7 @@ import javafx.beans.property.ReadOnlyMapProperty;
 /**
  * Created by wayne on 15/11/9.
  */
-public class Utils {
+public class InitUtils {
     public static Domains.Object unimplemented = createFunctionObject(new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
         //sys.error("!! Not Implemented")
         return null;

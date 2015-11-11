@@ -182,7 +182,7 @@ public class Init {
                 TreeMap.treeMap(Ord.hashEqualsOrd(),
                         P.p(window_binding_Addr, window_Addr)),
                 TreeMap.treeMap(Ord.hashEqualsOrd(),
-                        P.p(window_Addr, window_Obj),
+                        P.p(window_Addr, GlobalInit.window_Obj),
                         P.p(decodeURI_Addr, decodeURI_Obj),
                         P.p(decodeURIComponent_Addr, decodeURIComponent_Obj),
                         P.p(encodeURI_Addr, encodeURI_Obj),
