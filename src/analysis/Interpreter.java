@@ -379,8 +379,12 @@ public class Interpreter {
                 IRMethod m = ak.m;
                 Domains.Store store2;
                 if (Mutable.lightGC) {
-                    // TODO
+                    store2 = store1.lightGC(m.cannotEscape);
                 }
+                else {
+                    store2 = store1;
+                }
+                Domains.Store store3 = store2.weaken(m.canEscapeVar, m.canEscapeObj);
                 // TODO
             }
             else if (ks1.top() instanceof Domains.RetKont) {
