@@ -1,13 +1,7 @@
 package analysis;
 
-import fj.Ord;
-import fj.P;
-import fj.P2;
-import fj.P3;
-import fj.data.HashMap;
-import fj.data.Option;
-import fj.data.Set;
-import fj.data.List;
+import fj.*;
+import fj.data.*;
 import ir.*;
 
 /**
@@ -67,7 +61,7 @@ public class Interpreter {
         }
 
         public Set<State> next() {
-            Set<State> ret = Set.empty(Ord.hashEqualsOrd());
+            Set<State> ret = Set.empty(Ord.<State>hashEqualsOrd());
 
             if (t instanceof Domains.StmtTerm) {
                 IRStmt stmt = ((Domains.StmtTerm) t).s;
@@ -338,12 +332,88 @@ public class Interpreter {
         }
 
         public Set<State> advanceBV(Domains.BValue bv, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1){
-            Set<State> ret = Set.empty(Ord.hashEqualsOrd());
-            // TODO
+            Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
+            if (ks1.top() instanceof Domains.SeqKont) {
+                Domains.SeqKont sk = (Domains.SeqKont) ks1.top();
+                if (sk.ss.isNotEmpty()) {
+                    IRStmt s = sk.ss.index(0);
+                    List<IRStmt> ss = sk.ss.tail();
+                    ret.insert(new State(new Domains.StmtTerm(s), env, store1, pad1, ks1.repl(new Domains.SeqKont(ss)), trace.update(s)));
+                }
+                else {
+                    ret.union(advanceBV(Domains.Undef.BV, store1, pad1, ks1.pop()));
+                }
+            }
+            else if (ks1.top() instanceof Domains.WhileKont){
+                Domains.WhileKont wk = (Domains.WhileKont) ks1.top();
+                IRExp e = wk.e;
+                IRStmt s = wk.s;
+                Domains.Bool b = Eval.eval(e, env, store1, pad1).b;
+                if (b == Domains.Bool.True) {
+                    ret.insert(new State(new Domains.StmtTerm(s), env, store1, pad1, ks1, trace.update(s)));
+                }
+                else if (b == Domains.Bool.False) {
+                    ret.union(advanceBV(Domains.Undef.BV, store1, pad1, ks1.pop()));
+                }
+                else if (b == Domains.Bool.Top) {
+                    ret.insert(new State(new Domains.StmtTerm(s), env, store1, pad1, ks1, trace.update(s)));
+                    ret.union(advanceBV(Domains.Undef.BV, store1, pad1, ks1.pop()));
+                }
+            }
+            else if (ks1.top() instanceof Domains.ForKont) {
+                Domains.ForKont fk = (Domains.ForKont) ks1.top();
+                Domains.BValue bv1 = fk.bv;
+                IRVar x = fk.x;
+                IRStmt s = fk.s;
+                ret.union(advanceBV(Domains.Undef.BV, store1, pad1, ks1.pop()));
+                if (x instanceof IRPVar) {
+                    ret.insert(new State(new Domains.StmtTerm(s), env, store1.extend(env.apply(((IRPVar) x)).some(), bv1), pad1, ks1, trace.update(s)));
+                }
+                else if (x instanceof IRScratch) {
+                    ret.insert(new State(new Domains.StmtTerm(s), env, store1, pad1.update(((IRScratch) x), bv1), ks1, trace.update(s)));
+                }
+            }
+            else if (ks1.top() instanceof Domains.AddrKont) {
+                Domains.AddrKont ak = (Domains.AddrKont) ks1.top();
+                Domains.AddressSpace.Address a = ak.a;
+                IRMethod m = ak.m;
+                Domains.Store store2;
+                if (Mutable.lightGC) {
+                    // TODO
+                }
+                // TODO
+            }
+            else if (ks1.top() instanceof Domains.RetKont) {
+                Domains.RetKont rk = (Domains.RetKont) ks1.top();
+                IRVar x = rk.x;
+                Domains.Env envc = rk.env;
+                Boolean isctor = rk.isctor;
+                Trace tracec = rk.trace;
+                // TODO
+            }
+            else if (ks1.top() instanceof Domains.TryKont) {
+                Domains.TryKont tk = (Domains.TryKont) ks1.top();
+                IRStmt s3 = tk.sf;
+                // TODO
+            }
+            else if (ks1.top() instanceof Domains.CatchKont) {
+                Domains.CatchKont ck = (Domains.CatchKont) ks1.top();
+                // TODO
+            }
+            else if (ks1.top() instanceof Domains.FinKont) {
+                Domains.FinKont fk = (Domains.FinKont) ks1.top();
+                Set<Domains.Value> vs = fk.vs;
+                // TODO
+            }
+            else if (ks1.top() instanceof Domains.LblKont) {
+                ret.union(advanceBV(bv, store1, pad1, ks1.pop()));
+            }
             return ret;
         }
 
         public Set<State> advanceEV(Domains.EValue ev, Domains.Env env1, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1, Trace trace) {
+            Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
+            HashSet<Domains.AddressSpace.Address> addrsSeen = new HashSet<Domains.AddressSpace.Address>(Equal.<Domains.AddressSpace.Address>anyEqual(), Hash.<Domains.AddressSpace.Address>anyHash());
             // TODO
             return null;
         }

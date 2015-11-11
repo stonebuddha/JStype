@@ -451,7 +451,7 @@ public class Domains {
         }
 
         @Override
-        public BValue strConcat(BValue bv) {
+        public Str strConcat(BValue bv) {
             if (bv instanceof Str) {
                 return new Str(str + ((Str) bv).str);
             } else {
@@ -569,6 +569,7 @@ public class Domains {
     public static class Address extends BValue {
         public Integer a;
 
+        public Address() {}
         public Address(Integer a) {
             this.a = a;
         }
