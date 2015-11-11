@@ -39,10 +39,4 @@ public class ScratchIdentifierExpression extends IdentifierExpression {
     public <T> T accept(ExpressionVisitor<T> ask) {
         return ask.forScratchIdentifierExpression(this);
     }
-
-    static Integer count = 0;
-    static public ScratchIdentifierExpression generate() {
-        count += 1;
-        return new ScratchIdentifierExpression(count);
-    }
 }

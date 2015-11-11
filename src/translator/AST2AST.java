@@ -471,8 +471,8 @@ public class AST2AST {
                     return new AssignmentExpression("=", left,
                             new BinaryExpression(_operator, left, right.accept(this)));
                 } else if (left instanceof MemberExpression) {
-                    ScratchIdentifierExpression temp1 = ScratchIdentifierExpression.generate();
-                    ScratchIdentifierExpression temp2 = ScratchIdentifierExpression.generate();
+                    ScratchIdentifierExpression temp1 = VariableAllocator.freshScratchVar();
+                    ScratchIdentifierExpression temp2 = VariableAllocator.freshScratchVar();
                     Expression object = ((MemberExpression) left).getObject();
                     Expression property = ((MemberExpression) left).getProperty();
                     List<P2<ScratchIdentifierExpression, Expression>> declarations =
@@ -968,7 +968,7 @@ public class AST2AST {
             Set<IdentifierExpression> s1 = ss.filter(exp -> exp instanceof RealIdentifierExpression);
             Set<IdentifierExpression> s2 = ss.filter(exp -> exp instanceof ScratchIdentifierExpression);
             Statement stmt1 = new VariableDeclaration(s2.toList().map(exp -> new VariableDeclarator(exp, Option.some(new LiteralExpression(new UndefinedLiteral())))));
-            List<Statement> stmts = s2.toList().map(exp -> new ExpressionStatement(new AssignmentExpression("=", new MemberExpression(new RealIdentifierExpression("window"), exp, false), new LiteralExpression(new UndefinedLiteral()))));
+            List<Statement> stmts = s2.toList().map(exp -> new ExpressionStatement(new AssignmentExpression("=", new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), exp, false), new LiteralExpression(new UndefinedLiteral()))));
             return P.p(new Program(stmts.cons(stmt1).append(tmp._1())), Set.empty(Ord.hashEqualsOrd()));
         }
 
@@ -1225,7 +1225,7 @@ public class AST2AST {
             assert tmp._1() instanceof BlockStatement;
             List<VariableDeclarator> decls = tmp._2().toList().map(exp -> new VariableDeclarator(exp, Option.some(new LiteralExpression(new UndefinedLiteral()))));
             if (id.isSome()) {
-                ScratchIdentifierExpression y = ScratchIdentifierExpression.generate();
+                RealIdentifierExpression y = VariableAllocator.freshRealVar();
                 Statement stmt1 = new VariableDeclaration(decls.cons(new VariableDeclarator(id.some(), Option.some(y))));
                 BlockStatement _body = new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(stmt1));
                 Expression func = new FunctionExpression(id, params, _body);
@@ -1402,7 +1402,7 @@ public class AST2AST {
         List<Set<IdentifierExpression>> stack;
 
         static Boolean isInScope(IdentifierExpression id, List<Set<IdentifierExpression>> stack) {
-            if (id instanceof RealIdentifierExpression && ((RealIdentifierExpression) id).getName().equals("arguments") && stack.length() > 2) {
+            if (id instanceof RealIdentifierExpression && ((RealIdentifierExpression) id).getName().equals(AST2IR.PVarMapper.ARGUMENTS_NAME) && stack.length() > 2) {
                 return true;
             }
             if (stack.isEmpty()) {
@@ -1419,8 +1419,8 @@ public class AST2AST {
         }
 
         public HoistGlobalVariablesV() {
-            IdentifierExpression id1 = new RealIdentifierExpression("window");
-            IdentifierExpression id2 = new ScratchIdentifierExpression(0);
+            IdentifierExpression id1 = new RealIdentifierExpression(AST2IR.PVarMapper.WINDOW_NAME);
+            IdentifierExpression id2 = new RealIdentifierExpression(AST2IR.PVarMapper.windowName);
             Set<IdentifierExpression> ss = Set.set(Ord.hashEqualsOrd(), id1, id2);
             this.stack = List.cons(ss, List.list());
         }
@@ -1477,7 +1477,7 @@ public class AST2AST {
                     return new AssignmentExpression(operator, left, _right);
                 } else {
                     assert left instanceof RealIdentifierExpression;
-                    return new AssignmentExpression(operator, new MemberExpression(new RealIdentifierExpression("window"), left, false), _right);
+                    return new AssignmentExpression(operator, new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), left, false), _right);
                 }
             } else {
                 Expression _left = left.accept(this);
@@ -1490,7 +1490,7 @@ public class AST2AST {
             if (isInScope(realIdentifierExpression, stack)) {
                 return realIdentifierExpression;
             } else {
-                return new MemberExpression(new RealIdentifierExpression("window"), realIdentifierExpression, false);
+                return new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), realIdentifierExpression, false);
             }
         }
 
@@ -1551,9 +1551,9 @@ public class AST2AST {
         @Override
         public Expression forThisExpression(ThisExpression thisExpression) {
             if (isGlobal) {
-                return new RealIdentifierExpression("window");
+                return new RealIdentifierExpression(AST2IR.PVarMapper.windowName);
             } else {
-                return new ScratchIdentifierExpression(-1); // -1 means self
+                return new RealIdentifierExpression(AST2IR.PVarMapper.selfName);
             }
         }
 
@@ -1589,7 +1589,7 @@ public class AST2AST {
         public P2<CatchClause, Set<IdentifierExpression>> forCatchClause(CatchClause catchClause) {
             IdentifierExpression param = catchClause.getParam();
             BlockStatement body = catchClause.getBody();
-            ScratchIdentifierExpression y = ScratchIdentifierExpression.generate();
+            RealIdentifierExpression y = VariableAllocator.freshRealVar();
             HandleCatchScopingV v = new HandleCatchScopingV(renaming.set(param, y));
             P2<Statement, Set<IdentifierExpression>> tmp = body.accept(v);
             assert tmp._1() instanceof BlockStatement;
@@ -1646,5 +1646,27 @@ public class AST2AST {
         ast = ast.accept(new RemoveThisV());
         ast = ast.accept(new HandleCatchScopingV())._1();
         return ast;
+    }
+
+    public static class VariableAllocator {
+        static final String tempPrefix = "temp`";
+        static Integer nextRealVarId = 0;
+        static Integer nextScratchVarId = 0;
+
+        public static RealIdentifierExpression freshRealVar() {
+            Integer res = nextRealVarId;
+            nextRealVarId += 1;
+            return new RealIdentifierExpression(tempPrefix + res);
+        }
+
+        public static ScratchIdentifierExpression freshScratchVar() {
+            Integer res = nextScratchVarId;
+            nextScratchVarId += 1;
+            return new ScratchIdentifierExpression(res);
+        }
+
+        public static Boolean isTempVar(RealIdentifierExpression x) {
+            return x.getName().startsWith(tempPrefix);
+        }
     }
 }
