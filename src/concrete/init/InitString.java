@@ -161,9 +161,9 @@ public class InitString {
                 }
 
                 return List.range(0, arglen.intValue()).foldLeft(
-                        (Domains.Str s, int i) -> {
+                        (s, i) -> {
                             return s.strConcat(InitUtils.ToString(args.apply(new Domains.Str(String.valueOf(i))).orSome(Domains.Undef), store));
-                        }
+                        }, InitUtils.ToString(selfAddr, store)
                 );
 
             }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
