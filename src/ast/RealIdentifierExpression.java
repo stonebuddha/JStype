@@ -1,5 +1,6 @@
 package ast;
 
+import fj.P;
 import fj.P2;
 
 /**
@@ -10,6 +11,16 @@ public class RealIdentifierExpression extends IdentifierExpression {
 
     public RealIdentifierExpression(String name) {
         this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof RealIdentifierExpression && name.equals(((RealIdentifierExpression) obj).name));
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(name).hashCode();
     }
 
     public String getName() {
