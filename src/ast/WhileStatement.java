@@ -1,5 +1,7 @@
 package ast;
 
+import fj.P2;
+
 /**
  * Created by Hwhitetooth on 15/10/14.
  */
@@ -19,7 +21,16 @@ public class WhileStatement extends Statement {
         return body;
     }
 
-    public Object accept(StatementVisitor ask) {
+    @Override
+    public <T> P2<Statement, T> accept(TransformVisitor<T> ask) {
+        return ask.forWhileStatement(this);
+    }
+    @Override
+    public Statement accept(SimpleTransformVisitor ask) {
+        return ask.forWhileStatement(this);
+    }
+    @Override
+    public <T> T accept(StatementVisitor<T> ask) {
         return ask.forWhileStatement(this);
     }
 }

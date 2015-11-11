@@ -4,6 +4,7 @@
 
 package ast;
 
+import fj.P2;
 import fj.data.Option;
 
 public class BreakStatement extends Statement {
@@ -17,7 +18,16 @@ public class BreakStatement extends Statement {
         return label;
     }
 
-    public Object accept(StatementVisitor ask) {
+    @Override
+    public <T> P2<Statement, T> accept(TransformVisitor<T> ask) {
+        return ask.forBreakStatement(this);
+    }
+    @Override
+    public Statement accept(SimpleTransformVisitor ask) {
+        return ask.forBreakStatement(this);
+    }
+    @Override
+    public <T> T accept(StatementVisitor<T> ask) {
         return ask.forBreakStatement(this);
     }
 }

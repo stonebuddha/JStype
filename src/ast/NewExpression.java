@@ -1,18 +1,26 @@
 package ast;
 
-import fj.data.Seq;
-
-import java.util.ArrayList;
+import fj.P2;
+import fj.data.List;
 
 /**
  * Created by wayne on 15/10/15.
  */
 public class NewExpression extends CallExpression {
-    public NewExpression(Expression callee, Seq<Expression> arguments) {
+    public NewExpression(Expression callee, List<Expression> arguments) {
         super(callee, arguments);
     }
 
-    public Object accept(ExpressionVisitor ask) {
+    @Override
+    public Expression accept(SimpleTransformVisitor ask) {
+        return ask.forNewExpression(this);
+    }
+    @Override
+    public <T> P2<Expression, T> accept(TransformVisitor<T> ask) {
+        return ask.forNewExpression(this);
+    }
+    @Override
+    public <T> T accept(ExpressionVisitor<T> ask) {
         return ask.forNewExpression(this);
     }
 }

@@ -1,5 +1,6 @@
 package ast;
 
+import fj.P2;
 import fj.data.List;
 
 /**
@@ -22,7 +23,16 @@ public class SwitchStatement extends Statement {
         return cases;
     }
 
-    public Object accept(StatementVisitor ask) {
+    @Override
+    public <T> P2<Statement, T> accept(TransformVisitor<T> ask) {
+        return ask.forSwitchStatement(this);
+    }
+    @Override
+    public Statement accept(SimpleTransformVisitor ask) {
+        return ask.forSwitchStatement(this);
+    }
+    @Override
+    public <T> T accept(StatementVisitor<T> ask) {
         return ask.forSwitchStatement(this);
     }
 }
