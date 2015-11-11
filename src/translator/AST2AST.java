@@ -484,24 +484,6 @@ public class AST2AST {
                 }
             }
         }
-
-        @Override
-        public Expression forUpdateExpression(UpdateExpression updateExpression) {
-            String operator = updateExpression.getOperator();
-            Expression argument = updateExpression.getArgument();
-            Boolean prefix = updateExpression.getPrefix();
-            String _operator = operator.substring(0, 1);
-            if (prefix) {
-                AssignmentExpression exp = new AssignmentExpression(_operator.concat("="), argument, new LiteralExpression(new NumberLiteral(1)));
-                return exp.accept(this);
-            } else {
-                ScratchIdentifierExpression temp = ScratchIdentifierExpression.generate();
-                SequenceExpression exp = new SequenceExpression(List.list(
-                        new AssignmentExpression(_operator.concat("="), argument, new LiteralExpression(new NumberLiteral(1))),
-                        temp));
-                return new ScratchSequenceExpression(List.list(P.p(temp, argument)), exp).accept(this);
-            }
-        }
     }
 
     public static class HoistFunctionsV implements TransformVisitor<List<Statement>> {
@@ -895,7 +877,12 @@ public class AST2AST {
 
         @Override
         public P2<Expression, List<Statement>> forUpdateExpression(UpdateExpression updateExpression) {
-            throw new RuntimeException("ast2ast error");
+            String operator = updateExpression.getOperator();
+            Expression argument = updateExpression.getArgument();
+            Boolean prefix = updateExpression.getPrefix();
+            P2<Expression, List<Statement>> tmp = argument.accept(this);
+            assert tmp._2().isEmpty();
+            return P.p(new UpdateExpression(operator, tmp._1(), prefix), List.list());
         }
 
         @Override
@@ -1338,7 +1325,11 @@ public class AST2AST {
 
         @Override
         public P2<Expression, Set<IdentifierExpression>> forUpdateExpression(UpdateExpression updateExpression) {
-            throw new RuntimeException("ast2ast error");
+            String operator = updateExpression.getOperator();
+            Expression argument = updateExpression.getArgument();
+            Boolean prefix = updateExpression.getPrefix();
+            P2<Expression, Set<IdentifierExpression>> tmp = argument.accept(this);
+            return P.p(new UpdateExpression(operator, tmp._1(), prefix), tmp._2());
         }
 
         @Override
@@ -1531,11 +1522,6 @@ public class AST2AST {
 
         @Override
         public Statement forEmptyStatement(EmptyStatement emptyStatement) {
-            throw new RuntimeException("ast2ast error");
-        }
-
-        @Override
-        public Expression forUpdateExpression(UpdateExpression updateExpression) {
             throw new RuntimeException("ast2ast error");
         }
     }
