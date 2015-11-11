@@ -1,17 +1,18 @@
 package ast;
 
+import fj.P2;
+import fj.data.List;
 import fj.data.Option;
-import fj.data.Seq;
 
 /**
  * Created by wayne on 15/10/15.
  */
 public class FunctionExpression extends Expression {
     Option<IdentifierExpression> id;
-    Seq<IdentifierExpression> params;
+    List<IdentifierExpression> params;
     BlockStatement body;
 
-    public FunctionExpression(Option<IdentifierExpression> id, Seq<IdentifierExpression> params, BlockStatement body) {
+    public FunctionExpression(Option<IdentifierExpression> id, List<IdentifierExpression> params, BlockStatement body) {
         this.id = id;
         this.params = params;
         this.body = body;
@@ -20,14 +21,23 @@ public class FunctionExpression extends Expression {
     public Option<IdentifierExpression> getId() {
         return id;
     }
-    public Seq<IdentifierExpression> getParams() {
+    public List<IdentifierExpression> getParams() {
         return params;
     }
     public BlockStatement getBody() {
         return body;
     }
 
-    public Object accept(ExpressionVisitor ask) {
+    @Override
+    public Expression accept(SimpleTransformVisitor ask) {
+        return ask.forFunctionExpression(this);
+    }
+    @Override
+    public <T> P2<Expression, T> accept(TransformVisitor<T> ask) {
+        return ask.forFunctionExpression(this);
+    }
+    @Override
+    public <T> T accept(ExpressionVisitor<T> ask) {
         return ask.forFunctionExpression(this);
     }
 }

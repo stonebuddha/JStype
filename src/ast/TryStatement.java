@@ -1,5 +1,6 @@
 package ast;
 
+import fj.P2;
 import fj.data.Option;
 
 import java.util.ArrayList;
@@ -29,7 +30,16 @@ public class TryStatement extends Statement {
         return finalizer;
     }
 
-    public Object accept(StatementVisitor ask) {
+    @Override
+    public <T> P2<Statement, T> accept(TransformVisitor<T> ask) {
+        return ask.forTryStatement(this);
+    }
+    @Override
+    public Statement accept(SimpleTransformVisitor ask) {
+        return ask.forTryStatement(this);
+    }
+    @Override
+    public <T> T accept(StatementVisitor<T> ask) {
         return ask.forTryStatement(this);
     }
 }

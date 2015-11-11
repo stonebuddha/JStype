@@ -4,6 +4,8 @@
 
 package ast;
 
+import fj.P2;
+
 public class LabeledStatement extends Statement {
     IdentifierExpression label;
     Statement body;
@@ -20,7 +22,16 @@ public class LabeledStatement extends Statement {
         return body;
     }
 
-    public Object accept(StatementVisitor ask) {
+    @Override
+    public <T> P2<Statement, T> accept(TransformVisitor<T> ask) {
+        return ask.forLabeledStatement(this);
+    }
+    @Override
+    public Statement accept(SimpleTransformVisitor ask) {
+        return ask.forLabeledStatement(this);
+    }
+    @Override
+    public <T> T accept(StatementVisitor<T> ask) {
         return ask.forLabeledStatement(this);
     }
 }

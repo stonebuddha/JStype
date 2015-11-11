@@ -1,5 +1,7 @@
 package ast;
 
+import fj.P2;
+
 /**
  * Created by Hwhitetooth on 15/10/14.
  */
@@ -19,7 +21,13 @@ public class CatchClause extends Node {
         return body;
     }
 
-    public Object accept(CatchClauseVisitor ask) {
+    public <T> T accept(CatchClauseVisitor<T> ask) {
+        return ask.forCatchClause(this);
+    }
+    public <T> P2<CatchClause, T> accept(TransformVisitor<T> ask) {
+        return ask.forCatchClause(this);
+    }
+    public CatchClause accept(SimpleTransformVisitor ask) {
         return ask.forCatchClause(this);
     }
 }

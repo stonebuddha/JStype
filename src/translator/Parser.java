@@ -7,14 +7,11 @@ package translator;
 import ast.*;
 import fj.data.List;
 import fj.data.Option;
-import fj.data.Seq;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import jdk.nashorn.internal.runtime.Context;
 import jdk.nashorn.internal.runtime.ErrorManager;
 import jdk.nashorn.internal.runtime.options.Options;
 import com.google.gson.*;
-
-import java.util.ArrayList;
 
 public class Parser {
 
@@ -212,16 +209,16 @@ public class Parser {
             return new ThisExpression();
         } else if (type.equals("ArrayExpression")) {
             JsonElement ele1 = object.get("elements");
-            return new ArrayExpression(Seq.seq(List.list(ele1.getAsJsonArray()).map(ele -> {
+            return new ArrayExpression(List.list(ele1.getAsJsonArray()).map(ele -> {
                 if (ele.isJsonNull()) {
                     return Option.none();
                 } else {
                     return Option.some(parseExpression(ele));
                 }
-            })));
+            }));
         } else if (type.equals("ObjectExpression")) {
             JsonElement ele1 = object.get("properties");
-            return new ObjectExpression(Seq.seq(List.list(ele1.getAsJsonArray()).map(Parser::parseProperty)));
+            return new ObjectExpression(List.list(ele1.getAsJsonArray()).map(Parser::parseProperty));
         } else if (type.equals("FunctionExpression")) {
             JsonElement ele1 = object.get("id");
             Option<IdentifierExpression> id;
@@ -235,7 +232,7 @@ public class Parser {
             BlockStatement body = (BlockStatement)parseStatement(ele3);
             return new FunctionExpression(
                     id,
-                    Seq.seq(List.list(ele2.getAsJsonArray()).map(ele -> (IdentifierExpression)parseExpression(ele))),
+                    List.list(ele2.getAsJsonArray()).map(ele -> (IdentifierExpression)parseExpression(ele)),
                     body);
         } else if (type.equals("SequenceExpression")) {
             JsonElement ele1 = object.get("expressions");
@@ -292,12 +289,12 @@ public class Parser {
             JsonElement ele1 = object.get("callee");
             Expression callee = parseExpression(ele1);
             JsonElement ele2 = object.get("arguments");
-            return new CallExpression(callee, Seq.seq(List.list(ele2.getAsJsonArray()).map(Parser::parseExpression)));
+            return new CallExpression(callee, List.list(ele2.getAsJsonArray()).map(Parser::parseExpression));
         } else if (type.equals("NewExpression")) {
             JsonElement ele1 = object.get("callee");
             Expression callee = parseExpression(ele1);
             JsonElement ele2 = object.get("arguments");
-            return new NewExpression(callee, Seq.seq(List.list(ele2.getAsJsonArray()).map(Parser::parseExpression)));
+            return new NewExpression(callee, List.list(ele2.getAsJsonArray()).map(Parser::parseExpression));
         } else if (type.equals("MemberExpression")) {
             JsonElement ele1 = object.get("object");
             Expression obj = parseExpression(ele1);
@@ -328,7 +325,7 @@ public class Parser {
             BlockStatement body = (BlockStatement)parseStatement(ele3);
             return new FunctionDeclaration(
                     id,
-                    Seq.seq(List.list(ele2.getAsJsonArray()).map(ele -> (IdentifierExpression)parseExpression(ele))),
+                    List.list(ele2.getAsJsonArray()).map(ele -> (IdentifierExpression)parseExpression(ele)),
                     body);
         } else if (type.equals("VariableDeclaration")) {
             return new VariableDeclaration(List.list(object.get("declarations").getAsJsonArray()).map(Parser::parseVariableDeclarator));

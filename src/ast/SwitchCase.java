@@ -1,5 +1,6 @@
 package ast;
 
+import fj.P2;
 import fj.data.List;
 import fj.data.Option;
 
@@ -22,7 +23,13 @@ public class SwitchCase extends Node {
         return consequent;
     }
 
-    public Object accept(SwitchCaseVisitor ask) {
+    public <T> T accept(SwitchCaseVisitor<T> ask) {
+        return ask.forSwitchCase(this);
+    }
+    public <T> P2<SwitchCase, T> accept(TransformVisitor<T> ask) {
+        return ask.forSwitchCase(this);
+    }
+    public SwitchCase accept(SimpleTransformVisitor ask) {
         return ask.forSwitchCase(this);
     }
 }

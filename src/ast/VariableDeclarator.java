@@ -1,5 +1,6 @@
 package ast;
 
+import fj.P2;
 import fj.data.Option;
 
 /**
@@ -21,7 +22,13 @@ public class VariableDeclarator extends Node {
         return init;
     }
 
-    public Object accept(VariableDeclaratorVisitor ask) {
+    public <T> T accept(VariableDeclaratorVisitor<T> ask) {
+        return ask.forVariableDeclarator(this);
+    }
+    public <T> P2<VariableDeclarator, T> accept(TransformVisitor<T> ask) {
+        return ask.forVariableDeclarator(this);
+    }
+    public VariableDeclarator accept(SimpleTransformVisitor ask) {
         return ask.forVariableDeclarator(this);
     }
 }

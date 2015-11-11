@@ -1,16 +1,17 @@
 package ast;
 
-import fj.data.Seq;
+import fj.P2;
+import fj.data.List;
 
 /**
  * Created by wayne on 10/15/15.
  */
 public class FunctionDeclaration extends Declaration {
     IdentifierExpression id;
-    Seq<IdentifierExpression> params;
+    List<IdentifierExpression> params;
     BlockStatement body;
 
-    public FunctionDeclaration(IdentifierExpression id, Seq<IdentifierExpression> params, BlockStatement body) {
+    public FunctionDeclaration(IdentifierExpression id, List<IdentifierExpression> params, BlockStatement body) {
         this.id = id;
         this.params = params;
         this.body = body;
@@ -19,14 +20,23 @@ public class FunctionDeclaration extends Declaration {
     public IdentifierExpression getId() {
         return id;
     }
-    public Seq<IdentifierExpression> getParams() {
+    public List<IdentifierExpression> getParams() {
         return params;
     }
     public BlockStatement getBody() {
         return body;
     }
 
-    public Object accept(StatementVisitor ask) {
+    @Override
+    public <T> P2<Statement, T> accept(TransformVisitor<T> ask) {
+        return ask.forFunctionDeclaration(this);
+    }
+    @Override
+    public Statement accept(SimpleTransformVisitor ask) {
+        return ask.forFunctionDeclaration(this);
+    }
+    @Override
+    public <T> T accept(StatementVisitor<T> ask) {
         return ask.forFunctionDeclaration(this);
     }
 }

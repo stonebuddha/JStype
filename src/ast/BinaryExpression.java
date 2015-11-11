@@ -1,5 +1,7 @@
 package ast;
 
+import fj.P2;
+
 /**
  * Created by wayne on 15/10/15.
  */
@@ -24,7 +26,16 @@ public class BinaryExpression extends Expression {
         return right;
     }
 
-    public Object accept(ExpressionVisitor ask) {
+    @Override
+    public <T> T accept(ExpressionVisitor<T> ask) {
+        return ask.forBinaryExpression(this);
+    }
+    @Override
+    public Expression accept(SimpleTransformVisitor ask) {
+        return ask.forBinaryExpression(this);
+    }
+    @Override
+    public <T> P2<Expression, T> accept(TransformVisitor<T> ask) {
         return ask.forBinaryExpression(this);
     }
 }

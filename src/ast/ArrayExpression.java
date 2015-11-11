@@ -1,23 +1,33 @@
 package ast;
 
+import fj.P2;
+import fj.data.List;
 import fj.data.Option;
-import fj.data.Seq;
 
 /**
  * Created by wayne on 15/10/15.
  */
 public class ArrayExpression extends Expression {
-    Seq<Option<Expression>> elements;
+    List<Option<Expression>> elements;
 
-    public ArrayExpression(Seq<Option<Expression>> elements) {
+    public ArrayExpression(List<Option<Expression>> elements) {
         this.elements = elements;
     }
 
-    public Seq<Option<Expression>> getElements() {
+    public List<Option<Expression>> getElements() {
         return elements;
     }
 
-    public Object accept(ExpressionVisitor ask) {
+    @Override
+    public <T> T accept(ExpressionVisitor<T> ask) {
+        return ask.forArrayExpression(this);
+    }
+    @Override
+    public Expression accept(SimpleTransformVisitor ask) {
+        return ask.forArrayExpression(this);
+    }
+    @Override
+    public <T> P2<Expression, T> accept(TransformVisitor<T> ask) {
         return ask.forArrayExpression(this);
     }
 }

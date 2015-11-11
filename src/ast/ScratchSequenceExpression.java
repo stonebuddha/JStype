@@ -23,7 +23,15 @@ public class ScratchSequenceExpression extends Expression {
     }
 
     @Override
-    public Object accept(ExpressionVisitor ask) {
+    public Expression accept(SimpleTransformVisitor ask) {
+        return ask.forScratchSequenceExpression(this);
+    }
+    @Override
+    public <T> P2<Expression, T> accept(TransformVisitor<T> ask) {
+        return ask.forScratchSequenceExpression(this);
+    }
+    @Override
+    public <T> T accept(ExpressionVisitor<T> ask) {
         return ask.forScratchSequenceExpression(this);
     }
 }

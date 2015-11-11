@@ -4,6 +4,7 @@
 
 package ast;
 
+import fj.P2;
 import fj.data.List;
 
 public class Program extends Node {
@@ -18,6 +19,12 @@ public class Program extends Node {
     }
 
     public Object accept(ProgramVisitor ask) {
+        return ask.forProgram(this);
+    }
+    public <T> P2<Program, T> accept(TransformVisitor<T> ask) {
+        return ask.forProgram(this);
+    }
+    public Program accept(SimpleTransformVisitor ask) {
         return ask.forProgram(this);
     }
 }

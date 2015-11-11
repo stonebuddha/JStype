@@ -1,5 +1,6 @@
 package ast;
 
+import fj.P2;
 import fj.data.Option;
 
 /**
@@ -31,7 +32,16 @@ public class ForStatement extends Statement {
         return body;
     }
 
-    public Object accept(StatementVisitor ask) {
+    @Override
+    public <T> P2<Statement, T> accept(TransformVisitor<T> ask) {
+        return ask.forForStatement(this);
+    }
+    @Override
+    public Statement accept(SimpleTransformVisitor ask) {
+        return ask.forForStatement(this);
+    }
+    @Override
+    public <T> T accept(StatementVisitor<T> ask) {
         return ask.forForStatement(this);
     }
 }
