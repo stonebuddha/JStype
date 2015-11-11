@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="00892aec-1b0e-43d6-bacf-29199b2b2fca" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/RealIdentifierExpression.java" afterPath="$PROJECT_DIR$/src/ast/RealIdentifierExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java" afterPath="$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/translator/AST2AST.java" afterPath="$PROJECT_DIR$/src/translator/AST2AST.java" />
     </list>
     <ignored path="JStype.iws" />
@@ -43,14 +41,18 @@
       <file leaf-file-name="AST2AST.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/translator/AST2AST.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6367521">
-              <caret line="1400" column="0" selection-start-line="1400" selection-start-column="0" selection-end-line="1400" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.74358976">
+              <caret line="1658" column="48" selection-start-line="1658" selection-start-column="48" selection-end-line="1658" selection-end-column="48" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#19708#19709#0" expanded="true" />
-                <element signature="e#19752#19753#0" expanded="true" />
-                <element signature="e#69767#69768#0" expanded="true" />
-                <element signature="e#69809#69810#0" expanded="true" />
+                <element signature="e#23489#23490#0" expanded="true" />
+                <element signature="e#23533#23534#0" expanded="true" />
+                <element signature="e#74084#74085#0" expanded="true" />
+                <element signature="e#74126#74127#0" expanded="true" />
+                <element signature="e#80959#80960#0" expanded="true" />
+                <element signature="e#81003#81004#0" expanded="true" />
+                <element signature="e#81051#81052#0" expanded="true" />
+                <element signature="e#81099#81100#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -1006,13 +1008,7 @@
       <workItem from="1447054483922" duration="2107000" />
       <workItem from="1447058604801" duration="1335000" />
       <workItem from="1447063013525" duration="163000" />
-      <workItem from="1447063298979" duration="44900000" />
-    </task>
-    <task id="LOCAL-00010" summary="fix some typo">
-      <created>1444961915073</created>
-      <option name="number" value="00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1444961915073</updated>
+      <workItem from="1447063298979" duration="50003000" />
     </task>
     <task id="LOCAL-00011" summary="fix some typo">
       <created>1444964441000</created>
@@ -1302,11 +1298,17 @@
       <option name="project" value="LOCAL" />
       <updated>1447223925034</updated>
     </task>
-    <option name="localTasksCounter" value="59" />
+    <task id="LOCAL-00059" summary="fighting on ast2ast passes">
+      <created>1447236583781</created>
+      <option name="number" value="00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1447236583782</updated>
+    </task>
+    <option name="localTasksCounter" value="60" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="232513000" />
+    <option name="totallyTimeSpent" value="237616000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1280" height="800" extended-state="0" />
@@ -1376,7 +1378,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="finish domains of concrete interpreter" />
     <MESSAGE value="start concrete interpreter" />
     <MESSAGE value="start to implement the small-step concrete interpreter" />
     <MESSAGE value="add some state transformation for concrete interpreter" />
@@ -1401,7 +1402,8 @@
     <MESSAGE value="refactor" />
     <MESSAGE value="complete 2 passes" />
     <MESSAGE value="refactor ast" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor ast" />
+    <MESSAGE value="fighting on ast2ast passes" />
+    <option name="LAST_COMMIT_MESSAGE" value="fighting on ast2ast passes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -2004,7 +2006,7 @@
         <state vertical-scroll-proportion="0.36324787">
           <caret line="17" column="23" selection-start-line="17" selection-start-column="23" selection-end-line="17" selection-end-column="23" />
           <folding>
-            <element signature="imports" expanded="true" />
+            <element signature="imports" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -2057,14 +2059,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/translator/AST2AST.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6367521">
-          <caret line="1400" column="0" selection-start-line="1400" selection-start-column="0" selection-end-line="1400" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.74358976">
+          <caret line="1658" column="48" selection-start-line="1658" selection-start-column="48" selection-end-line="1658" selection-end-column="48" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#19708#19709#0" expanded="true" />
-            <element signature="e#19752#19753#0" expanded="true" />
-            <element signature="e#69767#69768#0" expanded="true" />
-            <element signature="e#69809#69810#0" expanded="true" />
+            <element signature="e#23489#23490#0" expanded="true" />
+            <element signature="e#23533#23534#0" expanded="true" />
+            <element signature="e#74084#74085#0" expanded="true" />
+            <element signature="e#74126#74127#0" expanded="true" />
+            <element signature="e#80959#80960#0" expanded="true" />
+            <element signature="e#81003#81004#0" expanded="true" />
+            <element signature="e#81051#81052#0" expanded="true" />
+            <element signature="e#81099#81100#0" expanded="true" />
           </folding>
         </state>
       </provider>

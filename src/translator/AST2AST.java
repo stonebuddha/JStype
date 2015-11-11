@@ -7,6 +7,7 @@ import fj.P2;
 import fj.data.List;
 import fj.data.Option;
 import fj.data.Set;
+import fj.data.TreeMap;
 
 /**
  * Created by wayne on 15/11/9.
@@ -387,6 +388,68 @@ public class AST2AST {
     }
 
     public static class FixContinueLabelsV extends DefaultPassV {
+        @Override
+        public Statement forContinueStatement(ContinueStatement continueStatement) {
+            Option<IdentifierExpression> label = continueStatement.getLabel();
+            if (label.isNone()) {
+                return continueStatement;
+            } else {
+                IdentifierExpression id = label.some();
+                assert id instanceof RealIdentifierExpression;
+                return new ContinueStatement(Option.some(new RealIdentifierExpression("continue_".concat(((RealIdentifierExpression) id).getName()))));
+            }
+        }
+
+        @Override
+        public Statement forLabeledStatement(LabeledStatement labeledStatement) {
+            IdentifierExpression label = labeledStatement.getLabel();
+            assert label instanceof RealIdentifierExpression;
+            IdentifierExpression label1 = new RealIdentifierExpression("continue_".concat(((RealIdentifierExpression) label).getName()));
+            Statement body = labeledStatement.getBody();
+            if (body instanceof DoWhileStatement) {
+                Statement body1 = ((DoWhileStatement) body).getBody();
+                Expression test = ((DoWhileStatement) body).getTest();
+                DoWhileStatement stmt = new DoWhileStatement(new LabeledStatement(label1, body1.accept(this)), test.accept(this));
+                return new LabeledStatement(label, stmt);
+            } else if (body instanceof ForInStatement) {
+                Node left = ((ForInStatement) body).getLeft();
+                Expression right = ((ForInStatement) body).getRight();
+                Statement body1 = ((ForInStatement) body).getBody();
+                Node _left;
+                if (left instanceof VariableDeclaration) {
+                    _left = ((VariableDeclaration)left).accept(this);
+                } else if (left instanceof Expression) {
+                    _left = ((Expression)left).accept(this);
+                } else {
+                    throw new RuntimeException("parser error");
+                }
+                ForInStatement stmt = new ForInStatement(_left, right.accept(this), new LabeledStatement(label1, body1.accept(this)));
+                return new LabeledStatement(label, stmt);
+            } else if (body instanceof ForStatement) {
+                Option<Node> init = ((ForStatement) body).getInit();
+                Option<Expression> test = ((ForStatement) body).getTest(), update = ((ForStatement) body).getUpdate();
+                Statement body1 = ((ForStatement) body).getBody();
+                Option<Node> _init = init.map(node -> {
+                   if (node instanceof VariableDeclaration) {
+                       return ((VariableDeclaration)node).accept(this);
+                   } else if (node instanceof Expression) {
+                       return ((Expression)node).accept(this);
+                   } else {
+                       throw new RuntimeException("parser error");
+                   }
+                });
+                ForStatement stmt = new ForStatement(_init, test.map(exp -> exp.accept(this)), update.map(exp -> exp.accept(this)), new LabeledStatement(label1, body1.accept(this)));
+                return new LabeledStatement(label, stmt);
+            } else if (body instanceof WhileStatement) {
+                Expression test = ((WhileStatement) body).getTest();
+                Statement body1 = ((WhileStatement) body).getBody();
+                WhileStatement stmt = new WhileStatement(test.accept(this), new LabeledStatement(label1, body1.accept(this)));
+                return new LabeledStatement(label, stmt);
+            } else {
+                Statement _body = body.accept(this);
+                return new LabeledStatement(label, _body);
+            }
+        }
     }
 
     public static class MakeAllAssignmentsSimpleV extends DefaultPassV {
@@ -1344,8 +1407,21 @@ public class AST2AST {
         }
     }
 
-    public class HoistGlobalVariablesV extends DefaultPassV {
+    public static class HoistGlobalVariablesV extends DefaultPassV {
         List<Set<IdentifierExpression>> stack;
+
+        static Boolean isInScope(IdentifierExpression id, List<Set<IdentifierExpression>> stack) {
+            if (id instanceof RealIdentifierExpression && ((RealIdentifierExpression) id).getName().equals("arguments") && stack.length() > 2) {
+                return true;
+            }
+            if (stack.isEmpty()) {
+                return false;
+            } else if (stack.head().member(id)) {
+                return true;
+            } else {
+                return isInScope(id, stack.tail());
+            }
+        }
 
         public HoistGlobalVariablesV(List<Set<IdentifierExpression>> stack) {
             this.stack = stack;
@@ -1400,6 +1476,60 @@ public class AST2AST {
         }
 
         @Override
+        public Expression forAssignmentExpression(AssignmentExpression assignmentExpression) {
+            String operator = assignmentExpression.getOperator();
+            Expression left = assignmentExpression.getLeft();
+            Expression right = assignmentExpression.getRight();
+            Expression _right = right.accept(this);
+            if (left instanceof IdentifierExpression) {
+                if (isInScope((IdentifierExpression)left, stack)) {
+                    return new AssignmentExpression(operator, left, _right);
+                } else {
+                    assert left instanceof RealIdentifierExpression;
+                    return new AssignmentExpression(operator, new MemberExpression(new RealIdentifierExpression("window"), left, false), _right);
+                }
+            } else {
+                Expression _left = left.accept(this);
+                return new AssignmentExpression(operator, _left, _right);
+            }
+        }
+
+        @Override
+        public Expression forRealIdentifierExpression(RealIdentifierExpression realIdentifierExpression) {
+            if (isInScope(realIdentifierExpression, stack)) {
+                return realIdentifierExpression;
+            } else {
+                return new MemberExpression(new RealIdentifierExpression("window"), realIdentifierExpression, false);
+            }
+        }
+
+        @Override
+        public Expression forScratchIdentifierExpression(ScratchIdentifierExpression scratchIdentifierExpression) {
+            if (isInScope(scratchIdentifierExpression, stack)) {
+                return scratchIdentifierExpression;
+            } else {
+                throw new RuntimeException("ast2ast error");
+            }
+        }
+
+        @Override
+        public Statement forTryStatement(TryStatement tryStatement) {
+            BlockStatement block = tryStatement.getBlock();
+            Option<CatchClause> handler = tryStatement.getHandler();
+            Option<BlockStatement> finalizer = tryStatement.getFinalizer();
+            BlockStatement _block = (BlockStatement)block.accept(this);
+            Option<CatchClause> _handler = handler.map(cc -> {
+                IdentifierExpression param = cc.getParam();
+                BlockStatement body = cc.getBody();
+                HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(Set.set(Ord.hashEqualsOrd(), param)));
+                BlockStatement _body = (BlockStatement)body.accept(v);
+                return new CatchClause(param, _body);
+            });
+            Option<BlockStatement> _finalizer = finalizer.map(stmt -> (BlockStatement)stmt.accept(this));
+            return new TryStatement(_block, _handler, _finalizer);
+        }
+
+        @Override
         public Statement forEmptyStatement(EmptyStatement emptyStatement) {
             throw new RuntimeException("ast2ast error");
         }
@@ -1410,7 +1540,125 @@ public class AST2AST {
         }
     }
 
-    public static Node transform(Node ast) {
-        return null;
+    public static class FunctionDeclarationToExpressionV extends DefaultPassV {
+        @Override
+        public Statement forFunctionDeclaration(FunctionDeclaration functionDeclaration) {
+            IdentifierExpression id = functionDeclaration.getId();
+            List<IdentifierExpression> params = functionDeclaration.getParams();
+            BlockStatement body = functionDeclaration.getBody();
+            BlockStatement _body = (BlockStatement)body.accept(this);
+            return new ExpressionStatement(new AssignmentExpression("=", id, new FunctionExpression(Option.some(id), params, _body)));
+        }
+    }
+
+    public static class RemoveThisV extends DefaultPassV {
+        Boolean isGlobal;
+
+        public RemoveThisV() {
+            this.isGlobal = true;
+        }
+
+        public RemoveThisV(Boolean isGlobal) {
+            this.isGlobal = isGlobal;
+        }
+
+        @Override
+        public Expression forThisExpression(ThisExpression thisExpression) {
+            if (isGlobal) {
+                return new RealIdentifierExpression("window");
+            } else {
+                return new ScratchIdentifierExpression(-1); // -1 means self
+            }
+        }
+
+        @Override
+        public Statement forFunctionDeclaration(FunctionDeclaration functionDeclaration) {
+            throw new RuntimeException("ast2ast error");
+        }
+
+        @Override
+        public Expression forFunctionExpression(FunctionExpression functionExpression) {
+            Option<IdentifierExpression> id = functionExpression.getId();
+            List<IdentifierExpression> params = functionExpression.getParams();
+            BlockStatement body = functionExpression.getBody();
+            BlockStatement _body = (BlockStatement)body.accept(new RemoveThisV(false));
+            return new FunctionExpression(id, params, _body);
+        }
+    }
+
+    public static class HandleCatchScopingV extends HoistVariableDeclarationsV {
+        TreeMap<IdentifierExpression, IdentifierExpression> renaming;
+
+        public HandleCatchScopingV() {
+            super();
+            this.renaming = TreeMap.empty(Ord.hashEqualsOrd());
+        }
+
+        public HandleCatchScopingV(TreeMap<IdentifierExpression, IdentifierExpression> renaming) {
+            super();
+            this.renaming = renaming;
+        }
+
+        @Override
+        public P2<CatchClause, Set<IdentifierExpression>> forCatchClause(CatchClause catchClause) {
+            IdentifierExpression param = catchClause.getParam();
+            BlockStatement body = catchClause.getBody();
+            ScratchIdentifierExpression y = ScratchIdentifierExpression.generate();
+            HandleCatchScopingV v = new HandleCatchScopingV(renaming.set(param, y));
+            P2<Statement, Set<IdentifierExpression>> tmp = body.accept(v);
+            assert tmp._1() instanceof BlockStatement;
+            BlockStatement _body = (BlockStatement) tmp._1();
+            return P.p(new CatchClause(y, _body), tmp._2().insert(y));
+        }
+
+        @Override
+        public P2<Expression, Set<IdentifierExpression>> forFunctionExpression(FunctionExpression functionExpression) {
+            Option<IdentifierExpression> id = functionExpression.getId();
+            List<IdentifierExpression> params = functionExpression.getParams();
+            BlockStatement body = functionExpression.getBody();
+            assert body.getBody().isNotEmpty() && body.getBody().head() instanceof VariableDeclaration;
+            VariableDeclaration declaration = (VariableDeclaration)body.getBody().head();
+            Set<IdentifierExpression> locals = Set.set(Ord.hashEqualsOrd(), params.append(declaration.getDeclarations().map(decl -> decl.getId())));
+            TreeMap<IdentifierExpression, IdentifierExpression> tmp = TreeMap.treeMap(Ord.hashEqualsOrd(), renaming.keys().filter(exp -> !locals.member(exp)).map(exp -> P.p(exp, renaming.get(exp).some())));
+            HandleCatchScopingV v = new HandleCatchScopingV(tmp);
+            P2<List<Statement>, List<Set<IdentifierExpression>>> tmp1 = List.unzip(body.getBody().tail().map(stmt -> stmt.accept(v)));
+            List<VariableDeclarator> bindings = declaration.getDeclarations().append(
+                    tmp1._2().foldLeft(HandleCatchScopingV::combine, EMPTY).toList().map(exp -> new VariableDeclarator(
+                            exp, Option.some(new LiteralExpression(new UndefinedLiteral()))
+                    ))
+            );
+            return P.p(new FunctionExpression(id, params, new BlockStatement(tmp1._1().cons(new VariableDeclaration(bindings)))), EMPTY);
+        }
+
+        @Override
+        public P2<Expression, Set<IdentifierExpression>> forRealIdentifierExpression(RealIdentifierExpression realIdentifierExpression) {
+            if (renaming.contains(realIdentifierExpression)) {
+                return P.p(renaming.get(realIdentifierExpression).some(), EMPTY);
+            } else {
+                return P.p(realIdentifierExpression, EMPTY);
+            }
+        }
+
+        @Override
+        public P2<Expression, Set<IdentifierExpression>> forScratchIdentifierExpression(ScratchIdentifierExpression scratchIdentifierExpression) {
+            if (renaming.contains(scratchIdentifierExpression)) {
+                return P.p(renaming.get(scratchIdentifierExpression).some(), EMPTY);
+            } else {
+                return P.p(scratchIdentifierExpression, EMPTY);
+            }
+        }
+    }
+
+    public static Program transform(Program ast) {
+        ast = ast.accept(new ReplaceEmptyWithUndefV());
+        ast = ast.accept(new FixContinueLabelsV());
+        ast = ast.accept(new MakeAllAssignmentsSimpleV());
+        ast = ast.accept(new HoistFunctionsV())._1();
+        ast = ast.accept(new HoistVariableDeclarationsV())._1();
+        ast = ast.accept(new HoistGlobalVariablesV());
+        ast = ast.accept(new FunctionDeclarationToExpressionV());
+        ast = ast.accept(new RemoveThisV());
+        ast = ast.accept(new HandleCatchScopingV())._1();
+        return ast;
     }
 }
