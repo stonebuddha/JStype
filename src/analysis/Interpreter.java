@@ -599,8 +599,25 @@ public class Interpreter {
         }
 
         public Set<State> advanceJV(Domains.JValue jv, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1) {
-            // TODO
-            return null;
+            Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
+            if (ks1.top() instanceof Domains.TryKont) {
+                Domains.TryKont tk = (Domains.TryKont) ks1.top();
+                IRStmt s3 = tk.sf;
+                ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), jv))), trace));
+            }
+            else if (ks1.top() instanceof Domains.CatchKont) {
+                Domains.CatchKont ck = (Domains.CatchKont) ks1.top();
+                IRStmt s3 = ck.sf;
+                ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), jv))), trace));
+            }
+            else if (ks1.top() instanceof Domains.LblKont && ((Domains.LblKont)ks1.top()).lbl == jv.lbl) {
+                ret.union(advanceBV(jv.bv, store1, pad1, ks1.pop()));
+            }
+            else if (ks1.top() != Domains.HaltKont) {
+                Domains.KontStack ks2 = ks1.toSpecial(jv.lbl);
+                ret.union(advanceJV(jv, store1, pad1, ks2));
+            }
+            return ret;
         }
 
         // TODO
