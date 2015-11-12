@@ -278,10 +278,10 @@ public class AST2AST {
 
         @Override
         public Expression forScratchSequenceExpression(ScratchSequenceExpression scratchSequenceExpression) {
-            List<P2<ScratchIdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
+            List<P2<IdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
             Expression body = scratchSequenceExpression.getBody();
             return new ScratchSequenceExpression(
-                    declarations.map(p -> P.p((ScratchIdentifierExpression)p._1().accept(this), p._2().accept(this))),
+                    declarations.map(p -> P.p((IdentifierExpression)p._1().accept(this), p._2().accept(this))),
                     body.accept(this));
         }
 
@@ -471,14 +471,17 @@ public class AST2AST {
                     return new AssignmentExpression("=", left,
                             new BinaryExpression(_operator, left, right.accept(this)));
                 } else if (left instanceof MemberExpression) {
-                    ScratchIdentifierExpression temp1 = VariableAllocator.freshScratchVar();
-                    ScratchIdentifierExpression temp2 = VariableAllocator.freshScratchVar();
+                    //ScratchIdentifierExpression temp1 = VariableAllocator.freshScratchVar();
+                    //ScratchIdentifierExpression temp2 = VariableAllocator.freshScratchVar();
+                    RealIdentifierExpression temp1 = VariableAllocator.freshRealVar();
+                    RealIdentifierExpression temp2 = VariableAllocator.freshRealVar();
                     Expression object = ((MemberExpression) left).getObject();
                     Expression property = ((MemberExpression) left).getProperty();
-                    List<P2<ScratchIdentifierExpression, Expression>> declarations =
-                            List.list(temp1, temp2).zip(List.list(new UnaryExpression("toObj", true, object.accept(this)), property.accept(this)));
-                    return new AssignmentExpression("=", new MemberExpression(temp1, temp2, false),
+                    List<P2<IdentifierExpression, Expression>> declarations =
+                            List.list((IdentifierExpression)temp1, temp2).zip(List.list(new UnaryExpression("toObj", true, object.accept(this)), property.accept(this)));
+                    Expression assign = new AssignmentExpression("=", new MemberExpression(temp1, temp2, false),
                             new BinaryExpression(_operator, new MemberExpression(temp1, temp2, false), right.accept(this)));
+                    return new ScratchSequenceExpression(declarations, assign);
                 } else {
                     throw new RuntimeException("parser error");
                 }
@@ -842,7 +845,7 @@ public class AST2AST {
 
         @Override
         public P2<Expression, List<Statement>> forScratchSequenceExpression(ScratchSequenceExpression scratchSequenceExpression) {
-            List<P2<ScratchIdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
+            List<P2<IdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
             Expression body = scratchSequenceExpression.getBody();
             List<P2<Expression, List<Statement>>> tmp = declarations.map(p -> p._2().accept(this));
             P2<List<Expression>, List<List<Statement>>> tmp1 = List.unzip(tmp);
@@ -1293,10 +1296,10 @@ public class AST2AST {
 
         @Override
         public P2<Expression, Set<IdentifierExpression>> forScratchSequenceExpression(ScratchSequenceExpression scratchSequenceExpression) {
-            List<P2<ScratchIdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
+            List<P2<IdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
             Expression body = scratchSequenceExpression.getBody();
             P2<Expression, Set<IdentifierExpression>> tmp = body.accept(this);
-            P2<List<ScratchIdentifierExpression>, List<Expression>> tmp1 = List.unzip(declarations);
+            P2<List<IdentifierExpression>, List<Expression>> tmp1 = List.unzip(declarations);
             P2<List<Expression>, List<Set<IdentifierExpression>>> tmp2 = List.unzip(tmp1._2().map(exp -> exp.accept(this)));
             Expression exp1 = new SequenceExpression(tmp1._1().zip(tmp2._1()).map(p -> (Expression)new AssignmentExpression("=", p._1(), p._2())).snoc(tmp._1()));
             return P.p(exp1, tmp2._2().foldLeft(HoistVariableDeclarationsV::combine, tmp._2()));
@@ -1659,11 +1662,11 @@ public class AST2AST {
             return new RealIdentifierExpression(tempPrefix + res);
         }
 
-        public static ScratchIdentifierExpression freshScratchVar() {
+        /*public static ScratchIdentifierExpression freshScratchVar() {
             Integer res = nextScratchVarId;
             nextScratchVarId += 1;
             return new ScratchIdentifierExpression(res);
-        }
+        }*/
 
         public static Boolean isTempVar(RealIdentifierExpression x) {
             return x.getName().startsWith(tempPrefix);

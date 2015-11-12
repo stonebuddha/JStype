@@ -150,7 +150,7 @@ public class InitString {
     );
 
     public static Domains.Object String_prototype_concat_Obj = InitUtils.makeNativeValue(
-            (selfAddr, argArrayAddr, final store) -> {
+            (selfAddr, argArrayAddr, store) -> {
                 final Domains.Object args = store.getObj(argArrayAddr);
 
                 Double arglen;
