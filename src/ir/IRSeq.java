@@ -14,7 +14,7 @@ public class IRSeq extends IRStmt {
 
     @Override
     public String toString() {
-        return "(begin " + ss.map(s -> s.toString()).foldLeft((a, b) -> a + b + "; ", "") + ")";
+        return ss.map(s -> s.toString()).foldLeft((a, b) -> a + b + ";\n", "");
     }
 
     @Override

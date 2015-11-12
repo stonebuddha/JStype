@@ -14,7 +14,7 @@ public class IRJump extends IRStmt {
 
     @Override
     public String toString() {
-        return "(jump " + lbl + " " + e + ")";
+        return "jump " + lbl + "(" + e + ");\n";
     }
 
     @Override

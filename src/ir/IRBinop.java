@@ -15,7 +15,7 @@ public class IRBinop extends IRExp {
 
     @Override
     public String toString() {
-        return "(" + op + " " + e1 + " " + e2 + ")";
+        return "(" + e1 + " " + op + " " + e2 + ")";
     }
 
     @Override

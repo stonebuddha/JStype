@@ -971,7 +971,7 @@ public class AST2AST {
             Set<IdentifierExpression> s1 = ss.filter(exp -> exp instanceof RealIdentifierExpression);
             Set<IdentifierExpression> s2 = ss.filter(exp -> exp instanceof ScratchIdentifierExpression);
             Statement stmt1 = new VariableDeclaration(s2.toList().map(exp -> new VariableDeclarator(exp, Option.some(new LiteralExpression(new UndefinedLiteral())))));
-            List<Statement> stmts = s2.toList().map(exp -> new ExpressionStatement(new AssignmentExpression("=", new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), exp, false), new LiteralExpression(new UndefinedLiteral()))));
+            List<Statement> stmts = s1.toList().map(exp -> new ExpressionStatement(new AssignmentExpression("=", exp, new LiteralExpression(new UndefinedLiteral()))));
             return P.p(new Program(stmts.cons(stmt1).append(tmp._1())), Set.empty(Ord.hashEqualsOrd()));
         }
 
@@ -1231,7 +1231,7 @@ public class AST2AST {
                 RealIdentifierExpression y = VariableAllocator.freshRealVar();
                 Statement stmt1 = new VariableDeclaration(decls.cons(new VariableDeclarator(id.some(), Option.some(y))));
                 BlockStatement _body = new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(stmt1));
-                Expression func = new FunctionExpression(id, params, _body);
+                Expression func = new AssignmentExpression("=", y, new FunctionExpression(id, params, _body));
                 return P.p(func, Set.set(Ord.hashEqualsOrd(), y));
             } else {
                 Statement stmt1 = new VariableDeclaration(decls);
@@ -1530,13 +1530,38 @@ public class AST2AST {
     }
 
     public static class FunctionDeclarationToExpressionV extends DefaultPassV {
+        Boolean isGlobal;
+
+        public FunctionDeclarationToExpressionV() {
+            this.isGlobal = true;
+        }
+
+        public FunctionDeclarationToExpressionV(Boolean isGlobal) {
+            this.isGlobal = isGlobal;
+        }
+
         @Override
         public Statement forFunctionDeclaration(FunctionDeclaration functionDeclaration) {
             IdentifierExpression id = functionDeclaration.getId();
             List<IdentifierExpression> params = functionDeclaration.getParams();
             BlockStatement body = functionDeclaration.getBody();
-            BlockStatement _body = (BlockStatement)body.accept(this);
-            return new ExpressionStatement(new AssignmentExpression("=", id, new FunctionExpression(Option.some(id), params, _body)));
+            BlockStatement _body = (BlockStatement)body.accept(new FunctionDeclarationToExpressionV(false));
+            Expression lhs;
+            if (isGlobal) {
+                lhs = new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), id, false);
+            } else {
+                lhs = id;
+            }
+            return new ExpressionStatement(new AssignmentExpression("=", lhs, new FunctionExpression(Option.some(id), params, _body)));
+        }
+
+        @Override
+        public Expression forFunctionExpression(FunctionExpression functionExpression) {
+            Option<IdentifierExpression> id = functionExpression.getId();
+            List<IdentifierExpression> params = functionExpression.getParams();
+            BlockStatement body = functionExpression.getBody();
+            BlockStatement _body = (BlockStatement)body.accept(new FunctionDeclarationToExpressionV(false));
+            return new FunctionExpression(id, params, _body);
         }
     }
 
@@ -1586,6 +1611,19 @@ public class AST2AST {
         public HandleCatchScopingV(TreeMap<IdentifierExpression, IdentifierExpression> renaming) {
             super();
             this.renaming = renaming;
+        }
+
+        @Override
+        public P2<Program, Set<IdentifierExpression>> forProgram(Program program) {
+            List<Statement> body = program.getBody();
+            assert body.isNotEmpty();
+            assert body.head() instanceof VariableDeclaration;
+            VariableDeclaration declaration = (VariableDeclaration)body.head();
+            List<Statement> tail = body.tail();
+            P2<List<Statement>, List<Set<IdentifierExpression>>> _tail = List.unzip(tail.map(stmt -> stmt.accept(this)));
+            List<IdentifierExpression> ll = _tail._2().foldLeft(HandleCatchScopingV::combine, EMPTY).toList();
+            Statement decl = new VariableDeclaration(declaration.getDeclarations().append(ll.map(id -> new VariableDeclarator(id, Option.some(new LiteralExpression(new UndefinedLiteral()))))));
+            return P.p(new Program(_tail._1().cons(decl)), EMPTY);
         }
 
         @Override

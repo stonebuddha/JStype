@@ -15,7 +15,7 @@ public class IRIf extends IRStmt {
 
     @Override
     public String toString() {
-        return "(if " + e + " " + s1 + " " + s2 + ")";
+        return "if (" + e + ")\n" + s1 + "else\n" + s2;
     }
 
     @Override

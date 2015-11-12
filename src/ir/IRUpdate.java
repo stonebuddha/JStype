@@ -14,7 +14,7 @@ public class IRUpdate extends IRStmt {
 
     @Override
     public String toString() {
-        return "(assign " + e1 + "." + e2 + " " + e3 + ")";
+        return e1 + "." + e2 + " := " + e3 + ";\n";
     }
 
     @Override

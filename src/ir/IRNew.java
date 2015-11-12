@@ -15,7 +15,7 @@ public class IRNew extends IRStmt {
 
     @Override
     public String toString() {
-        return "(assign " + x + " " + e1 + "(" + e2 + "))";
+        return x + " := new " + e1 + "(" + e2 + ");\n";
     }
 
     @Override

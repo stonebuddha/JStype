@@ -20,6 +20,7 @@ public class AST2IR {
 
         public static final IRPVar window = newMangledVar(WINDOW_NAME);
         public static final String windowName = getName(window);
+        public static final IRPVar unmangledWindow = getPVar(windowName);
 
         public static final IRPVar global = window;
         public static final IRPVar dummy = newMangledVar("dummy");
@@ -406,7 +407,7 @@ public class AST2IR {
         public P3<IRStmt, IRExp, Set<IRPVar>> forExpressionStatement(ExpressionStatement expressionStatement) {
             Expression exp = expressionStatement.getExpression();
             P3<IRStmt, IRExp, Set<IRPVar>> _exp = exp.accept(this);
-            return _exp;
+            return P.p(_exp._1(), new IRUndef(), _exp._3());
         }
 
         @Override
@@ -502,7 +503,7 @@ public class AST2IR {
                                         new IRSeq(List.list(_right._1(), new IRAssign(y, _right._2()))),
                                         new IRAssign(y, _left._2())
                                 ))),
-                        y, _left._3().union(_right._3()));
+                        y, _left._3().union(_right._3()).insert(y));
             };
             if (operator.equals("&&")) {
                 return logicalHelper.f(new IRBool(true));
@@ -830,7 +831,7 @@ public class AST2IR {
                                                 afterBody,
                                                 new IRAssign(y, toBool(normalTest)))))))),
                 new IRUndef(),
-                Set.empty(Ord.hashEqualsOrd())
+                Set.set(Ord.hashEqualsOrd(), y)
         );
     }
 
@@ -840,7 +841,7 @@ public class AST2IR {
         } else {
             //IRScratch y = freshScratch();
             IRPVar y = freshPVar();
-            return P.p(new IRToObj(y, e), y, Set.empty(Ord.hashEqualsOrd()));
+            return P.p(new IRToObj(y, e), y, Set.set(Ord.hashEqualsOrd(), y));
         }
     }
 
@@ -853,7 +854,7 @@ public class AST2IR {
             //IRScratch y = freshScratch();
             IRPVar y = freshPVar();
             P3<IRStmt, IRExp, Set<IRPVar>> tmp = ifNotPrim.f(y, e);
-            return P.p(tmp._1(), y, tmp._3());
+            return P.p(tmp._1(), y, tmp._3().insert(y));
         };
         Option<Boolean> chk = staticIsPrim(e);
         if (chk.isSome() && chk.some()) {
@@ -877,7 +878,7 @@ public class AST2IR {
                 makeNew(y, PVarMapper.argumentsVar, PVarMapper.dummyAddressVar),
                 new IRSeq(_tmp),
                 new IRUpdate(y, new IRStr("length"), new IRNum((double)args.length()))));
-        return P.p(_s, y, Set.empty(Ord.hashEqualsOrd()));
+        return P.p(_s, y, Set.set(Ord.hashEqualsOrd(), y));
     }
 
     static P3<IRStmt, IRExp, Set<IRPVar>> call(IRVar target, IRExp toCall, IRExp self, List<IRExp> args) {
@@ -979,6 +980,32 @@ public class AST2IR {
     public static IRStmt transform(Program ast) {
         assert PVarMapper.window.n == 0;
         P3<IRStmt, IRExp, Set<IRPVar>> tmp = ast.accept(new TranslateV());
-        return tmp._1();
+        return preamble(tmp._1());
+    }
+
+    public static final List<P2<IRPVar, IRExp>> preambleBindings =
+            List.list(
+                    P.p(PVarMapper.dummy, new IRUndef()),
+                    P.p(PVarMapper.argumentsVar, PVarMapper.windowAccess("Arguments")),
+                    P.p(PVarMapper.dummyAddressVar, PVarMapper.windowAccess("dummyAddress")),
+                    P.p(PVarMapper.numberVar, PVarMapper.windowAccess("Number")),
+                    P.p(PVarMapper.objectVar, PVarMapper.windowAccess("Object")),
+                    P.p(PVarMapper.unmangledWindow, PVarMapper.window)
+            );
+
+    public static IRStmt preamble(IRStmt s) {
+        F2<List<P2<IRPVar, IRExp>>, IRStmt, IRStmt> make = (extra, rest) -> {
+            return new IRDecl(
+                    extra.append(preambleBindings),
+                    new IRSeq(List.list(
+                            new IRUpdate(PVarMapper.window, new IRStr("dummyAddress"), new IRUndef()),
+                            new IRUpdate(PVarMapper.window, new IRStr("Arguments"), new IRUndef()),
+                            rest)));
+        };
+        if (s instanceof IRDecl) {
+            return make.f(((IRDecl) s).bind, ((IRDecl) s).s);
+        } else {
+            return make.f(List.list(), s);
+        }
     }
 }

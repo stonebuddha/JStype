@@ -14,7 +14,7 @@ public class IRLbl extends IRStmt {
 
     @Override
     public String toString() {
-        return "(label " + lbl + " " + s + ")";
+        return lbl + ": " + s + "\n";
     }
 
     @Override

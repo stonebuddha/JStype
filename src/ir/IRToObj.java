@@ -14,7 +14,7 @@ public class IRToObj extends IRStmt {
 
     @Override
     public String toString() {
-        return "(assign " + x + " toObj(" + e + "))";
+        return x + " := toObj(" + e + ");\n";
     }
 
     @Override

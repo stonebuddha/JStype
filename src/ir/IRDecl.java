@@ -17,7 +17,7 @@ public class IRDecl extends IRStmt {
 
     @Override
     public String toString() {
-        return "(let [" + bind.map(p -> p._1().toString() + " = " + p._2().toString()).foldLeft((a, b) -> a + b + ", ", "") + "] " + s + ")";
+        return "var " + bind.map(p -> p._1() + " = " + p._2()).foldLeft((a, b) -> a + b + ", ", "") + "\n{" + s + "}\n";
     }
 
     @Override

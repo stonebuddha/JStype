@@ -16,7 +16,7 @@ public class IRCall extends IRStmt {
 
     @Override
     public String toString() {
-        return "(assign " + x + " " + e1 + "." + e2 + "(" + e3 + ")" + ")";
+        return x + " := " + e1 + "." + e2 + "(" + e3 + ");\n";
     }
 
     @Override

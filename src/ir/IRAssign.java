@@ -14,7 +14,7 @@ public class IRAssign extends IRStmt {
 
     @Override
     public String toString() {
-        return "(assign " + x + " " + e + ")";
+        return x + " := " + e + ";\n";
     }
 
     @Override

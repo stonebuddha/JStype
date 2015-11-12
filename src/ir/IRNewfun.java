@@ -16,7 +16,7 @@ public class IRNewfun extends IRStmt {
 
     @Override
     public String toString() {
-        return "(assign " + x + " newfun " + m + " " + n + ")";
+        return x + " := newfun " + m + "(" + n + ");\n";
     }
 
     @Override

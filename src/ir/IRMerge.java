@@ -6,7 +6,7 @@ package ir;
 public class IRMerge extends IRStmt {
     @Override
     public String toString() {
-        return "";
+        return "(merge)\n";
     }
 
     @Override

@@ -14,7 +14,7 @@ public class IRWhile extends IRStmt {
 
     @Override
     public String toString() {
-        return "(while " + e + " " + s + ")";
+        return "while (" + e + ")\n" + s;
     }
 
     @Override

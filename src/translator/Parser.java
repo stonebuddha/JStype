@@ -54,8 +54,13 @@ public class Parser {
         if (type.equals("EmptyStatement")) {
             return new EmptyStatement();
         } else if (type.equals("BlockStatement")) {
-            JsonArray array = object.get("body").getAsJsonArray();
-            return new BlockStatement(List.list(array).map(Parser::parseStatement));
+            if (object.has("body")) {
+                JsonArray array = object.get("body").getAsJsonArray();
+                return new BlockStatement(List.list(array).map(Parser::parseStatement));
+            } else {
+                JsonElement ele = object.get("block");
+                return parseStatement(ele);
+            }
         } else if (type.equals("ExpressionStatement")) {
             JsonElement ele = object.get("expression");
             Expression expression = parseExpression(ele);

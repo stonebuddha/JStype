@@ -16,7 +16,7 @@ public class IRFor extends IRStmt {
 
     @Override
     public String toString() {
-        return "(for " + x + " " + e + " " + s + ")";
+        return "for (" +  x + " in " + e + ")\n" + s;
     }
 
     @Override

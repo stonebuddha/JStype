@@ -443,7 +443,7 @@ public class Interpreter {
             Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
             program = AST2AST.transform(program);
             IRStmt stmt = AST2IR.transform(program);
-            System.out.println(stmt);
+            System.err.println(stmt);
             return stmt;
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
