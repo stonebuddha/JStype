@@ -11,6 +11,11 @@ public class IRNum extends IRExp {
     }
 
     @Override
+    public String toString() {
+        return v.toString();
+    }
+
+    @Override
     public Object accept(IRExpVisitor ask) {
         return ask.forNum(this);
     }

@@ -15,6 +15,11 @@ public class IRNewfun extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(assign " + x + " newfun " + m + " " + n + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forNewfun(this);
     }

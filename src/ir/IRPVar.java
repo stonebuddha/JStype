@@ -11,6 +11,11 @@ public class IRPVar extends IRVar {
     }
 
     @Override
+    public String toString() {
+        return "VAR[" + n.toString() + "]";
+    }
+
+    @Override
     public Object accept(IRExpVisitor ask) {
         return ask.forPVar(this);
     }

@@ -14,6 +14,11 @@ public class IRBinop extends IRExp {
     }
 
     @Override
+    public String toString() {
+        return "(" + op + " " + e1 + " " + e2 + ")";
+    }
+
+    @Override
     public Object accept(IRExpVisitor ask) {
         return ask.forBinop(this);
     }

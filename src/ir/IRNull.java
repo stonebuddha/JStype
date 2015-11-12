@@ -5,6 +5,11 @@ package ir;
  */
 public class IRNull extends IRExp {
     @Override
+    public String toString() {
+        return "null";
+    }
+
+    @Override
     public Object accept(IRExpVisitor ask) {
         return ask.forNull(this);
     }

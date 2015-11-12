@@ -189,7 +189,7 @@ public class AST2IR {
                                         new IRStr("string"))),
                         new IRAssign(y, new IRBinop(opStr, theLeft, theRight)),
                         new IRSeq(List.list(_theLeft._1(), _theRight._1(), new IRAssign(y, new IRBinop(opNum, _theLeft._2(), _theRight._2()))))),
-                        y, _theLeft._3().union(_theRight._3()));
+                        y, _theLeft._3().union(_theRight._3()).insert(y));
             };
             F<IRExp, P3<IRStmt, IRExp, Set<IRPVar>>> logicalHelper = e -> {
                 //IRScratch y = freshScratch();
@@ -202,7 +202,7 @@ public class AST2IR {
                                         new IRSeq(List.list(_right._1(), new IRAssign(y, _right._2()))),
                                         new IRAssign(y, _left._2())
                                 ))),
-                        y, _left._3().union(_right._3()));
+                        y, _left._3().union(_right._3()).insert(y));
             };
             switch (operator) {
                 case "-":
@@ -233,7 +233,7 @@ public class AST2IR {
                                             new IRAssign(y, new IRBinop(Bop.Plus, isPrimToNumber(e1._2()), isPrimToNumber(e2._2())))
                                     )
                             )
-                    )), y, e1._3().union(e2._3()));
+                    )), y, e1._3().union(e2._3()).insert(y));
                 }
                 case "===": {
                     return withStatementsExp.f(new IRBinop(Bop.StrictEqual, _left._2(), _right._2()));
@@ -362,7 +362,7 @@ public class AST2IR {
                 return P.p(
                         new IRSeq(List.list(_object._1(), _property._1(), new IRSeq(_arguments._1()), access._1(), tmp._1())),
                         y,
-                        _object._3().union(_property._3()).union(_arguments._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd()))).union(access._4()).union(tmp._3()));
+                        _object._3().union(_property._3()).union(_arguments._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd()))).union(access._4()).union(tmp._3()).insert(y));
             } else {
                 P3<IRStmt, IRExp, Set<IRPVar>> _callee = callee.accept(this);
                 P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _arguments = unzip3(arguments.map(exp -> exp.accept(this)));
@@ -372,7 +372,7 @@ public class AST2IR {
                 return P.p(
                         new IRSeq(List.list(_callee._1(), new IRSeq(_arguments._1()), tmp._1())),
                         y,
-                        _callee._3().union(_arguments._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd()))).union(tmp._3()));
+                        _callee._3().union(_arguments._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd()))).union(tmp._3()).insert(y));
             }
         }
 
@@ -456,7 +456,7 @@ public class AST2IR {
             return P.p(
                     new IRSeq(List.list(new IRNewfun(yRes, method, new IRNum((double)params.length())), tmp._1(), makeNew(yProto, PVarMapper.objectVar, tmp._2()), new IRUpdate(yRes, new IRStr("prototype"), yProto))),
                     yRes,
-                    tmp._3());
+                    tmp._3().insert(yProto).insert(yRes));
         }
 
         @Override
@@ -544,7 +544,7 @@ public class AST2IR {
                         throwTypeError,
                         new IRSeq(List.list(args._1(), makeNew(y, _callee._2(), args._2())))))),
                         y,
-                        ys.union(args._3()));
+                        ys.union(args._3()).insert(y));
             } else {
                 if (_.some()) {
                     return P.p(new IRSeq(List.list(pred, throwTypeError)), new IRUndef(), ys);
@@ -552,7 +552,7 @@ public class AST2IR {
                     P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(_arguments._2());
                     //IRScratch y = freshScratch();
                     IRPVar y = freshPVar();
-                    return P.p(new IRSeq(List.list(pred, args._1(), makeNew(y, _callee._2(), args._2()))), y, ys.union(args._3()));
+                    return P.p(new IRSeq(List.list(pred, args._1(), makeNew(y, _callee._2(), args._2()))), y, ys.union(args._3()).insert(y));
                 }
             }
         }
@@ -592,7 +592,7 @@ public class AST2IR {
                             new IRSeq(tmp._2()), args._1(), new IRNew(y, PVarMapper.objectVar, args._2()),
                             new IRSeq(_.map(p -> new IRUpdate(y, p._1(), p._2()))))),
                     y,
-                    _ss.union(args._3()));
+                    _ss.union(args._3()).insert(y));
         }
 
         @Override
@@ -862,8 +862,9 @@ public class AST2IR {
             return notPrim.f(Unit.unit());
         } else {
             P3<IRStmt, IRExp, Set<IRPVar>> tmp = notPrim.f(Unit.unit());
-            IRScratch y = (IRScratch)tmp._2();
-            return P.p(makeIf(new IRUnop(Uop.IsPrim, e), new IRAssign(y, ifPrim.f(e)), tmp._1()), y, tmp._3());
+            //IRScratch y = (IRScratch)tmp._2();
+            IRPVar y = (IRPVar)tmp._2();
+            return P.p(makeIf(new IRUnop(Uop.IsPrim, e), new IRAssign(y, ifPrim.f(e)), tmp._1()), y, tmp._3().insert(y));
         }
     }
 
@@ -973,5 +974,11 @@ public class AST2IR {
 
     static IRPVar freshPVar() {
         return PVarMapper.freshPVar();
+    }
+
+    public static IRStmt transform(Program ast) {
+        assert PVarMapper.window.n == 0;
+        P3<IRStmt, IRExp, Set<IRPVar>> tmp = ast.accept(new TranslateV());
+        return tmp._1();
     }
 }

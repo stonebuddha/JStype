@@ -15,4 +15,9 @@ public class Uop {
     public static final Uop IsPrim = new Uop();
     public static final Uop ToStr = new Uop();
     public static final Uop ToNum = new Uop();
+
+    @Override
+    public String toString() {
+        return "UOP";
+    }
 }

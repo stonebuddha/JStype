@@ -13,6 +13,11 @@ public class IRUnop extends IRExp {
     }
 
     @Override
+    public String toString() {
+        return op + "(" + e + ")";
+    }
+
+    @Override
     public Object accept(IRExpVisitor ask) {
         return ask.forUnop(this);
     }

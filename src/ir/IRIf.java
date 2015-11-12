@@ -14,6 +14,11 @@ public class IRIf extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(if " + e + " " + s1 + " " + s2 + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forIf(this);
     }

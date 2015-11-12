@@ -13,6 +13,11 @@ public class IRLbl extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(label " + lbl + " " + s + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forLbl(this);
     }

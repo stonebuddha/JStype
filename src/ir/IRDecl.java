@@ -16,6 +16,11 @@ public class IRDecl extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(let [" + bind.map(p -> p._1().toString() + " = " + p._2().toString()).foldLeft((a, b) -> a + b + ", ", "") + "] " + s + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forDecl(this);
     }

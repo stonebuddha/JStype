@@ -13,6 +13,11 @@ public class IRWhile extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(while " + e + " " + s + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forWhile(this);
     }

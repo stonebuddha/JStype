@@ -18,7 +18,7 @@ public class Program extends Node {
         return body;
     }
 
-    public Object accept(ProgramVisitor ask) {
+    public <T> T accept(ProgramVisitor<T> ask) {
         return ask.forProgram(this);
     }
     public <T> P2<Program, T> accept(TransformVisitor<T> ask) {

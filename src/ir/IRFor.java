@@ -15,6 +15,11 @@ public class IRFor extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(for " + x + " " + e + " " + s + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forFor(this);
     }

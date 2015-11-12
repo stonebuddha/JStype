@@ -5,6 +5,11 @@ package ir;
  */
 public class IRUndef extends IRExp {
     @Override
+    public String toString() {
+        return "undefined";
+    }
+
+    @Override
     public Object accept(IRExpVisitor ask) {
         return ask.forUndef(this);
     }

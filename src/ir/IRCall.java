@@ -15,6 +15,11 @@ public class IRCall extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(assign " + x + " " + e1 + "." + e2 + "(" + e3 + ")" + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forCall(this);
     }

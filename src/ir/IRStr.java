@@ -11,6 +11,11 @@ public class IRStr extends IRExp {
     }
 
     @Override
+    public String toString() {
+        return "\"" + v + "\"";
+    }
+
+    @Override
     public Object accept(IRExpVisitor ask) {
         return ask.forStr(this);
     }

@@ -13,6 +13,11 @@ public class IRJump extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(jump " + lbl + " " + e + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forJump(this);
     }

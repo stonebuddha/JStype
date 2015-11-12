@@ -30,4 +30,9 @@ public class Bop {
     public static final Bop Access = new Bop();
     public static final Bop InstanceOf = new Bop();
     public static final Bop In = new Bop();
+
+    @Override
+    public String toString() {
+        return "BOP";
+    }
 }

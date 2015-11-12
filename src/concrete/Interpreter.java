@@ -1,11 +1,17 @@
 package concrete;
 
+import ast.Program;
 import concrete.init.Init;
 import fj.*;
 import fj.data.HashMap;
 import fj.data.List;
 import fj.data.Set;
 import ir.*;
+import translator.AST2AST;
+import translator.AST2IR;
+import translator.Parser;
+
+import java.io.*;
 
 /**
  * Created by wayne on 15/10/29.
@@ -425,7 +431,32 @@ public class Interpreter {
     }
 
     public static IRStmt readIR(String file) {
-        // TODO
-        return null;
+        File f = new File(file);
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+            String data;
+            StringBuilder builder = new StringBuilder();
+            while ((data = br.readLine()) != null) {
+                builder.append(data);
+            }
+            Parser.init();
+            Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
+            program = AST2AST.transform(program);
+            IRStmt stmt = AST2IR.transform(program);
+            System.out.println(stmt);
+            return stmt;
+        } catch (FileNotFoundException e) {
+            System.err.println(e.getMessage());
+            return null;
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            return null;
+        } catch (RuntimeException e) {
+            System.err.println(e.getMessage());
+            return null;
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            return null;
+        }
     }
 }

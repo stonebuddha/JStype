@@ -5,6 +5,11 @@ package ir;
  */
 public class IRMerge extends IRStmt {
     @Override
+    public String toString() {
+        return "";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forMerge(this);
     }

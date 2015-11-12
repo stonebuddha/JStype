@@ -13,6 +13,11 @@ public class IRAssign extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(assign " + x + " " + e + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forAssign(this);
     }

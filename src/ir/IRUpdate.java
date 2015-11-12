@@ -13,6 +13,11 @@ public class IRUpdate extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(assign " + e1 + "." + e2 + " " + e3 + ")";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forUpdate(this);
     }

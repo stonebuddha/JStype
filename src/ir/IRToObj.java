@@ -13,6 +13,11 @@ public class IRToObj extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "(assign " + x + " toObj(" + e + "))";
+    }
+
+    @Override
     public Object accept(IRStmtVisitor ask) {
         return ask.forToObj(this);
     }
