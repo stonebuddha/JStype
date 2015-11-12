@@ -3,6 +3,7 @@ package analysis;
 import fj.*;
 import fj.data.*;
 import ir.*;
+import analysis.init.*;
 
 /**
  * Created by BenZ on 15/11/5.
@@ -52,6 +53,63 @@ public class Interpreter {
         // TODO
         return null;
     }
+
+    public static class PruneScratch {
+        public static HashMap<Trace, Domains.Scratchpad> pruned = HashMap.hashMap();
+
+        public static void clear() {
+            pruned.clear();
+        }
+
+        public static Domains.Scratchpad apply(Trace trace) {
+            if (pruned.get(trace).isNone())
+                throw new RuntimeException("Analysis,Interpreter,PruneScratch.apply Null error");
+            return pruned.get(trace).some();
+        }
+
+        public static void update(Trace trace, Domains.Scratchpad pad) {
+            Option<Domains.Scratchpad> value = pruned.get(trace);
+            if (value.isSome()) {
+                Domains.Scratchpad newValue = value.some().merge(pad);
+                pruned.delete(trace);
+                pruned.set(trace, newValue);
+            }
+            else {
+                pruned.set(trace, pad);
+            }
+        }
+    }
+
+    public static class PruneStoreToo {
+        public static HashMap<Trace, P2<Domains.Store, Domains.Scratchpad>> pruned = HashMap.hashMap();
+
+        public static void clear() {
+            pruned.clear();
+        }
+
+        public static P2<Domains.Store, Domains.Scratchpad> apply(Trace trace) {
+            if (pruned.get(trace).isNone())
+                throw new RuntimeException("Analysis,Interpreter,PruneStoreToo.apply Null error");
+            return pruned.get(trace).some();
+        }
+
+        public static void update(Trace trace, P2<Domains.Store, Domains.Scratchpad> storePad) {
+            Option<P2<Domains.Store, Domains.Scratchpad>> value = pruned.get(trace);
+            if (value.isSome()) {
+                P2<Domains.Store, Domains.Scratchpad> newValue = P.p(value.some()._1().merge(storePad._1()), value.some()._2().merge(storePad._2()));
+                pruned.delete(trace);
+                pruned.set(trace, newValue);
+            }
+            else {
+                pruned.set(trace, storePad);
+            }
+        }
+
+        public static boolean contains(Trace trace) {
+            return pruned.contains(trace);
+        }
+    }
+
 
     public static class State {
         public Domains.Term t;
@@ -431,23 +489,101 @@ public class Interpreter {
                 Domains.Env envc = rk.env;
                 Boolean isctor = rk.isctor;
                 Trace tracec = rk.trace;
+
+                Domains.Store store2;
+                Domains.Scratchpad pad2;
                 if (Mutable.pruneStore) {
+                    P2<Domains.Store, Domains.Scratchpad> valuePruned = PruneStoreToo.apply(tracec);
+                    store2 = store1.merge(valuePruned._1());
+                    pad2 = valuePruned._2();
                 }
-                // TODO
+                else {
+                    store2 = store1;
+                    pad2 = PruneScratch.apply(tracec);
+                }
+
+                Domains.Store store3;
+                if (Mutable.fullGC) {
+                    Set<Domains.AddressSpace.Address> vroots = envc.addrs();
+                    Set<Domains.AddressSpace.Address> oroots = bv.as.union(pad2.addrs()).union(Init.keepInStore);
+                    Set<Domains.AddressSpace.Address> kroots;
+                    if (ks1.last() instanceof Domains.AddrKont) {
+                        kroots = Domains.AddressSpace.Addresses.apply(((Domains.AddrKont) ks1.last()).a);
+                    }
+                    else {
+                        kroots = Domains.AddressSpace.Addresses.apply();
+                    }
+                    store3 = store2.fullGC(vroots, oroots, kroots);
+                }
+                else {
+                    store3 = store2;
+                }
+
+                Set<State> call = Set.<State>empty(Ord.<State>hashEqualsOrd());
+                if (!isctor || (bv.as.size() > 0)) {
+                    Domains.BValue bv1;
+                    if (!isctor) {
+                        bv1 = bv;
+                    }
+                    else {
+                        bv1 = Domains.AddressSpace.Addresses.inject(bv.as);
+                    }
+                    if (x instanceof IRPVar) {
+                        call.insert(new State(new Domains.ValueTerm(bv1),
+                                envc,
+                                store3.extend(envc.apply(((IRPVar) x)).some(), bv1),
+                                pad2,
+                                ks1.pop(),
+                                trace.update(tracec)));
+                    }
+                    else if (x instanceof IRScratch ){
+                        call.insert(new State(new Domains.ValueTerm(bv1),
+                                envc,
+                                store3,
+                                pad2.update(((IRScratch) x), bv1),
+                                ks1.pop(),
+                                trace.update(tracec)));
+                    }
+                }
+
+                Set<State> ctor = Set.<State>empty(Ord.<State>hashEqualsOrd());
+                if (!isctor && !bv.defAddr()) {
+                    if (x instanceof IRPVar) {
+                        Domains.BValue t1 = Eval.eval(x, envc, store3, pad2);
+                        ctor.insert(new State(new Domains.ValueTerm(t1), envc, store3, pad2, ks1.pop(), trace.update(tracec)));
+                    }
+                    else if (x instanceof IRScratch) {
+                        ctor.insert(new State(new Domains.ValueTerm(pad2.apply((IRScratch) x)), envc, store3, pad2, ks1.pop(), trace.update(tracec)));
+                    }
+                }
+
+                ret.union(call);
+                ret.union(ctor);
             }
             else if (ks1.top() instanceof Domains.TryKont) {
                 Domains.TryKont tk = (Domains.TryKont) ks1.top();
                 IRStmt s3 = tk.sf;
-                // TODO
+                ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), Domains.Undef.BV))), trace.update(s3)));
             }
             else if (ks1.top() instanceof Domains.CatchKont) {
                 Domains.CatchKont ck = (Domains.CatchKont) ks1.top();
-                // TODO
+                IRStmt s3 = ck.sf;
+                ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), Domains.Undef.BV))), trace.update(s3)));
             }
             else if (ks1.top() instanceof Domains.FinKont) {
                 Domains.FinKont fk = (Domains.FinKont) ks1.top();
                 Set<Domains.Value> vs = fk.vs;
-                // TODO
+                for (Domains.Value value : vs) {
+                    if (value instanceof Domains.BValue) {
+                        ret.union(advanceBV(bv, store1, pad1, ks1.pop()));
+                    }
+                    else if (value instanceof Domains.EValue) {
+                        ret.union(advanceEV((Domains.EValue)value, env, store1, pad1, ks1.pop(), trace));
+                    }
+                    else if (value instanceof Domains.JValue) {
+                        ret.union(advanceJV((Domains.JValue)value, store1, pad1, ks1.pop()));
+                    }
+                }
             }
             else if (ks1.top() instanceof Domains.LblKont) {
                 ret.union(advanceBV(bv, store1, pad1, ks1.pop()));

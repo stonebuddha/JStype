@@ -15,4 +15,6 @@ public class Init {
     public static final TreeMap<JSClass, Set<Domains.Str>> nodelete = null;
 
     public static final TreeMap<JSClass, Set<Domains.Str>> noupdate = null;
+
+    public static Set<Domains.AddressSpace.Address> keepInStore; // TODO
 }
