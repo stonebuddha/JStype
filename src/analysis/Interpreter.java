@@ -12,6 +12,15 @@ public class Interpreter {
     public static class Mutable {
 
         public static Boolean lightGC = false;
+        public static Boolean fullGC = false;
+        public static Boolean pruneStore = false;
+        public static Boolean dangle = false;
+        public static Boolean testing = false;
+        public static Boolean print = false;
+        public static Boolean catchExc = false;
+        public static Boolean inPostFixpoin = false;
+        public static Boolean splitStates = false;
+        public static HashMap<Trace, P3<Trace, IRVar, Domains.AddressSpace.Addresses>> prunedInfo = HashMap.hashMap();
         // TODO
 
         public static void clear() {
@@ -20,6 +29,26 @@ public class Interpreter {
     }
 
     public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) {
+        // TODO
+        return null;
+    }
+
+    public static Trace optionToTrace(String str) {
+        // TODO
+        return null;
+    }
+
+    public static Boolean shouldSplitStates(String str) {
+        // TODO
+        return null;
+    }
+
+    public static IRStmt readAST(String file) {
+        // TODO
+        return null;
+    }
+
+    public static Set<State> process(State initSigma) {
         // TODO
         return null;
     }
@@ -47,13 +76,19 @@ public class Interpreter {
         }
 
         public Boolean merge() {
-            // TODO
-            return null;
+            if (t instanceof Domains.StmtTerm && ((Domains.StmtTerm) t).s instanceof IRMerge) {
+                return true;
+            }
+            return false;
         }
 
         public Integer order() {
-            // TODO
-            return null;
+            if (t instanceof Domains.StmtTerm && ((Domains.StmtTerm) t).s instanceof IRMerge) {
+                return ((IRMerge) ((Domains.StmtTerm) t).s).order();
+            }
+            else {
+                throw new RuntimeException("inconceivable");
+            }
         }
 
         public Domains.BValue eval(IRExp e) {
@@ -385,7 +420,10 @@ public class Interpreter {
                     store2 = store1;
                 }
                 Domains.Store store3 = store2.weaken(m.canEscapeVar, m.canEscapeObj);
-                // TODO
+                Set<Domains.KontStack> konts = store3.getKont(a);
+                for (Domains.KontStack tmpKS : konts) {
+                    ret.union(advanceBV(bv, store3, pad1, tmpKS));
+                }
             }
             else if (ks1.top() instanceof Domains.RetKont) {
                 Domains.RetKont rk = (Domains.RetKont) ks1.top();
@@ -393,6 +431,8 @@ public class Interpreter {
                 Domains.Env envc = rk.env;
                 Boolean isctor = rk.isctor;
                 Trace tracec = rk.trace;
+                if (Mutable.pruneStore) {
+                }
                 // TODO
             }
             else if (ks1.top() instanceof Domains.TryKont) {
