@@ -1,5 +1,7 @@
 package ir;
 
+import fj.P2;
+
 /**
  * Created by wayne on 15/10/27.
  */
@@ -13,12 +15,25 @@ public class IRToObj extends IRStmt {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof IRToObj && x.equals(((IRToObj) obj).x) && e.equals(((IRToObj) obj).e));
+    }
+
+    @Override
     public String toString() {
         return x + " := toObj(" + e + ");\n";
     }
 
     @Override
-    public Object accept(IRStmtVisitor ask) {
+    public <T> T accept(IRStmtVisitor<T> ask) {
+        return ask.forToObj(this);
+    }
+    @Override
+    public IRStmt accept(SimpleTransformVisitor ask) {
+        return ask.forToObj(this);
+    }
+    @Override
+    public <T> P2<IRStmt, T> accept(TransformVisitor<T> ask) {
         return ask.forToObj(this);
     }
 }

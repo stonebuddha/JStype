@@ -20,7 +20,7 @@ public class AST2IR {
 
         public static final IRPVar window = newMangledVar(WINDOW_NAME);
         public static final String windowName = getName(window);
-        public static final IRPVar unmangledWindow = getPVar(windowName);
+        public static final IRPVar unmangledWindow = getPVar(WINDOW_NAME);
 
         public static final IRPVar global = window;
         public static final IRPVar dummy = newMangledVar("dummy");
@@ -143,7 +143,7 @@ public class AST2IR {
                 IRPVar y = freshPVar();
                 IRStmt inner = new IRSeq(List.list(_e1._1(), _e2._1(), tmp1._1(), new IRUpdate(tmp1._2(), tmp1._3(), y)));
                 P3<IRStmt, IRExp, Set<IRPVar>> tmp = make.f(y, inner);
-                return P.p(tmp._1(), tmp._2(), tmp._3().union(_e1._3()).union(_e2._3()).union(tmp1._4()));
+                return P.p(tmp._1(), tmp._2(), tmp._3().union(_e1._3()).union(_e2._3()).union(tmp1._4()).insert(y));
             };
             if (lhs instanceof IdentifierExpression) {
                 IRVar v = PVarMapper.getVar((IdentifierExpression)lhs);

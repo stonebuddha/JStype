@@ -194,13 +194,13 @@ public class Domains {
         }
     }
 
-    public interface BValueVisitor {
-        java.lang.Object forNum(Num bNum);
-        java.lang.Object forBool(Bool bBool);
-        java.lang.Object forStr(Str bStr);
-        java.lang.Object forNull(BValue bNull);
-        java.lang.Object forUndef(BValue bUndef);
-        java.lang.Object forAddress(Address bAddress);
+    public interface BValueVisitor<T> {
+        T forNum(Num bNum);
+        T forBool(Bool bBool);
+        T forStr(Str bStr);
+        T forNull(BValue bNull);
+        T forUndef(BValue bUndef);
+        T forAddress(Address bAddress);
     }
 
     public static abstract class BValue extends Value {
@@ -253,7 +253,7 @@ public class Domains {
         public abstract Str toStr();
         public abstract Num toNum();
 
-        public abstract java.lang.Object accept(BValueVisitor ask);
+        public abstract <T> T accept(BValueVisitor<T> ask);
     }
 
     public static class Num extends BValue {
@@ -418,7 +418,7 @@ public class Domains {
         }
 
         @Override
-        public java.lang.Object accept(BValueVisitor ask) {
+        public <T> T accept(BValueVisitor<T> ask) {
             return ask.forNum(this);
         }
 
@@ -495,7 +495,7 @@ public class Domains {
         }
 
         @Override
-        public java.lang.Object accept(BValueVisitor ask) {
+        public <T> T accept(BValueVisitor<T> ask) {
             return ask.forStr(this);
         }
     }
@@ -541,7 +541,7 @@ public class Domains {
         }
 
         @Override
-        public java.lang.Object accept(BValueVisitor ask) {
+        public <T> T accept(BValueVisitor<T> ask) {
             return ask.forBool(this);
         }
 
@@ -603,7 +603,7 @@ public class Domains {
         }
 
         @Override
-        public java.lang.Object accept(BValueVisitor ask) {
+        public <T> T accept(BValueVisitor<T> ask) {
             return ask.forAddress(this);
         }
 
@@ -631,7 +631,7 @@ public class Domains {
         }
 
         @Override
-        public java.lang.Object accept(BValueVisitor ask) {
+        public <T> T accept(BValueVisitor<T> ask) {
             return ask.forUndef(this);
         }
     };
@@ -653,7 +653,7 @@ public class Domains {
         }
 
         @Override
-        public java.lang.Object accept(BValueVisitor ask) {
+        public <T> T accept(BValueVisitor<T> ask) {
             return ask.forNull(this);
         }
     };

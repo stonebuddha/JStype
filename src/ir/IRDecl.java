@@ -16,12 +16,25 @@ public class IRDecl extends IRStmt {
     }
 
     @Override
-    public String toString() {
-        return "var " + bind.map(p -> p._1() + " = " + p._2()).foldLeft((a, b) -> a + b + ", ", "") + "\n{" + s + "}\n";
+    public boolean equals(Object obj) {
+        return (obj instanceof IRDecl && bind.equals(((IRDecl) obj).bind) && s.equals(((IRDecl) obj).s));
     }
 
     @Override
-    public Object accept(IRStmtVisitor ask) {
+    public String toString() {
+        return "var " + bind.map(p -> p._1() + " = " + p._2()).foldLeft((a, b) -> a + b + ", ", "") + "\n" + s;
+    }
+
+    @Override
+    public <T> T accept(IRStmtVisitor<T> ask) {
+        return ask.forDecl(this);
+    }
+    @Override
+    public IRStmt accept(SimpleTransformVisitor ask) {
+        return ask.forDecl(this);
+    }
+    @Override
+    public <T> P2<IRStmt, T> accept(TransformVisitor<T> ask) {
         return ask.forDecl(this);
     }
 }

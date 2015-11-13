@@ -9,6 +9,7 @@ import fj.data.Set;
 import ir.*;
 import translator.AST2AST;
 import translator.AST2IR;
+import translator.IR2IR;
 import translator.Parser;
 
 import java.io.*;
@@ -19,7 +20,11 @@ import java.io.*;
 public class Interpreter {
 
     public static void main(String[] args) {
-        runner(args);
+        try {
+            runner(args);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     public static class Mutable {
@@ -31,7 +36,7 @@ public class Interpreter {
         }
     }
 
-    public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) {
+    public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) throws FileNotFoundException, IOException {
         Mutable.clear();
         IRStmt ir = readIR(args[0]);
         try {
@@ -430,33 +435,20 @@ public class Interpreter {
         }
     }
 
-    public static IRStmt readIR(String file) {
+    public static IRStmt readIR(String file) throws FileNotFoundException, IOException {
         File f = new File(file);
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
-            String data;
-            StringBuilder builder = new StringBuilder();
-            while ((data = br.readLine()) != null) {
-                builder.append(data);
-            }
-            Parser.init();
-            Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
-            program = AST2AST.transform(program);
-            IRStmt stmt = AST2IR.transform(program);
-            System.err.println(stmt);
-            return stmt;
-        } catch (FileNotFoundException e) {
-            System.err.println(e.getMessage());
-            return null;
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            return null;
-        } catch (RuntimeException e) {
-            System.err.println(e.getMessage());
-            return null;
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            return null;
+        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+        String data;
+        StringBuilder builder = new StringBuilder();
+        while ((data = br.readLine()) != null) {
+            builder.append(data);
         }
+        Parser.init();
+        Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
+        program = AST2AST.transform(program);
+        IRStmt stmt = AST2IR.transform(program);
+        stmt = IR2IR.transform(stmt);
+        System.err.println(stmt);
+        return stmt;
     }
 }

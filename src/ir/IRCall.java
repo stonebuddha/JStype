@@ -1,5 +1,7 @@
 package ir;
 
+import fj.P2;
+
 /**
  * Created by wayne on 15/10/27.
  */
@@ -15,12 +17,25 @@ public class IRCall extends IRStmt {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof IRCall && x.equals(((IRCall) obj).x) && e1.equals(((IRCall) obj).e1) && e2.equals(((IRCall) obj).e2) && e3.equals(((IRCall) obj).e3));
+    }
+
+    @Override
     public String toString() {
         return x + " := " + e1 + "." + e2 + "(" + e3 + ");\n";
     }
 
     @Override
-    public Object accept(IRStmtVisitor ask) {
+    public <T> T accept(IRStmtVisitor<T> ask) {
+        return ask.forCall(this);
+    }
+    @Override
+    public IRStmt accept(SimpleTransformVisitor ask) {
+        return ask.forCall(this);
+    }
+    @Override
+    public <T> P2<IRStmt, T> accept(TransformVisitor<T> ask) {
         return ask.forCall(this);
     }
 }

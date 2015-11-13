@@ -9,6 +9,7 @@ import fj.P2;
 public class IRMethod extends IRNode {
     public IRPVar self, args;
     public IRStmt s;
+
     public Set<IRPVar> freeVars;
     public Set<Integer> canEscapeVar, canEscapeObj, cannotEscape;
 
@@ -21,5 +22,17 @@ public class IRMethod extends IRNode {
         canEscapeVar = escapeSet._1();
         canEscapeObj = escapeSet._2();
         // TODO cannotEscape
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof IRMethod && self.equals(((IRMethod) obj).self) && args.equals(((IRMethod) obj).args) && s.equals(((IRMethod) obj).s));
+    }
+
+    public IRMethod accept(SimpleTransformVisitor ask) {
+        return ask.forMethod(this);
+    }
+    public <T> P2<IRMethod, T> accept(TransformVisitor<T> ask) {
+        return ask.forMethod(this);
     }
 }

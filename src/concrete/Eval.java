@@ -43,45 +43,45 @@ public class Eval {
             }
         };
 
-        IRExpVisitor innerEval = new IRExpVisitor() {
+        IRExpVisitor<Domains.BValue> innerEval = new IRExpVisitor<Domains.BValue>() {
             @Override
-            public Object forNum(IRNum irNum) {
+            public Domains.BValue forNum(IRNum irNum) {
                 Double n = irNum.v;
                 return new Domains.Num(n);
             }
             @Override
-            public Object forBool(IRBool irBool) {
+            public Domains.BValue forBool(IRBool irBool) {
                 Boolean b = irBool.v;
                 return new Domains.Bool(b);
             }
             @Override
-            public Object forStr(IRStr irStr) {
+            public Domains.BValue forStr(IRStr irStr) {
                 String str = irStr.v;
                 return new Domains.Str(str);
             }
             @Override
-            public Object forUndef(IRUndef irUndef) {
+            public Domains.BValue forUndef(IRUndef irUndef) {
                 return Domains.Undef;
             }
             @Override
-            public Object forNull(IRNull irNull) {
+            public Domains.BValue forNull(IRNull irNull) {
                 return Domains.Null;
             }
             @Override
-            public Object forPVar(IRPVar irPVar) {
+            public Domains.BValue forPVar(IRPVar irPVar) {
                 return store.apply(env.apply(irPVar));
             }
             @Override
-            public Object forScratch(IRScratch irScratch) {
+            public Domains.BValue forScratch(IRScratch irScratch) {
                 return pad.apply(irScratch);
             }
             @Override
-            public Object forBinop(IRBinop irBinop) {
+            public Domains.BValue forBinop(IRBinop irBinop) {
                 Bop op = irBinop.op;
                 IRExp e1 = irBinop.e1;
                 IRExp e2 = irBinop.e2;
-                Domains.BValue bv1 = (Domains.BValue)e1.accept(this);
-                Domains.BValue bv2 = (Domains.BValue)e2.accept(this);
+                Domains.BValue bv1 = e1.accept(this);
+                Domains.BValue bv2 = e2.accept(this);
 
                 if (op.equals(Bop.Plus)) {
                     return bv1.plus(bv2);
@@ -146,10 +146,10 @@ public class Eval {
                 }
             }
             @Override
-            public Object forUnop(IRUnop irUnop) {
+            public Domains.BValue forUnop(IRUnop irUnop) {
                 Uop op = irUnop.op;
                 IRExp e = irUnop.e;
-                Domains.BValue bv = (Domains.BValue)e.accept(this);
+                Domains.BValue bv = e.accept(this);
 
                 if (op.equals(Uop.Negate)) {
                     return bv.negate();
@@ -158,29 +158,29 @@ public class Eval {
                 } else if (op.equals(Uop.LogicalNot)) {
                     return bv.logicalNot();
                 } else if (op.equals(Uop.TypeOf)) {
-                    Domains.BValueVisitor typeOf = new Domains.BValueVisitor() {
+                    Domains.BValueVisitor<Domains.BValue> typeOf = new Domains.BValueVisitor<Domains.BValue>() {
                         @Override
-                        public Object forNum(Domains.Num bNum) {
+                        public Domains.BValue forNum(Domains.Num bNum) {
                             return new Domains.Str("number");
                         }
                         @Override
-                        public Object forBool(Domains.Bool bBool) {
+                        public Domains.BValue forBool(Domains.Bool bBool) {
                             return new Domains.Str("boolean");
                         }
                         @Override
-                        public Object forStr(Domains.Str bStr) {
+                        public Domains.BValue forStr(Domains.Str bStr) {
                             return new Domains.Str("string");
                         }
                         @Override
-                        public Object forNull(Domains.BValue bNull) {
+                        public Domains.BValue forNull(Domains.BValue bNull) {
                             return new Domains.Str("object");
                         }
                         @Override
-                        public Object forUndef(Domains.BValue bUndef) {
+                        public Domains.BValue forUndef(Domains.BValue bUndef) {
                             return new Domains.Str("undefined");
                         }
                         @Override
-                        public Object forAddress(Domains.Address bAddress) {
+                        public Domains.BValue forAddress(Domains.Address bAddress) {
                             Domains.Object obj = store.getObj(bAddress);
                             if (obj.getCode() != null) {
                                 return new Domains.Str("function");
@@ -204,6 +204,6 @@ public class Eval {
             }
         };
 
-        return (Domains.BValue)exp.accept(innerEval);
+        return exp.accept(innerEval);
     }
 }

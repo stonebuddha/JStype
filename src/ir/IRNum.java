@@ -1,5 +1,7 @@
 package ir;
 
+import fj.P2;
+
 /**
  * Created by wayne on 15/10/27.
  */
@@ -11,12 +13,25 @@ public class IRNum extends IRExp {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof IRNum && v.equals(((IRNum) obj).v));
+    }
+
+    @Override
     public String toString() {
         return v.toString();
     }
 
     @Override
-    public Object accept(IRExpVisitor ask) {
+    public <T> T accept(IRExpVisitor<T> ask) {
+        return ask.forNum(this);
+    }
+    @Override
+    public IRExp accept(SimpleTransformVisitor ask) {
+        return ask.forNum(this);
+    }
+    @Override
+    public <T> P2<IRExp, T> accept(TransformVisitor<T> ask) {
         return ask.forNum(this);
     }
 }

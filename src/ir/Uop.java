@@ -18,6 +18,24 @@ public class Uop {
 
     @Override
     public String toString() {
-        return "UOP";
+        if (equals(Negate)) {
+            return "-";
+        } else if (equals(Not)) {
+            return "~";
+        } else if (equals(LogicalNot)) {
+            return "!";
+        } else if (equals(TypeOf)) {
+            return "typeof";
+        } else if (equals(ToBool)) {
+            return "tobool";
+        } else if (equals(IsPrim)) {
+            return "isprim";
+        } else if (equals(ToStr)) {
+            return "tostr";
+        } else if (equals(ToNum)) {
+            return "tonum";
+        } else {
+            return "UOP";
+        }
     }
 }
