@@ -1,6 +1,8 @@
 package ir;
 
+import fj.P;
 import fj.P2;
+import fj.Unit;
 
 /**
  * Created by wayne on 15/10/27.
@@ -9,6 +11,11 @@ public class IRMerge extends IRStmt {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRMerge);
+    }
+
+    @Override
+    public int hashCode() {
+        return Unit.unit().hashCode();
     }
 
     @Override

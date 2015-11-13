@@ -1,5 +1,6 @@
 package ir;
 
+import fj.P;
 import fj.P2;
 
 /**
@@ -17,6 +18,11 @@ public class IRSDecl extends IRStmt {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRSDecl && num.equals(((IRSDecl) obj).num) && s.equals(((IRSDecl) obj).s));
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(num, s).hashCode();
     }
 
     @Override

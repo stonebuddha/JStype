@@ -41,7 +41,7 @@ public class InitGlobal {
             P.p(new Domains.Str("Number"), Init.Number_Addr),
             P.p(new Domains.Str("Object"), Init.Object_Addr),
             P.p(new Domains.Str("RegExp"), Init.RegExp_Addr),
-            P.p(new Domains.Str("P.p(new Domains.String"), Init.String_Addr),
+            P.p(new Domains.Str("String"), Init.String_Addr),
             P.p(new Domains.Str("Arguments"), Init.Arguments_Addr),
             P.p(new Domains.Str("dummyAddress"), Init.Dummy_Addr)));
 

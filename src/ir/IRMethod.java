@@ -1,5 +1,6 @@
 package ir;
 
+import fj.P;
 import fj.data.Set;
 import fj.P2;
 
@@ -22,6 +23,11 @@ public class IRMethod extends IRNode {
         canEscapeVar = escapeSet._1();
         canEscapeObj = escapeSet._2();
         // TODO cannotEscape
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(self, args, s).hashCode();
     }
 
     @Override

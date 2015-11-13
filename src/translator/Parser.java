@@ -377,11 +377,19 @@ public class Parser {
     private static Property parseProperty(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         JsonElement ele1 = object.get("key");
-        Node key;
+        String key;
         if (ele1.getAsJsonObject().get("type").getAsString().equals("Identifier")) {
-            key = parseExpression(ele1);
+            RealIdentifierExpression id = (RealIdentifierExpression)parseExpression(ele1);
+            key = id.getName();
         } else {
-            key = parseLiteral(ele1);
+            Literal literal = parseLiteral(ele1);
+            if (literal instanceof StringLiteral) {
+                key = ((StringLiteral) literal).getValue();
+            } else if (literal instanceof NumberLiteral) {
+                key = ((NumberLiteral) literal).getValue().toString();
+            } else {
+                throw new RuntimeException("parser error");
+            }
         }
         JsonElement ele2 = object.get("value");
         Expression value = parseExpression(ele2);

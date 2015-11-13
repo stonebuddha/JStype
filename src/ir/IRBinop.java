@@ -1,5 +1,6 @@
 package ir;
 
+import fj.P;
 import fj.P2;
 
 /**
@@ -18,6 +19,11 @@ public class IRBinop extends IRExp {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRBinop && op.equals(((IRBinop) obj).op) && e1.equals(((IRBinop) obj).e1) && e2.equals(((IRBinop) obj).e2));
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(op, e1, e2).hashCode();
     }
 
     @Override

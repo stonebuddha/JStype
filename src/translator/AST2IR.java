@@ -572,16 +572,10 @@ public class AST2IR {
         public P3<IRStmt, IRExp, Set<IRPVar>> forObjectExpression(ObjectExpression objectExpression) {
             List<Property> properties = objectExpression.getProperties();
             P4<List<IRExp>, List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> tmp = unzip4(properties.map(p -> {
-                Node key = p.getKey();
-                StringLiteral key1;
-                if (key instanceof StringLiteral) {
-                    key1 = (StringLiteral) key;
-                } else {
-                    throw new RuntimeException("parser error");
-                }
+                String key = p.getKey();
                 Expression value = p.getValue();
                 P3<IRStmt, IRExp, Set<IRPVar>> _value = value.accept(this);
-                return P.p(new IRStr(key1.getValue()), _value._1(), _value._2(), _value._3());
+                return P.p(new IRStr(key), _value._1(), _value._2(), _value._3());
             }));
             P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(List.list());
             //IRScratch y = freshScratch();

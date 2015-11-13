@@ -7,10 +7,7 @@ import fj.data.HashMap;
 import fj.data.List;
 import fj.data.Set;
 import ir.*;
-import translator.AST2AST;
-import translator.AST2IR;
-import translator.IR2IR;
-import translator.Parser;
+import translator.*;
 
 import java.io.*;
 
@@ -36,7 +33,7 @@ public class Interpreter {
         }
     }
 
-    public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) throws FileNotFoundException, IOException {
+    public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) throws IOException {
         Mutable.clear();
         IRStmt ir = readIR(args[0]);
         try {
@@ -445,8 +442,11 @@ public class Interpreter {
         }
         Parser.init();
         Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
+        System.err.println(program.accept(PrettyPrinter.formatProgram));
         program = AST2AST.transform(program);
+        System.err.println(program.accept(PrettyPrinter.formatProgram));
         IRStmt stmt = AST2IR.transform(program);
+        System.err.println(stmt);
         stmt = IR2IR.transform(stmt);
         System.err.println(stmt);
         return stmt;

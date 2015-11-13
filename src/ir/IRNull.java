@@ -1,6 +1,7 @@
 package ir;
 
 import fj.P2;
+import fj.Unit;
 
 /**
  * Created by wayne on 15/10/27.
@@ -9,6 +10,11 @@ public class IRNull extends IRExp {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRNull);
+    }
+
+    @Override
+    public int hashCode() {
+        return Unit.unit().hashCode();
     }
 
     @Override

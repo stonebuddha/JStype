@@ -6,17 +6,17 @@ import fj.P2;
  * Created by wayne on 15/10/15.
  */
 public class Property extends Node {
-    Node key;
+    String key;
     Expression value;
     String kind;
 
-    public Property(Node key, Expression value, String kind) {
+    public Property(String key, Expression value, String kind) {
         this.key = key;
         this.value = value;
         this.kind = kind;
     }
 
-    public Node getKey() {
+    public String getKey() {
         return key;
     }
     public Expression getValue() {

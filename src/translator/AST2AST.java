@@ -365,18 +365,10 @@ public class AST2AST {
 
         @Override
         public Property forProperty(Property property) {
-            Node key = property.getKey();
+            String key = property.getKey();
             Expression value = property.getValue();
             String kind = property.getKind();
-            Node _key;
-            if (key instanceof Literal) {
-                _key = ((Literal)key).accept(this);
-            } else if (key instanceof IdentifierExpression) {
-                _key = ((IdentifierExpression)key).accept(this);
-            } else {
-                throw new RuntimeException("parser error");
-            }
-            return new Property(_key, value.accept(this), kind);
+            return new Property(key, value.accept(this), kind);
         }
     }
 
@@ -948,7 +940,7 @@ public class AST2AST {
 
         @Override
         public P2<Property, List<Statement>> forProperty(Property property) {
-            Node key = property.getKey();
+            String key = property.getKey();
             Expression value = property.getValue();
             String kind = property.getKind();
             P2<Expression, List<Statement>> tmp = value.accept(this);
@@ -1367,7 +1359,7 @@ public class AST2AST {
 
         @Override
         public P2<Property, Set<IdentifierExpression>> forProperty(Property property) {
-            Node key = property.getKey();
+            String key = property.getKey();
             Expression value = property.getValue();
             String kind = property.getKind();
             P2<Expression, Set<IdentifierExpression>> tmp = value.accept(this);

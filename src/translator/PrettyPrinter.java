@@ -10,14 +10,14 @@ import fj.data.Option;
  */
 public class PrettyPrinter {
 
-    static final FormatProgramV formatProgram = new FormatProgramV();
-    static final FormatStatementV formatStatement = new FormatStatementV();
-    static final FormatExpressionV formatExpression = new FormatExpressionV();
-    static final FormatLiteralV formatLiteral = new FormatLiteralV();
-    static final FormatSwitchCaseV formatSwitchCase = new FormatSwitchCaseV();
-    static final FormatCatchClauseV formatCatchClause = new FormatCatchClauseV();
-    static final FormatVariableDeclaratorV formatVariableDeclarator = new FormatVariableDeclaratorV();
-    static final FormatPropertyV formatProperty = new FormatPropertyV();
+    public static final FormatProgramV formatProgram = new FormatProgramV();
+    public static final FormatStatementV formatStatement = new FormatStatementV();
+    public static final FormatExpressionV formatExpression = new FormatExpressionV();
+    public static final FormatLiteralV formatLiteral = new FormatLiteralV();
+    public static final FormatSwitchCaseV formatSwitchCase = new FormatSwitchCaseV();
+    public static final FormatCatchClauseV formatCatchClause = new FormatCatchClauseV();
+    public static final FormatVariableDeclaratorV formatVariableDeclarator = new FormatVariableDeclaratorV();
+    public static final FormatPropertyV formatProperty = new FormatPropertyV();
 
     static class FormatProgramV implements ProgramVisitor<Object> {
         @Override
@@ -637,14 +637,10 @@ public class PrettyPrinter {
     static class FormatPropertyV implements PropertyVisitor<Object> {
         @Override
         public Object forProperty(Property property) {
-            Node key = property.getKey();
+            String key = property.getKey();
             Expression value = property.getValue();
             StringBuilder builder = new StringBuilder();
-            if (key instanceof IdentifierExpression) {
-                builder.append(((IdentifierExpression) key).accept(formatExpression));
-            } else {
-                builder.append((String) ((Literal) key).accept(formatLiteral));
-            }
+            builder.append(key);
             builder.append(" : ");
             builder.append((String) value.accept(formatExpression));
             return builder.toString();

@@ -1,5 +1,6 @@
 package ir;
 
+import fj.P;
 import fj.P2;
 
 /**
@@ -20,6 +21,11 @@ public class IRPVar extends IRVar {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRPVar && n.equals(((IRPVar) obj).n));
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(n).hashCode();
     }
 
     @Override

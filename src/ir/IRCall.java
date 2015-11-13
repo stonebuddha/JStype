@@ -1,5 +1,6 @@
 package ir;
 
+import fj.P;
 import fj.P2;
 
 /**
@@ -19,6 +20,11 @@ public class IRCall extends IRStmt {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRCall && x.equals(((IRCall) obj).x) && e1.equals(((IRCall) obj).e1) && e2.equals(((IRCall) obj).e2) && e3.equals(((IRCall) obj).e3));
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(x, e1, e2, e3).hashCode();
     }
 
     @Override

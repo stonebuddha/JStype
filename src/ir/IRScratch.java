@@ -1,5 +1,6 @@
 package ir;
 
+import fj.P;
 import fj.P2;
 
 /**
@@ -15,6 +16,11 @@ public class IRScratch extends IRVar {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRScratch && n.equals(((IRScratch) obj).n));
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(n).hashCode();
     }
 
     @Override

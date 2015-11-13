@@ -1,5 +1,6 @@
 package ir;
 
+import fj.P;
 import fj.P2;
 import fj.data.List;
 
@@ -18,6 +19,11 @@ public class IRDecl extends IRStmt {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRDecl && bind.equals(((IRDecl) obj).bind) && s.equals(((IRDecl) obj).s));
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(bind, s).hashCode();
     }
 
     @Override

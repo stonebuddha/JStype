@@ -1,5 +1,6 @@
 package ir;
 
+import fj.P;
 import fj.P2;
 
 /**
@@ -20,6 +21,11 @@ public class IRTry extends IRStmt {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRTry && s1.equals(((IRTry) obj).s1) && x.equals(((IRTry) obj).x) && s2.equals(((IRTry) obj).s2) && s3.equals(((IRTry) obj).s3));
+    }
+
+    @Override
+    public int hashCode() {
+        return P.p(s1, x, s2, s3).hashCode();
     }
 
     @Override
