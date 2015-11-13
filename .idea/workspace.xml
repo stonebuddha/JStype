@@ -3,42 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="00892aec-1b0e-43d6-bacf-29199b2b2fca" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/MemberExpression.java" afterPath="$PROJECT_DIR$/src/ast/MemberExpression.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ast/Property.java" afterPath="$PROJECT_DIR$/src/ast/Property.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/concrete/Interpreter.java" afterPath="$PROJECT_DIR$/src/concrete/Interpreter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/concrete/init/InitGlobal.java" afterPath="$PROJECT_DIR$/src/concrete/init/InitGlobal.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRAssign.java" afterPath="$PROJECT_DIR$/src/ir/IRAssign.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRBinop.java" afterPath="$PROJECT_DIR$/src/ir/IRBinop.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRBool.java" afterPath="$PROJECT_DIR$/src/ir/IRBool.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRCall.java" afterPath="$PROJECT_DIR$/src/ir/IRCall.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRDecl.java" afterPath="$PROJECT_DIR$/src/ir/IRDecl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRDel.java" afterPath="$PROJECT_DIR$/src/ir/IRDel.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRFor.java" afterPath="$PROJECT_DIR$/src/ir/IRFor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRIf.java" afterPath="$PROJECT_DIR$/src/ir/IRIf.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRJump.java" afterPath="$PROJECT_DIR$/src/ir/IRJump.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRLbl.java" afterPath="$PROJECT_DIR$/src/ir/IRLbl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRMerge.java" afterPath="$PROJECT_DIR$/src/ir/IRMerge.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRMethod.java" afterPath="$PROJECT_DIR$/src/ir/IRMethod.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRNew.java" afterPath="$PROJECT_DIR$/src/ir/IRNew.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRNewfun.java" afterPath="$PROJECT_DIR$/src/ir/IRNewfun.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRNull.java" afterPath="$PROJECT_DIR$/src/ir/IRNull.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRNum.java" afterPath="$PROJECT_DIR$/src/ir/IRNum.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRPVar.java" afterPath="$PROJECT_DIR$/src/ir/IRPVar.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRSDecl.java" afterPath="$PROJECT_DIR$/src/ir/IRSDecl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRScratch.java" afterPath="$PROJECT_DIR$/src/ir/IRScratch.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRSeq.java" afterPath="$PROJECT_DIR$/src/ir/IRSeq.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRStr.java" afterPath="$PROJECT_DIR$/src/ir/IRStr.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRThrow.java" afterPath="$PROJECT_DIR$/src/ir/IRThrow.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRToObj.java" afterPath="$PROJECT_DIR$/src/ir/IRToObj.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRTry.java" afterPath="$PROJECT_DIR$/src/ir/IRTry.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRUndef.java" afterPath="$PROJECT_DIR$/src/ir/IRUndef.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRUnop.java" afterPath="$PROJECT_DIR$/src/ir/IRUnop.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRUpdate.java" afterPath="$PROJECT_DIR$/src/ir/IRUpdate.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ir/IRWhile.java" afterPath="$PROJECT_DIR$/src/ir/IRWhile.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/translator/AST2AST.java" afterPath="$PROJECT_DIR$/src/translator/AST2AST.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/translator/AST2IR.java" afterPath="$PROJECT_DIR$/src/translator/AST2IR.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/translator/Parser.java" afterPath="$PROJECT_DIR$/src/translator/Parser.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/translator/PrettyPrinter.java" afterPath="$PROJECT_DIR$/src/translator/PrettyPrinter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/translator/IR2IR.java" afterPath="$PROJECT_DIR$/src/translator/IR2IR.java" />
     </list>
     <ignored path="JStype.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -61,11 +28,168 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Interpreter.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Interpreter.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/concrete/Interpreter.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="2.4940617">
+            <state vertical-scroll-proportion="-38.88889">
               <caret line="87" column="35" selection-start-line="87" selection-start-column="34" selection-end-line="87" selection-end-column="35" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AST2AST.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/translator/AST2AST.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="804.5185">
+              <caret line="184" column="39" selection-start-line="184" selection-start-column="26" selection-end-line="184" selection-end-column="39" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="IRMerge.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ir/IRMerge.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="17" column="38" selection-start-line="17" selection-start-column="38" selection-end-line="17" selection-end-column="38" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#278#279#0" expanded="true" />
+                <element signature="e#323#324#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AST2IR.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/translator/AST2IR.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-5.3333335">
+              <caret line="748" column="46" selection-start-line="748" selection-start-column="46" selection-end-line="748" selection-end-column="46" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#2368#2369#0" expanded="true" />
+                <element signature="e#2422#2423#0" expanded="true" />
+                <element signature="e#2781#2782#0" expanded="true" />
+                <element signature="e#2833#2834#0" expanded="true" />
+                <element signature="e#22005#22006#0" expanded="true" />
+                <element signature="e#22040#22041#0" expanded="true" />
+                <element signature="e#34877#34878#0" expanded="true" />
+                <element signature="e#34912#34913#0" expanded="true" />
+                <element signature="e#35254#35255#0" expanded="true" />
+                <element signature="e#35289#35290#0" expanded="true" />
+                <element signature="e#37093#37094#0" expanded="true" />
+                <element signature="e#37128#37129#0" expanded="true" />
+                <element signature="e#37247#37248#0" expanded="true" />
+                <element signature="e#37282#37283#0" expanded="true" />
+                <element signature="e#37965#37966#0" expanded="true" />
+                <element signature="e#38000#38001#0" expanded="true" />
+                <element signature="e#40235#40236#0" expanded="true" />
+                <element signature="e#40270#40271#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="IR2IR.java" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/translator/IR2IR.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.6138614">
+              <caret line="394" column="51" selection-start-line="394" selection-start-column="51" selection-end-line="394" selection-end-column="51" />
+              <folding>
+                <element signature="e#7642#7643#0" expanded="true" />
+                <element signature="e#7677#7678#0" expanded="true" />
+                <element signature="e#7795#7796#0" expanded="true" />
+                <element signature="e#7830#7831#0" expanded="true" />
+                <element signature="e#7948#7949#0" expanded="true" />
+                <element signature="e#7983#7984#0" expanded="true" />
+                <element signature="e#8098#8099#0" expanded="true" />
+                <element signature="e#8133#8134#0" expanded="true" />
+                <element signature="e#8251#8252#0" expanded="true" />
+                <element signature="e#8286#8287#0" expanded="true" />
+                <element signature="e#8563#8564#0" expanded="true" />
+                <element signature="e#8598#8599#0" expanded="true" />
+                <element signature="e#8719#8720#0" expanded="true" />
+                <element signature="e#8754#8755#0" expanded="true" />
+                <element signature="e#8872#8873#0" expanded="true" />
+                <element signature="e#8907#8908#0" expanded="true" />
+                <element signature="e#9194#9195#0" expanded="true" />
+                <element signature="e#9229#9230#0" expanded="true" />
+                <element signature="e#9348#9349#0" expanded="true" />
+                <element signature="e#9383#9384#0" expanded="true" />
+                <element signature="e#9502#9503#0" expanded="true" />
+                <element signature="e#9537#9538#0" expanded="true" />
+                <element signature="e#9653#9654#0" expanded="true" />
+                <element signature="e#9688#9689#0" expanded="true" />
+                <element signature="e#9804#9805#0" expanded="true" />
+                <element signature="e#9839#9840#0" expanded="true" />
+                <element signature="e#9952#9953#0" expanded="true" />
+                <element signature="e#9987#9988#0" expanded="true" />
+                <element signature="e#10106#10107#0" expanded="true" />
+                <element signature="e#10141#10142#0" expanded="true" />
+                <element signature="e#10257#10258#0" expanded="true" />
+                <element signature="e#10292#10293#0" expanded="true" />
+                <element signature="e#10414#10415#0" expanded="true" />
+                <element signature="e#10449#10450#0" expanded="true" />
+                <element signature="e#10565#10566#0" expanded="true" />
+                <element signature="e#10600#10601#0" expanded="true" />
+                <element signature="e#10725#10726#0" expanded="true" />
+                <element signature="e#10760#10761#0" expanded="true" />
+                <element signature="e#10882#10883#0" expanded="true" />
+                <element signature="e#10917#10918#0" expanded="true" />
+                <element signature="e#11033#11034#0" expanded="true" />
+                <element signature="e#11068#11069#0" expanded="true" />
+                <element signature="e#11190#11191#0" expanded="true" />
+                <element signature="e#11225#11226#0" expanded="true" />
+                <element signature="e#11347#11348#0" expanded="true" />
+                <element signature="e#11382#11383#0" expanded="true" />
+                <element signature="e#11498#11499#0" expanded="true" />
+                <element signature="e#11533#11534#0" expanded="true" />
+                <element signature="e#11658#11659#0" expanded="true" />
+                <element signature="e#11693#11694#0" expanded="true" />
+                <element signature="e#11815#11816#0" expanded="true" />
+                <element signature="e#11850#11851#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="TransformVisitor.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ir/TransformVisitor.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="7" column="17" selection-start-line="7" selection-start-column="17" selection-end-line="7" selection-end-column="17" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="IRStmt.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ir/IRStmt.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="10" column="70" selection-start-line="10" selection-start-column="70" selection-end-line="10" selection-end-column="70" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ScratchSequenceExpression.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ast/ScratchSequenceExpression.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ScratchIdentifierExpression.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -76,29 +200,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="0" column="9" selection-start-line="0" selection-start-column="9" selection-end-line="0" selection-end-column="9" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Eval.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/concrete/Eval.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="127" column="39" selection-start-line="127" selection-start-column="39" selection-end-line="127" selection-end-column="39" />
-              <folding>
-                <element signature="e#2537#2538#0" expanded="true" />
-                <element signature="e#2606#2607#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Utils.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/concrete/Utils.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="134" column="27" selection-start-line="134" selection-start-column="27" selection-end-line="134" selection-end-column="27" />
               <folding />
             </state>
           </provider>
@@ -148,10 +249,7 @@
         <option value="$PROJECT_DIR$/src/ir/IRExp.java" />
         <option value="$PROJECT_DIR$/src/ir/IRStmt.java" />
         <option value="$PROJECT_DIR$/src/ir/Uop.java" />
-        <option value="$PROJECT_DIR$/src/translator/IR2IR.java" />
         <option value="$PROJECT_DIR$/src/ast/Property.java" />
-        <option value="$PROJECT_DIR$/src/translator/AST2IR.java" />
-        <option value="$PROJECT_DIR$/src/translator/AST2AST.java" />
         <option value="$PROJECT_DIR$/src/ast/MemberExpression.java" />
         <option value="$PROJECT_DIR$/src/translator/Parser.java" />
         <option value="$PROJECT_DIR$/src/concrete/Utils.java" />
@@ -188,6 +286,9 @@
         <option value="$PROJECT_DIR$/src/translator/PrettyPrinter.java" />
         <option value="$PROJECT_DIR$/src/concrete/Interpreter.java" />
         <option value="$PROJECT_DIR$/src/test/test0.js" />
+        <option value="$PROJECT_DIR$/src/translator/AST2AST.java" />
+        <option value="$PROJECT_DIR$/src/translator/AST2IR.java" />
+        <option value="$PROJECT_DIR$/src/translator/IR2IR.java" />
       </list>
     </option>
   </component>
@@ -378,25 +479,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="concrete" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="JStype" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="JStype" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="concrete" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="init" />
+              <option name="myItemId" value="ast" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -986,13 +1069,7 @@
       <workItem from="1447054483922" duration="2107000" />
       <workItem from="1447058604801" duration="1335000" />
       <workItem from="1447063013525" duration="163000" />
-      <workItem from="1447063298979" duration="102503000" />
-    </task>
-    <task id="LOCAL-00018" summary="decide to try nci-style analysis">
-      <created>1445345423396</created>
-      <option name="number" value="00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1445345423396</updated>
+      <workItem from="1447063298979" duration="105951000" />
     </task>
     <task id="LOCAL-00019" summary="declare basic data structures for nci">
       <created>1445346895776</created>
@@ -1282,11 +1359,17 @@
       <option name="project" value="LOCAL" />
       <updated>1447405895425</updated>
     </task>
-    <option name="localTasksCounter" value="67" />
+    <task id="LOCAL-00067" summary="make 'var a = 5;' work&#10;">
+      <created>1447416986362</created>
+      <option name="number" value="00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1447416986362</updated>
+    </task>
+    <option name="localTasksCounter" value="68" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="290116000" />
+    <option name="totallyTimeSpent" value="293564000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1280" height="800" extended-state="0" />
@@ -1299,10 +1382,10 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3479452" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.269863" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32961783" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22213247" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22213247" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1356,7 +1439,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add domains for analysis, need to finish all operations on lattice" />
     <MESSAGE value="add merge and partial order for abstract string" />
     <MESSAGE value="complete abstract string operations" />
     <MESSAGE value="complete abstract BValue" />
@@ -1381,7 +1463,8 @@
     <MESSAGE value="fighting" />
     <MESSAGE value="ast2ast seems working" />
     <MESSAGE value="fix some bugs in ast2ir stages&#10;" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix some bugs in ast2ir stages&#10;" />
+    <MESSAGE value="make 'var a = 5;' work&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value="make 'var a = 5;' work&#10;" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1401,51 +1484,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/translator/IR2IR.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="238" column="0" selection-start-line="238" selection-start-column="0" selection-end-line="238" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/analysis/Interpreter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="381" column="45" selection-start-line="381" selection-start-column="45" selection-end-line="381" selection-end-column="45" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/Property.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="16" selection-start-line="18" selection-start-column="16" selection-end-line="18" selection-end-column="16" />
-          <folding>
-            <element signature="e#340#341#0" expanded="false" />
-            <element signature="e#366#367#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/translator/AST2AST.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="254" column="0" selection-start-line="254" selection-start-column="0" selection-end-line="254" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ast/MemberExpression.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="8" selection-start-line="18" selection-start-column="8" selection-end-line="18" selection-end-column="8" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/translator/Parser.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1593,20 +1631,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ir/IRMerge.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="17" column="38" selection-start-line="17" selection-start-column="38" selection-end-line="17" selection-end-column="38" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#188#189#0" expanded="true" />
-            <element signature="e#235#236#0" expanded="true" />
-            <element signature="e#278#279#0" expanded="true" />
-            <element signature="e#323#324#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ir/IRMethod.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1724,14 +1748,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ir/IRStmt.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="10" column="70" selection-start-line="10" selection-start-column="70" selection-end-line="10" selection-end-column="70" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ir/IRStmtVisitor.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1842,16 +1858,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/translator/AST2IR.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="457" column="61" selection-start-line="457" selection-start-column="61" selection-end-line="457" selection-end-column="61" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ir/IRNode.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1881,8 +1887,8 @@
         <state vertical-scroll-proportion="0.3325893">
           <caret line="724" column="30" selection-start-line="724" selection-start-column="30" selection-end-line="724" selection-end-column="30" />
           <folding>
-            <element signature="e#20502#20503#0" expanded="true" />
-            <element signature="e#20548#20549#0" expanded="true" />
+            <element signature="e#20502#20503#0" expanded="false" />
+            <element signature="e#20548#20549#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1938,6 +1944,22 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/ScratchSequenceExpression.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ast/ScratchIdentifierExpression.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/test/test0.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1948,9 +1970,134 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/concrete/Interpreter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.4940617">
+        <state vertical-scroll-proportion="-38.88889">
           <caret line="87" column="35" selection-start-line="87" selection-start-column="34" selection-end-line="87" selection-end-column="35" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ir/TransformVisitor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="7" column="17" selection-start-line="7" selection-start-column="17" selection-end-line="7" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ir/IRStmt.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="10" column="70" selection-start-line="10" selection-start-column="70" selection-end-line="10" selection-end-column="70" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/translator/AST2AST.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="804.5185">
+          <caret line="184" column="39" selection-start-line="184" selection-start-column="26" selection-end-line="184" selection-end-column="39" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ir/IRMerge.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="17" column="38" selection-start-line="17" selection-start-column="38" selection-end-line="17" selection-end-column="38" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#278#279#0" expanded="true" />
+            <element signature="e#323#324#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/translator/AST2IR.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.3333335">
+          <caret line="748" column="46" selection-start-line="748" selection-start-column="46" selection-end-line="748" selection-end-column="46" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#2368#2369#0" expanded="true" />
+            <element signature="e#2422#2423#0" expanded="true" />
+            <element signature="e#2781#2782#0" expanded="true" />
+            <element signature="e#2833#2834#0" expanded="true" />
+            <element signature="e#22005#22006#0" expanded="true" />
+            <element signature="e#22040#22041#0" expanded="true" />
+            <element signature="e#34877#34878#0" expanded="true" />
+            <element signature="e#34912#34913#0" expanded="true" />
+            <element signature="e#35254#35255#0" expanded="true" />
+            <element signature="e#35289#35290#0" expanded="true" />
+            <element signature="e#37093#37094#0" expanded="true" />
+            <element signature="e#37128#37129#0" expanded="true" />
+            <element signature="e#37247#37248#0" expanded="true" />
+            <element signature="e#37282#37283#0" expanded="true" />
+            <element signature="e#37965#37966#0" expanded="true" />
+            <element signature="e#38000#38001#0" expanded="true" />
+            <element signature="e#40235#40236#0" expanded="true" />
+            <element signature="e#40270#40271#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/translator/IR2IR.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6138614">
+          <caret line="394" column="51" selection-start-line="394" selection-start-column="51" selection-end-line="394" selection-end-column="51" />
+          <folding>
+            <element signature="e#7642#7643#0" expanded="true" />
+            <element signature="e#7677#7678#0" expanded="true" />
+            <element signature="e#7795#7796#0" expanded="true" />
+            <element signature="e#7830#7831#0" expanded="true" />
+            <element signature="e#7948#7949#0" expanded="true" />
+            <element signature="e#7983#7984#0" expanded="true" />
+            <element signature="e#8098#8099#0" expanded="true" />
+            <element signature="e#8133#8134#0" expanded="true" />
+            <element signature="e#8251#8252#0" expanded="true" />
+            <element signature="e#8286#8287#0" expanded="true" />
+            <element signature="e#8563#8564#0" expanded="true" />
+            <element signature="e#8598#8599#0" expanded="true" />
+            <element signature="e#8719#8720#0" expanded="true" />
+            <element signature="e#8754#8755#0" expanded="true" />
+            <element signature="e#8872#8873#0" expanded="true" />
+            <element signature="e#8907#8908#0" expanded="true" />
+            <element signature="e#9194#9195#0" expanded="true" />
+            <element signature="e#9229#9230#0" expanded="true" />
+            <element signature="e#9348#9349#0" expanded="true" />
+            <element signature="e#9383#9384#0" expanded="true" />
+            <element signature="e#9502#9503#0" expanded="true" />
+            <element signature="e#9537#9538#0" expanded="true" />
+            <element signature="e#9653#9654#0" expanded="true" />
+            <element signature="e#9688#9689#0" expanded="true" />
+            <element signature="e#9804#9805#0" expanded="true" />
+            <element signature="e#9839#9840#0" expanded="true" />
+            <element signature="e#9952#9953#0" expanded="true" />
+            <element signature="e#9987#9988#0" expanded="true" />
+            <element signature="e#10106#10107#0" expanded="true" />
+            <element signature="e#10141#10142#0" expanded="true" />
+            <element signature="e#10257#10258#0" expanded="true" />
+            <element signature="e#10292#10293#0" expanded="true" />
+            <element signature="e#10414#10415#0" expanded="true" />
+            <element signature="e#10449#10450#0" expanded="true" />
+            <element signature="e#10565#10566#0" expanded="true" />
+            <element signature="e#10600#10601#0" expanded="true" />
+            <element signature="e#10725#10726#0" expanded="true" />
+            <element signature="e#10760#10761#0" expanded="true" />
+            <element signature="e#10882#10883#0" expanded="true" />
+            <element signature="e#10917#10918#0" expanded="true" />
+            <element signature="e#11033#11034#0" expanded="true" />
+            <element signature="e#11068#11069#0" expanded="true" />
+            <element signature="e#11190#11191#0" expanded="true" />
+            <element signature="e#11225#11226#0" expanded="true" />
+            <element signature="e#11347#11348#0" expanded="true" />
+            <element signature="e#11382#11383#0" expanded="true" />
+            <element signature="e#11498#11499#0" expanded="true" />
+            <element signature="e#11533#11534#0" expanded="true" />
+            <element signature="e#11658#11659#0" expanded="true" />
+            <element signature="e#11693#11694#0" expanded="true" />
+            <element signature="e#11815#11816#0" expanded="true" />
+            <element signature="e#11850#11851#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

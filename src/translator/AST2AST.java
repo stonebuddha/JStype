@@ -463,10 +463,8 @@ public class AST2AST {
                     return new AssignmentExpression("=", left,
                             new BinaryExpression(_operator, left, right.accept(this)));
                 } else if (left instanceof MemberExpression) {
-                    //ScratchIdentifierExpression temp1 = VariableAllocator.freshScratchVar();
-                    //ScratchIdentifierExpression temp2 = VariableAllocator.freshScratchVar();
-                    RealIdentifierExpression temp1 = VariableAllocator.freshRealVar();
-                    RealIdentifierExpression temp2 = VariableAllocator.freshRealVar();
+                    ScratchIdentifierExpression temp1 = VariableAllocator.freshScratchVar();
+                    ScratchIdentifierExpression temp2 = VariableAllocator.freshScratchVar();
                     Expression object = ((MemberExpression) left).getObject();
                     Expression property = ((MemberExpression) left).getProperty();
                     List<P2<IdentifierExpression, Expression>> declarations =
@@ -1692,11 +1690,15 @@ public class AST2AST {
             return new RealIdentifierExpression(tempPrefix + res);
         }
 
-        /*public static ScratchIdentifierExpression freshScratchVar() {
+        public static Integer getNextScratchVarId() {
+            return nextScratchVarId;
+        }
+
+        public static ScratchIdentifierExpression freshScratchVar() {
             Integer res = nextScratchVarId;
             nextScratchVarId += 1;
             return new ScratchIdentifierExpression(res);
-        }*/
+        }
 
         public static Boolean isTempVar(RealIdentifierExpression x) {
             return x.getName().startsWith(tempPrefix);

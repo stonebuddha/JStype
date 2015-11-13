@@ -2,7 +2,9 @@ package translator;
 
 import fj.P;
 import fj.P2;
+import fj.P3;
 import fj.data.List;
+import fj.data.TreeMap;
 import ir.*;
 
 /**
@@ -247,7 +249,150 @@ public class IR2IR {
         }
     }
 
+    public static class InsertSDeclsV implements TransformVisitor<P3<Integer, Integer, TreeMap<Integer, Integer>>> {
+        @Override
+        public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forBinop(IRBinop irBinop) {
+            return null;
+        }
+
+        @Override
+        public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forBool(IRBool irBool) {
+            return null;
+        }
+
+        @Override
+        public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forNull(IRNull irNull) {
+            return null;
+        }
+
+        @Override
+        public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forNum(IRNum irNum) {
+            return null;
+        }
+
+        @Override
+        public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forPVar(IRPVar irPVar) {
+            return null;
+        }
+
+        @Override
+        public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forScratch(IRScratch irScratch) {
+            return null;
+        }
+
+        @Override
+        public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forStr(IRStr irStr) {
+            return null;
+        }
+
+        @Override
+        public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forUndef(IRUndef irUndef) {
+            return null;
+        }
+
+        @Override
+        public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forUnop(IRUnop irUnop) {
+            return null;
+        }
+
+        @Override
+        public P2<IRMethod, P3<Integer, Integer, TreeMap<Integer, Integer>>> forMethod(IRMethod irMethod) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forAssign(IRAssign irAssign) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forCall(IRCall irCall) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forDecl(IRDecl irDecl) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forDel(IRDel irDel) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forFor(IRFor irFor) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forIf(IRIf irIf) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forJump(IRJump irJump) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forLbl(IRLbl irLbl) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forMerge(IRMerge irMerge) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forNew(IRNew irNew) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forNewfun(IRNewfun irNewfun) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forSDecl(IRSDecl irSDecl) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forSeq(IRSeq irSeq) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forThrow(IRThrow irThrow) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forToObj(IRToObj irToObj) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forTry(IRTry irTry) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forUpdate(IRUpdate irUpdate) {
+            return null;
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forWhile(IRWhile irWhile) {
+            return null;
+        }
+    }
+
     public static IRStmt transform(IRStmt stmt) {
+        stmt = stmt.accept(new InsertSDeclsV())._1();
         stmt = stmt.accept(new FlattenSequencesV());
         stmt = stmt.accept(new RemoveEmptyDeclsV());
         stmt = stmt.accept(new RemoveNopsV());
