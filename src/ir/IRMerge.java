@@ -35,4 +35,7 @@ public class IRMerge extends IRStmt {
     public <T> P2<IRStmt, T> accept(TransformVisitor<T> ask) {
         return ask.forMerge(this);
     }
+    public Integer order() {
+        return this.id;
+    }
 }
