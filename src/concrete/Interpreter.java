@@ -432,7 +432,7 @@ public class Interpreter {
         }
     }
 
-    public static IRStmt readIR(String file) throws FileNotFoundException, IOException {
+    public static IRStmt readIR(String file) throws IOException {
         File f = new File(file);
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
         String data;

@@ -24,6 +24,11 @@ public class IRScratch extends IRVar {
     }
 
     @Override
+    public String toString() {
+        return "SCRATCH[" + n + "]";
+    }
+
+    @Override
     public <T> T accept(IRExpVisitor<T> ask) {
         return ask.forScratch(this);
     }

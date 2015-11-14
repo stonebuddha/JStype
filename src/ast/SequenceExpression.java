@@ -8,11 +8,21 @@ import fj.data.List;
  */
 public class SequenceExpression extends Expression {
     List<Expression> expressions;
+    Boolean isOrig;
 
     public SequenceExpression(List<Expression> expressions) {
         this.expressions = expressions;
+        this.isOrig = true;
     }
 
+    public SequenceExpression(List<Expression> expressions, Boolean isOrig) {
+        this.expressions = expressions;
+        this.isOrig = isOrig;
+    }
+
+    public Boolean getOrig() {
+        return isOrig;
+    }
     public List<Expression> getExpressions() {
         return expressions;
     }

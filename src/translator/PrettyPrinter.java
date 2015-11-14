@@ -537,10 +537,10 @@ public class PrettyPrinter {
 
         @Override
         public Object forScratchSequenceExpression(ScratchSequenceExpression scratchSequenceExpression) {
-            List<P2<IdentifierExpression, Expression>> decls = scratchSequenceExpression.getDeclarations();
+            List<P2<ScratchIdentifierExpression, Expression>> decls = scratchSequenceExpression.getDeclarations();
             Expression body = scratchSequenceExpression.getBody();
             StringBuilder builder = new StringBuilder();
-            for (P2<IdentifierExpression, Expression> p : decls) {
+            for (P2<ScratchIdentifierExpression, Expression> p : decls) {
                 builder.append("var "+ p._1().accept(formatExpression) + " = " + p._2().accept(formatExpression) + ";\n");
             }
             builder.append(body.accept(formatExpression));

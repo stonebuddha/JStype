@@ -18,10 +18,10 @@ public class IRMethod extends IRNode {
         this.self = self;
         this.args = args;
         this.s = s;
-        freeVars = IRNode.free(this);
+        /*freeVars = IRNode.free(this);
         P2<Set<Integer>, Set<Integer>> escapeSet = IRNode.escape(this);
         canEscapeVar = escapeSet._1();
-        canEscapeObj = escapeSet._2();
+        canEscapeObj = escapeSet._2();*/
         // TODO cannotEscape
     }
 

@@ -278,17 +278,17 @@ public class AST2AST {
 
         @Override
         public Expression forScratchSequenceExpression(ScratchSequenceExpression scratchSequenceExpression) {
-            List<P2<IdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
+            List<P2<ScratchIdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
             Expression body = scratchSequenceExpression.getBody();
             return new ScratchSequenceExpression(
-                    declarations.map(p -> P.p((IdentifierExpression)p._1().accept(this), p._2().accept(this))),
+                    declarations.map(p -> P.p((ScratchIdentifierExpression)p._1().accept(this), p._2().accept(this))),
                     body.accept(this));
         }
 
         @Override
         public Expression forSequenceExpression(SequenceExpression sequenceExpression) {
             List<Expression> expressions = sequenceExpression.getExpressions();
-            return new SequenceExpression(expressions.map(exp -> exp.accept(this)));
+            return new SequenceExpression(expressions.map(exp -> exp.accept(this)), false);
         }
 
         @Override
@@ -467,8 +467,8 @@ public class AST2AST {
                     ScratchIdentifierExpression temp2 = VariableAllocator.freshScratchVar();
                     Expression object = ((MemberExpression) left).getObject();
                     Expression property = ((MemberExpression) left).getProperty();
-                    List<P2<IdentifierExpression, Expression>> declarations =
-                            List.list((IdentifierExpression)temp1, temp2).zip(List.list(new UnaryExpression("toObj", true, object.accept(this)), property.accept(this)));
+                    List<P2<ScratchIdentifierExpression, Expression>> declarations =
+                            List.list(temp1, temp2).zip(List.list(new UnaryExpression("toObj", true, object.accept(this)), property.accept(this)));
                     Expression assign = new AssignmentExpression("=", new MemberExpression(temp1, temp2, false),
                             new BinaryExpression(_operator, new MemberExpression(temp1, temp2, false), right.accept(this)));
                     return new ScratchSequenceExpression(declarations, assign);
@@ -835,7 +835,7 @@ public class AST2AST {
 
         @Override
         public P2<Expression, List<Statement>> forScratchSequenceExpression(ScratchSequenceExpression scratchSequenceExpression) {
-            List<P2<IdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
+            List<P2<ScratchIdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
             Expression body = scratchSequenceExpression.getBody();
             List<P2<Expression, List<Statement>>> tmp = declarations.map(p -> p._2().accept(this));
             P2<List<Expression>, List<List<Statement>>> tmp1 = List.unzip(tmp);
@@ -850,7 +850,7 @@ public class AST2AST {
             List<Expression> expressions = sequenceExpression.getExpressions();
             P2<List<Expression>, List<List<Statement>>> tmp = List.unzip(expressions.map(exp -> exp.accept(this)));
             assert tmp._2().forall(List.isEmpty_());
-            return P.p(new SequenceExpression(tmp._1()), List.list());
+            return P.p(new SequenceExpression(tmp._1(), false), List.list());
         }
 
         @Override
@@ -1135,7 +1135,7 @@ public class AST2AST {
             Set<IdentifierExpression> vars = declarations.foldLeft((s, decl) -> s.insert(decl.getId()), EMPTY);
             List<P2<VariableDeclarator, Set<IdentifierExpression>>> tmp = declarations.map(decl -> decl.accept(this));
             P2<List<VariableDeclarator>, List<Set<IdentifierExpression>>> tmp1 = List.unzip(tmp);
-            Statement stmt1 = new ExpressionStatement(new SequenceExpression(tmp1._1().filter(decl -> decl.getInit().isSome()).map(decl -> new AssignmentExpression("=", decl.getId(), decl.getInit().some()))));
+            Statement stmt1 = new ExpressionStatement(new SequenceExpression(tmp1._1().filter(decl -> decl.getInit().isSome()).map(decl -> new AssignmentExpression("=", decl.getId(), decl.getInit().some())), false));
             return P.p(stmt1, tmp1._2().foldLeft(HoistVariableDeclarationsV::combine, vars));
         }
 
@@ -1286,12 +1286,12 @@ public class AST2AST {
 
         @Override
         public P2<Expression, Set<IdentifierExpression>> forScratchSequenceExpression(ScratchSequenceExpression scratchSequenceExpression) {
-            List<P2<IdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
+            List<P2<ScratchIdentifierExpression, Expression>> declarations = scratchSequenceExpression.getDeclarations();
             Expression body = scratchSequenceExpression.getBody();
             P2<Expression, Set<IdentifierExpression>> tmp = body.accept(this);
-            P2<List<IdentifierExpression>, List<Expression>> tmp1 = List.unzip(declarations);
+            P2<List<ScratchIdentifierExpression>, List<Expression>> tmp1 = List.unzip(declarations);
             P2<List<Expression>, List<Set<IdentifierExpression>>> tmp2 = List.unzip(tmp1._2().map(exp -> exp.accept(this)));
-            Expression exp1 = new SequenceExpression(tmp1._1().zip(tmp2._1()).map(p -> (Expression)new AssignmentExpression("=", p._1(), p._2())).snoc(tmp._1()));
+            Expression exp1 = new SequenceExpression(tmp1._1().zip(tmp2._1()).map(p -> (Expression)new AssignmentExpression("=", p._1(), p._2())).snoc(tmp._1()), false);
             return P.p(exp1, tmp2._2().foldLeft(HoistVariableDeclarationsV::combine, tmp._2()));
         }
 
@@ -1299,7 +1299,7 @@ public class AST2AST {
         public P2<Expression, Set<IdentifierExpression>> forSequenceExpression(SequenceExpression sequenceExpression) {
             List<Expression> expressions = sequenceExpression.getExpressions();
             P2<List<Expression>, List<Set<IdentifierExpression>>> tmp = List.unzip(expressions.map(exp -> exp.accept(this)));
-            return P.p(new SequenceExpression(tmp._1()), tmp._2().foldLeft(HoistVariableDeclarationsV::combine, EMPTY));
+            return P.p(new SequenceExpression(tmp._1(), false), tmp._2().foldLeft(HoistVariableDeclarationsV::combine, EMPTY));
         }
 
         @Override
@@ -1392,10 +1392,10 @@ public class AST2AST {
     }
 
     public static class HoistGlobalVariablesV extends DefaultPassV {
-        List<Set<IdentifierExpression>> stack;
+        List<Set<RealIdentifierExpression>> stack;
 
-        static Boolean isInScope(IdentifierExpression id, List<Set<IdentifierExpression>> stack) {
-            if (id instanceof RealIdentifierExpression && ((RealIdentifierExpression) id).getName().equals(AST2IR.PVarMapper.ARGUMENTS_NAME) && stack.length() > 2) {
+        static Boolean isInScope(RealIdentifierExpression id, List<Set<RealIdentifierExpression>> stack) {
+            if (id.getName().equals(AST2IR.PVarMapper.ARGUMENTS_NAME) && stack.length() > 2) {
                 return true;
             }
             if (stack.isEmpty()) {
@@ -1407,14 +1407,14 @@ public class AST2AST {
             }
         }
 
-        public HoistGlobalVariablesV(List<Set<IdentifierExpression>> stack) {
+        public HoistGlobalVariablesV(List<Set<RealIdentifierExpression>> stack) {
             this.stack = stack;
         }
 
         public HoistGlobalVariablesV() {
-            IdentifierExpression id1 = new RealIdentifierExpression(AST2IR.PVarMapper.WINDOW_NAME);
-            IdentifierExpression id2 = new RealIdentifierExpression(AST2IR.PVarMapper.windowName);
-            Set<IdentifierExpression> ss = Set.set(Ord.hashEqualsOrd(), id1, id2);
+            RealIdentifierExpression id1 = new RealIdentifierExpression(AST2IR.PVarMapper.WINDOW_NAME);
+            RealIdentifierExpression id2 = new RealIdentifierExpression(AST2IR.PVarMapper.windowName);
+            Set<RealIdentifierExpression> ss = Set.set(Ord.hashEqualsOrd(), id1, id2);
             this.stack = List.cons(ss, List.list());
         }
 
@@ -1423,7 +1423,7 @@ public class AST2AST {
             List<Statement> body = program.getBody();
             assert body.isNotEmpty();
             assert body.head() instanceof VariableDeclaration;
-            HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(Set.set(Ord.hashEqualsOrd(), ((VariableDeclaration)body.head()).getDeclarations().map(decl -> decl.getId()))));
+            HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(Set.set(Ord.hashEqualsOrd(), ((VariableDeclaration)body.head()).getDeclarations().map(decl -> (RealIdentifierExpression) decl.getId()))));
             return new Program(body.tail().map(stmt -> stmt.accept(v)).cons(body.head()));
         }
 
@@ -1436,8 +1436,8 @@ public class AST2AST {
             assert body.getBody().head() instanceof VariableDeclaration;
             VariableDeclaration declaration = (VariableDeclaration) body.getBody().head();
             List<Statement> rest = body.getBody().tail();
-            Set<IdentifierExpression> vars = Set.set(Ord.hashEqualsOrd(), declaration.getDeclarations().map(decl -> decl.getId()));
-            Set<IdentifierExpression> vars1 = vars.union(Set.set(Ord.hashEqualsOrd(), params));
+            Set<RealIdentifierExpression> vars = Set.set(Ord.hashEqualsOrd(), declaration.getDeclarations().map(decl -> (RealIdentifierExpression) decl.getId()));
+            Set<RealIdentifierExpression> vars1 = vars.union(Set.set(Ord.hashEqualsOrd(), params.map(i -> (RealIdentifierExpression)i)));
             HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(vars1));
             List<Statement> tmp = rest.map(stmt -> stmt.accept(v));
             return new FunctionDeclaration(id, params, new BlockStatement(tmp.cons(declaration)));
@@ -1452,8 +1452,8 @@ public class AST2AST {
             assert body.getBody().head() instanceof VariableDeclaration;
             VariableDeclaration declaration = (VariableDeclaration) body.getBody().head();
             List<Statement> rest = body.getBody().tail();
-            Set<IdentifierExpression> vars = Set.set(Ord.hashEqualsOrd(), declaration.getDeclarations().map(decl -> decl.getId()));
-            Set<IdentifierExpression> vars1 = vars.union(Set.set(Ord.hashEqualsOrd(), params));
+            Set<RealIdentifierExpression> vars = Set.set(Ord.hashEqualsOrd(), declaration.getDeclarations().map(decl -> (RealIdentifierExpression) decl.getId()));
+            Set<RealIdentifierExpression> vars1 = vars.union(Set.set(Ord.hashEqualsOrd(), params.map(i -> (RealIdentifierExpression)i)));
             HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(vars1));
             List<Statement> tmp = rest.map(stmt -> stmt.accept(v));
             return new FunctionExpression(id, params, new BlockStatement(tmp.cons(declaration)));
@@ -1466,10 +1466,9 @@ public class AST2AST {
             Expression right = assignmentExpression.getRight();
             Expression _right = right.accept(this);
             if (left instanceof IdentifierExpression) {
-                if (isInScope((IdentifierExpression)left, stack)) {
+                if (left instanceof ScratchIdentifierExpression || isInScope((RealIdentifierExpression)left, stack)) {
                     return new AssignmentExpression(operator, left, _right);
                 } else {
-                    assert left instanceof RealIdentifierExpression;
                     return new AssignmentExpression(operator, new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), left, false), _right);
                 }
             } else {
@@ -1487,14 +1486,14 @@ public class AST2AST {
             }
         }
 
-        @Override
+        /*@Override
         public Expression forScratchIdentifierExpression(ScratchIdentifierExpression scratchIdentifierExpression) {
             if (isInScope(scratchIdentifierExpression, stack)) {
                 return scratchIdentifierExpression;
             } else {
-                throw new RuntimeException("ast2ast error");
+                throw new RuntimeException("ast2ast error: scratch not on stack");
             }
-        }
+        }*/
 
         @Override
         public Statement forTryStatement(TryStatement tryStatement) {
@@ -1505,7 +1504,7 @@ public class AST2AST {
             Option<CatchClause> _handler = handler.map(cc -> {
                 IdentifierExpression param = cc.getParam();
                 BlockStatement body = cc.getBody();
-                HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(Set.set(Ord.hashEqualsOrd(), param)));
+                HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(Set.set(Ord.hashEqualsOrd(), (RealIdentifierExpression) param)));
                 BlockStatement _body = (BlockStatement)body.accept(v);
                 return new CatchClause(param, _body);
             });

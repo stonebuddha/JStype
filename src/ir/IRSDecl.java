@@ -26,6 +26,11 @@ public class IRSDecl extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "SCRATCH(" + num + ") {\n" + s.toString() + "}\n";
+    }
+
+    @Override
     public <T> T accept(IRStmtVisitor<T> ask) {
         return ask.forSDecl(this);
     }

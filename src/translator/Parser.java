@@ -408,7 +408,7 @@ public class Parser {
             } else if (prim.isNumber()) {
                 return new NumberLiteral(prim.getAsNumber());
             } else if (prim.isString()) {
-                return new StringLiteral(prim.getAsString());
+                return new StringLiteral(prim.getAsString().substring(1));
             } else {
                 throw new RuntimeException("Cannot Parse Literal");
             }

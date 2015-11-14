@@ -29,12 +29,14 @@ public class AST2IR {
         public static final IRPVar objectVar = newMangledVar("object");
         public static final IRPVar arrayVar = newMangledVar("array");
         public static final IRPVar argumentsVar = newMangledVar("arguments");
+        public static final IRPVar regexpVar = newMangledVar("regexp");
         public static final IRPVar dummyAddressVar = newMangledVar("dummyAddress");
 
         public static final IRPVar selfVar = newMangledVar("self");
         public static final String selfName = getName(selfVar);
 
         public static final IRStmt nopStmt = new IRAssign(dummy, new IRUndef());
+        public static final List<P2<IRPVar, IRExp>> indicateSequence = List.list(P.p(dummy, new IRNull()));
 
         public static TreeMap<Integer, String> getMapping() {
             return TreeMap.fromMutableMap(Ord.hashEqualsOrd(), numToName.toMap());
@@ -397,7 +399,7 @@ public class AST2IR {
 
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forCatchClause(CatchClause catchClause) {
-            return null;
+            throw new RuntimeException("should not be here");
         }
 
         @Override
@@ -625,7 +627,7 @@ public class AST2IR {
 
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forProperty(Property property) {
-            return null;
+            throw new RuntimeException("should not be here");
         }
 
         @Override
@@ -635,7 +637,9 @@ public class AST2IR {
 
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forRegExpLiteral(RegExpLiteral regExpLiteral) {
-            return null;
+            P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(List.list(new IRStr(regExpLiteral.getPattern()), new IRStr(regExpLiteral.getFlags())));
+            IRScratch y = freshScratch();
+            return P.p(new IRSeq(List.list(args._1(), makeNew(y, PVarMapper.regexpVar, args._2()))), y, args._3());
         }
 
         @Override
@@ -659,10 +663,18 @@ public class AST2IR {
         public P3<IRStmt, IRExp, Set<IRPVar>> forSequenceExpression(SequenceExpression sequenceExpression) {
             List<Expression> exps = sequenceExpression.getExpressions();
             if (exps.isEmpty()) {
-                return nopStmt(new IRUndef());
+                if (sequenceExpression.getOrig()) {
+                    return P.p(new IRDecl(PVarMapper.indicateSequence, PVarMapper.nopStmt), new IRUndef(), Set.empty(Ord.hashEqualsOrd()));
+                } else {
+                    return nopStmt(new IRUndef());
+                }
             } else {
                 P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _exps = unzip3(exps.map(exp -> exp.accept(this)));
-                return P.p(new IRSeq(_exps._1()), _exps._2().last(), _exps._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd())));
+                if (sequenceExpression.getOrig()) {
+                    return P.p(new IRDecl(PVarMapper.indicateSequence, new IRSeq(_exps._1())), _exps._2().last(), _exps._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd())));
+                } else {
+                    return P.p(new IRSeq(_exps._1()), _exps._2().last(), _exps._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd())));
+                }
             }
         }
 
@@ -673,12 +685,38 @@ public class AST2IR {
 
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forSwitchCase(SwitchCase switchCase) {
-            return null;
+            throw new RuntimeException("should not be here");
         }
 
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forSwitchStatement(SwitchStatement switchStatement) {
-            return null;
+            Expression discriminant = switchStatement.getDiscriminant();
+            List<SwitchCase> cases = switchStatement.getCases();
+            assert cases.filter(sw -> sw.getTest().isNone()).length() <= 1;
+            Option<SwitchCase> def = cases.find(sw -> sw.getTest().isNone());
+            List<SwitchCase> rest = cases.filter(sw -> sw.getTest().isSome());
+            P3<IRStmt, IRExp, Set<IRPVar>> _discriminant = discriminant.accept(this);
+            P3<IRStmt, IRExp, Set<IRPVar>> _def = def.map(sw -> new BlockStatement(sw.getConsequent()).accept(this)).orSome(nopStmt(new IRUndef()));
+            IRPVar y0 = PVarMapper.freshPVar();
+            IRPVar y1 = PVarMapper.freshPVar();
+            F2<Expression, Statement, P2<List<IRStmt>, Set<IRPVar>>> handleCase = (e, s) -> {
+                P3<IRStmt, IRExp, Set<IRPVar>> _e = e.accept(this);
+                P3<IRStmt, IRExp, Set<IRPVar>> _s = s.accept(this);
+                return P.p(
+                        List.list(_e._1(), makeIf(new IRBinop(Bop.Or, new IRBinop(Bop.StrictEqual, _e._2(), y0), y1), new IRSeq(List.list(_s._1(), new IRAssign(y1, new IRBool(true)))), PVarMapper.nopStmt)),
+                        _e._3().union(_s._3())
+                );
+            };
+            P2<List<IRStmt>, Set<IRPVar>> _cases =
+            rest.foldRight((cur, res) -> {
+                P2<List<IRStmt>, Set<IRPVar>> tmp = handleCase.f(cur.getTest().some(), new BlockStatement(cur.getConsequent()));
+                return P.p(tmp._1().append(res._1()), tmp._2().union(res._2()));
+            }, P.p(List.list(), Set.empty(Ord.hashEqualsOrd())));
+            return P.p(
+                    makeLbl(":BREAK:", new IRSeq(List.list(_discriminant._1(), new IRAssign(y0, _discriminant._2()), new IRAssign(y1, new IRBool(false)), new IRSeq(_cases._1()), _def._1()))),
+                    new IRUndef(),
+                    _discriminant._3().union(_def._3()).union(_cases._2()).insert(y0).insert(y1)
+            );
         }
 
         @Override
@@ -695,7 +733,24 @@ public class AST2IR {
 
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forTryStatement(TryStatement tryStatement) {
-            return null;
+            BlockStatement block = tryStatement.getBlock();
+            Option<CatchClause> handler = tryStatement.getHandler();
+            Option<BlockStatement> finalizer = tryStatement.getFinalizer();
+            BlockStatement theFinalizer = finalizer.isSome() ? finalizer.some() : new BlockStatement(List.list(new ExpressionStatement(new LiteralExpression(new UndefinedLiteral()))));
+            P3<IRStmt, IRExp, Set<IRPVar>> _block = block.accept(this);
+            P3<IRPVar, IRStmt, Set<IRPVar>> _catch;
+            if (handler.isNone()) {
+                IRPVar x = PVarMapper.freshPVar();
+                _catch = P.p(x, new IRThrow(x), Set.set(Ord.hashEqualsOrd(), x));
+            } else {
+                CatchClause cc = handler.some();
+                RealIdentifierExpression id = (RealIdentifierExpression)cc.getParam();
+                BlockStatement body = cc.getBody();
+                P3<IRStmt, IRExp, Set<IRPVar>> _body = body.accept(this);
+                _catch = P.p(PVarMapper.getPVar(id.getName()), _body._1(), _body._3());
+            }
+            P3<IRStmt, IRExp, Set<IRPVar>> _finalizer = theFinalizer.accept(this);
+            return P.p(makeTry(_block._1(), _catch._1(), _catch._2(), _finalizer._1()), new IRUndef(), _block._3().union(_catch._3()).union(_finalizer._3()));
         }
 
         @Override
@@ -747,7 +802,46 @@ public class AST2IR {
 
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forUpdateExpression(UpdateExpression updateExpression) {
-            return null;
+            Expression argument = updateExpression.getArgument();
+            String operator = updateExpression.getOperator();
+            Boolean prefix = updateExpression.getPrefix();
+            if (argument instanceof MemberExpression) {
+                Expression object = ((MemberExpression) argument).getObject();
+                Expression property = ((MemberExpression) argument).getProperty();
+                if (operator.equals("++")) {
+                    if (prefix) {
+                        return prefixAccessHelper(object, property, 1.0);
+                    } else {
+                        return postfixAccessHelper(object, property, 1.0);
+                    }
+                } else if (operator.equals("--")) {
+                    if (prefix) {
+                        return prefixAccessHelper(object, property, -1.0);
+                    } else {
+                        return postfixAccessHelper(object, property, -1.0);
+                    }
+                } else {
+                    throw new RuntimeException("parser error");
+                }
+            } else if (argument instanceof IdentifierExpression) {
+                if (operator.equals("++")) {
+                    if (prefix) {
+                        return prefixVarHelper((IdentifierExpression)argument, 1.0);
+                    } else {
+                        return postfixVarHelper((IdentifierExpression)argument, 1.0);
+                    }
+                } else if (operator.equals("--")) {
+                    if (prefix) {
+                        return prefixVarHelper((IdentifierExpression)argument, -1.0);
+                    } else {
+                        return postfixVarHelper((IdentifierExpression)argument, -1.0);
+                    }
+                } else {
+                    throw new RuntimeException("parser error");
+                }
+            } else {
+                throw new RuntimeException("parser error");
+            }
         }
 
         @Override
@@ -832,6 +926,45 @@ public class AST2IR {
         return P.p(new IRSeq(List.list(_obj._1(), _field._1())), _obj._2(), _field._2(), _obj._3().union(_field._3()));
     }
 
+    static P3<IRStmt, IRExp, Set<IRPVar>> prefixVarHelper(IdentifierExpression id, Double inc) {
+        IRVar x = PVarMapper.getVar(id);
+        P3<IRStmt, IRExp, Set<IRPVar>> _x = toNumber(x);
+        return P.p(new IRSeq(List.list(_x._1(), new IRAssign(x, new IRBinop(Bop.Plus, _x._2(), new IRNum(inc))))), x, _x._3());
+    }
+
+    static P3<IRStmt, IRExp, Set<IRPVar>> postfixVarHelper(IdentifierExpression id, Double inc) {
+        IRVar x = PVarMapper.getVar(id);
+        P3<IRStmt, IRExp, Set<IRPVar>> _x = toNumber(x);
+        IRScratch y = freshScratch();
+        return P.p(new IRSeq(List.list(_x._1(), new IRAssign(y, _x._2()), new IRAssign(x, new IRBinop(Bop.Plus, y, new IRNum(inc))))), y, _x._3());
+    }
+
+    static P3<IRStmt, IRExp, Set<IRPVar>> prefixAccessHelper(Expression e1, Expression e2, Double inc) {
+        P3<IRStmt, IRExp, Set<IRPVar>> _e1 = e1.accept(new TranslateV());
+        P3<IRStmt, IRExp, Set<IRPVar>> _e2 = e2.accept(new TranslateV());
+        P4<IRStmt, IRExp, IRExp, Set<IRPVar>> _access = accessSetup(_e1._2(), _e2._2());
+        P3<IRStmt, IRExp, Set<IRPVar>> _num = toNumber(new IRBinop(Bop.Access, _access._2(), _access._3()));
+        IRScratch y = freshScratch();
+        return P.p(
+                new IRSeq(List.list(_e1._1(), _e2._1(), _access._1(), _num._1(), new IRAssign(y, new IRBinop(Bop.Plus, _num._2(), new IRNum(inc))), new IRUpdate(_access._2(), _access._3(), y))),
+                y,
+                _e1._3().union(_e2._3()).union(_num._3()).union(_access._4())
+        );
+    }
+
+    static P3<IRStmt, IRExp, Set<IRPVar>> postfixAccessHelper(Expression e1, Expression e2, Double inc) {
+        P3<IRStmt, IRExp, Set<IRPVar>> _e1 = e1.accept(new TranslateV());
+        P3<IRStmt, IRExp, Set<IRPVar>> _e2 = e2.accept(new TranslateV());
+        P4<IRStmt, IRExp, IRExp, Set<IRPVar>> _access = accessSetup(_e1._2(), _e2._2());
+        P3<IRStmt, IRExp, Set<IRPVar>> _num = toNumber(new IRBinop(Bop.Access, _access._2(), _access._3()));
+        IRScratch y = freshScratch();
+        return P.p(
+                new IRSeq(List.list(_e1._1(), _e2._1(), _access._1(), _num._1(), new IRAssign(y, _num._2()), new IRUpdate(_access._2(), _access._3(), new IRBinop(Bop.Plus, y, new IRNum(inc))))),
+                y,
+                _e1._3().union(_e2._3()).union(_num._3()).union(_access._4())
+        );
+    }
+
     static P3<IRStmt, IRExp, Set<IRPVar>> whileHelper(IRStmt beforeLoop, IRExp initialTest, IRExp normalTest, IRStmt body, IRStmt afterBody) {
         IRScratch y = freshScratch();
         return P.p(
@@ -891,6 +1024,10 @@ public class AST2IR {
                 new IRSeq(_tmp),
                 new IRUpdate(y, new IRStr("length"), new IRNum((double)args.length()))));
         return P.p(_s, y, Set.empty(Ord.hashEqualsOrd()));
+    }
+
+    static IRStmt makeTry(IRStmt s1, IRPVar x, IRStmt s2, IRStmt s3) {
+        return new IRTry(s1, x, new IRSeq(List.list(new IRMerge(), s2)), new IRSeq(List.list(new IRMerge(), s3)));
     }
 
     static P3<IRStmt, IRExp, Set<IRPVar>> call(IRVar target, IRExp toCall, IRExp self, List<IRExp> args) {
