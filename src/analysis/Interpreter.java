@@ -20,17 +20,28 @@ public class Interpreter {
         public static Boolean testing = false;
         public static Boolean print = false;
         public static Boolean catchExc = false;
-        public static Boolean inPostFixpoin = false;
+        public static Boolean inPostFixpoint = false;
         public static Boolean splitStates = false;
         public static HashMap<Trace, P3<Trace, IRVar, Domains.AddressSpace.Addresses>> prunedInfo = HashMap.hashMap();
-        // TODO
 
         public static void clear() {
-            // TODO
+            Mutable.lightGC = false;
+            Mutable.fullGC = false;
+            Mutable.pruneStore = false;
+            Mutable.dangle = false;
+            Mutable.testing = false;
+            Mutable.print = false;
+            Mutable.catchExc = false;
+            Mutable.inPostFixpoint = false;
+            Mutable.splitStates = false;
+            Mutable.prunedInfo.clear();
         }
     }
 
     public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) {
+        Mutable.clear();
+        PruneScratch.clear();
+        PruneStoreToo.clear();
         // TODO
         return null;
     }
