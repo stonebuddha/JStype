@@ -4,6 +4,7 @@ import fj.data.Option;
 import fj.data.Set;
 import fj.P2;
 import fj.P3;
+import fj.data.*;
 import ir.*;
 
 /**
@@ -39,6 +40,16 @@ public class Utils {
         public static final BVFilter IsUndefNull = new BVFilter();
     }
 
+    public static Domains.Store alloc(Domains.Store store, List<Domains.AddressSpace.Address> as, List<Domains.BValue> bvs) {
+        // TODO
+        return null;
+    }
+
+    public static Domains.Store alloc(Domains.Store store, Domains.AddressSpace.Address a, Domains.KontStack ks) {
+        // TODO
+        return null;
+    }
+
     public static Domains.Store allocFun(Domains.Closure clo, Domains.BValue n, Domains.AddressSpace.Address a, Domains.Store store) {
         // TODO
         return null;
@@ -63,7 +74,7 @@ public class Utils {
         return null; // TODO
     }
 
-    public static Set<Interpreter.State> objAllKeys(Domains.BValue bv, Domains.Store store) {
+    public static Set<Domains.Str> objAllKeys(Domains.BValue bv, Domains.Store store) {
         // TODO
         return null;
     }

@@ -4,6 +4,7 @@ import fj.*;
 import fj.data.*;
 import ir.*;
 import analysis.init.*;
+import fj.F;
 
 /**
  * Created by BenZ on 15/11/5.
@@ -163,7 +164,22 @@ public class Interpreter {
                     IRDecl irDecl = (IRDecl) stmt;
                     List<P2<IRPVar, IRExp>> bind = irDecl.bind;
                     IRStmt s = irDecl.s;
-                    // TODO
+
+                    List<IRPVar> xs = List.nil();
+                    List<Domains.BValue> bvs = List.nil();
+                    for (P2<IRPVar, IRExp> aBind : bind) {
+                        xs.cons(aBind._1());
+                        bvs.cons(eval(aBind._2()));
+                    }
+                    List<Domains.AddressSpace.Address> as = trace.makeAddrs(xs);///
+                    Domains.Store store1 = Utils.alloc(store, as, bvs);
+
+                    List<P2<IRPVar, Domains.AddressSpace.Address>> envBind = List.nil();
+                    for (int i = 0; i < xs.length(); ++i) {
+                        envBind.cons(P.p(xs.index(i), as.index(i)));
+                    }
+                    Domains.Env env1 = env.extendAll(envBind);
+                    ret.insert(new State(new Domains.StmtTerm(s), env1, store1, pad, ks, trace.update(s)));
                 } else if (stmt instanceof IRSDecl) {
                     IRSDecl irSDecl = (IRSDecl) stmt;
                     Integer num = irSDecl.num;
@@ -238,7 +254,17 @@ public class Interpreter {
                     IRMethod m = irNewfun.m;
                     IRNum n = irNewfun.n;
                     Domains.AddressSpace.Address a1 = trace.makeAddr(x);
-                    // TODO
+                    Domains.Env env1 = env.filter((lamX) -> {
+                        return m.freeVars.member(lamX);
+                    });
+                    Domains.Store store1 = Utils.allocFun(new Domains.Clo(env1, m), eval(n), a1, store);
+                    Domains.BValue bv1 = Domains.AddressSpace.Address.inject(a1);
+                    if (x instanceof IRPVar) {
+                        ret.union(advanceBV(bv1, store1.extend(env.apply(((IRPVar) x)).some(), bv1), pad, ks));
+                    }
+                    else if (x instanceof IRScratch) {
+                        ret.union(advanceBV(bv1, store1, pad.update(((IRScratch) x), bv1), ks));
+                    }
                 }
                 else if (stmt instanceof IRNew) {
                     IRNew irNew = (IRNew) stmt;
@@ -383,11 +409,20 @@ public class Interpreter {
                     IRExp e = irFor.e;
                     IRVar x = irFor.x;
                     IRStmt s = irFor.s;
-                    Set<State> keys = Utils.objAllKeys(eval(e), store);
+                    Set<Domains.Str> keys = Utils.objAllKeys(eval(e), store);
                     if (keys.size() > 0) {
-
+                        Domains.Str acc = Domains.Str.Bot;
+                        for (Domains.Str key : keys) {
+                            acc = acc.merge(key);
+                        }
+                        Domains.BValue uber = Domains.Str.inject(acc);
+                        if (x instanceof IRPVar) {
+                            ret.insert(new State(new Domains.StmtTerm(s), env, store.extend(env.apply(((IRPVar) x)).some(), uber), pad, ks.push(new Domains.ForKont(uber, x, s)), trace.update(s)));
+                        }
+                        else if (x instanceof IRScratch) {
+                            ret.insert(new State(new Domains.StmtTerm(s), env, store, pad.update(((IRScratch) x), uber), ks.push(new Domains.ForKont(uber, x, s)), trace.update(s)));
+                        }
                     }
-                    // TODO
                 }
                 else if (stmt instanceof IRMerge) {
                     IRMerge irMerge = (IRMerge) stmt;
@@ -401,15 +436,15 @@ public class Interpreter {
                 Domains.Value v = ((Domains.ValueTerm)t).v;
                 if (v instanceof Domains.BValue) {
                     Domains.BValue bv = (Domains.BValue)v;
-                    // TODO
+                    ret.union(advanceBV(bv, store, pad, ks));
                 }
                 else if (v instanceof Domains.EValue) {
                     Domains.EValue ev = (Domains.EValue) v;
-                    // TODO
+                    ret.union(advanceEV(ev, env, store, pad, ks, trace));
                 }
                 else if (v instanceof Domains.JValue) {
                     Domains.JValue jv = (Domains.JValue) v;
-                    // TODO
+                    ret.union(advanceJV(jv, store, pad, ks));
                 }
             }
 

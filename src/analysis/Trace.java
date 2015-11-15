@@ -1,5 +1,6 @@
 package analysis;
 
+import fj.data.List;
 import ir.*;
 
 /**
@@ -15,6 +16,10 @@ public abstract class Trace {
 
     public abstract Domains.AddressSpace.Address toAddr();
     public abstract Domains.AddressSpace.Address makeAddr(IRVar x);
+    public List<Domains.AddressSpace.Address> makeAddrs(List<IRPVar> xs) {
+        // TODO
+        return null;
+    }
     // TODO
 
     public static Integer getBase(Domains.AddressSpace.Address a) {
