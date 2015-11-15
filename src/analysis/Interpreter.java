@@ -376,15 +376,7 @@ public class Interpreter {
                     P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e1, store, env, pad, Utils.Filters.IsFunc);
                     Domains.Store _store = sr._1();
                     Domains.Scratchpad _pad = sr._2();
-                    ret.union(Utils.applyClo(bv1,
-                                            eval(e2),
-                                            eval(e3),
-                                            x,
-                                            env,
-                                            _store,
-                                            _pad,
-                                            ks,
-                                            trace));
+                    ret.union(Utils.applyClo(bv1, eval(e2), eval(e3), x, env, _store, _pad, ks, trace));
                 }
                 else if (stmt instanceof IRFor) {
                     IRFor irFor = (IRFor) stmt;
@@ -591,12 +583,89 @@ public class Interpreter {
             return ret;
         }
 
-        public Set<State> advanceEV(Domains.EValue ev, Domains.Env env1, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1, Trace trace) {
+        public Set<State> advanceEV(Domains.EValue ev, Domains.Env env1, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1, Trace trace1) {
             Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
             HashSet<Domains.AddressSpace.Address> addrsSeen = new HashSet<Domains.AddressSpace.Address>(Equal.<Domains.AddressSpace.Address>anyEqual(), Hash.<Domains.AddressSpace.Address>anyHash());
-            // TODO
-            return null;
+            if (ks1.exc.isNotEmpty()) {
+                ret.union(innerAdvance(ev, env1, store1, pad1, ks1, trace1, addrsSeen));
+            }
+            return ret;
         }
+
+        private Set<State> innerAdvance(Domains.EValue ev, Domains.Env env1, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1, Trace trace1, HashSet<Domains.AddressSpace.Address> addrsSeen) {
+            Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
+            if (ks1.exc.head() == 1) {
+                Domains.AddressSpace.Address a = ((Domains.AddrKont)ks1.last()).a;
+                IRMethod m = ((Domains.AddrKont)ks1.last()).m;
+                if (!addrsSeen.contains(a)) {
+                    addrsSeen.set(a);
+
+                    Domains.Store store2;
+                    if (!Mutable.lightGC) {
+                        store2 = store1.lightGC(m.cannotEscape);
+                    }
+                    else {
+                        store2 = store1;
+                    }
+
+                    Domains.Store store3 = store2.weaken(m.canEscapeVar, m.canEscapeObj);
+
+                    Set<Domains.KontStack> konts = store3.getKont(a);
+                    for (Domains.KontStack ks2 : konts) {
+                        Domains.Env envc = ((Domains.RetKont)ks.top()).env;
+                        Trace tracec = ((Domains.RetKont)ks.top()).trace;
+                        Domains.Store store4;
+                        Domains.Scratchpad pad2;
+                        if (Mutable.pruneStore) {
+                            P2<Domains.Store, Domains.Scratchpad> pruned = PruneStoreToo.apply(tracec);
+                            store4 = store3.merge(pruned._1());
+                            pad2 = pruned._2();
+                        }
+                        else {
+                            store4 = store3;
+                            pad2 = PruneScratch.apply(tracec);
+                        }
+
+                        Domains.Store store5;
+                        if (Mutable.fullGC) {
+                            Set<Domains.AddressSpace.Address> vroots = envc.addrs();
+                            Set<Domains.AddressSpace.Address> oroots = ev.bv.as.union(pad2.addrs()).union(Init.keepInStore);
+                            Set<Domains.AddressSpace.Address> kroots;
+                            if (ks2.last() instanceof Domains.AddrKont) {
+                                kroots = Domains.AddressSpace.Addresses.apply(((Domains.AddrKont) ks2.last()).a);
+                            }
+                            else {
+                                kroots = Domains.AddressSpace.Addresses.apply();
+                            }
+                            store5 = store4.fullGC(vroots, oroots, kroots);
+                        }
+                        else {
+                            store5 = store4;
+                        }
+
+                        ret.union(innerAdvance(ev, envc, store5, pad2, ks2.pop(), trace1.update(tracec), addrsSeen));
+                    }
+                }
+            }
+            else if (ks1.exc.head() == 2) {
+                Domains.KontStack ks2 = ks1.toHandler();
+                if (ks2.top() instanceof Domains.TryKont) {
+                    IRPVar x = ((Domains.TryKont) ks2.top()).x;
+                    IRStmt s2 = ((Domains.TryKont) ks2.top()).sc;
+                    IRStmt s3 = ((Domains.TryKont) ks2.top()).sf;
+                    ret.insert(new State(new Domains.StmtTerm(s2), env1, store1.extend(env1.apply(x).some(), ev.bv), pad1, ks2.repl(new Domains.CatchKont(s3)), trace1));
+                }
+                else if (ks2.top() instanceof Domains.CatchKont) {
+                    IRStmt s3 = ((Domains.CatchKont) ks2.top()).sf;
+                    ret.insert(new State(new Domains.StmtTerm(s3), env1, store1, pad1, ks2.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), ev))), trace1));
+                }
+                else {
+                    throw new RuntimeException("inconceivable");
+                }
+            }
+            return ret;
+        }
+
 
         public Set<State> advanceJV(Domains.JValue jv, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1) {
             Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
