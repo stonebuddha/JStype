@@ -1,7 +1,9 @@
 package ir;
 
+import fj.Ord;
 import fj.P;
 import fj.P2;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -11,6 +13,11 @@ public class IRPVar extends IRVar {
 
     public IRPVar(Integer n) {
         this.n = n;
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return Set.set(Ord.hashEqualsOrd(), this);
     }
 
     @Override

@@ -1,7 +1,9 @@
 package ir;
 
+import fj.Ord;
 import fj.P;
 import fj.P2;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -23,6 +25,16 @@ public class IRUpdate extends IRStmt {
     @Override
     public int hashCode() {
         return P.p(e1, e2, e3).hashCode();
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return e1.free().union(e2.free()).union(e3.free());
+    }
+
+    @Override
+    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+        return P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd));
     }
 
     @Override

@@ -2,6 +2,7 @@ package ir;
 
 import fj.P;
 import fj.P2;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -28,6 +29,16 @@ public class IRLbl extends IRStmt {
     @Override
     public String toString() {
         return lbl + ":\n" + s;
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return s.free();
+    }
+
+    @Override
+    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+        return s.escape(local);
     }
 
     @Override

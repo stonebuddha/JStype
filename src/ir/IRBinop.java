@@ -2,6 +2,7 @@ package ir;
 
 import fj.P;
 import fj.P2;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -29,6 +30,11 @@ public class IRBinop extends IRExp {
     @Override
     public String toString() {
         return "(" + e1 + " " + op + " " + e2 + ")";
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return e1.free().union(e2.free());
     }
 
     @Override

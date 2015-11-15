@@ -1,6 +1,8 @@
 package ir;
 
+import fj.Ord;
 import fj.P;
+import fj.data.List;
 import fj.data.Set;
 import fj.P2;
 
@@ -18,11 +20,32 @@ public class IRMethod extends IRNode {
         this.self = self;
         this.args = args;
         this.s = s;
-        /*freeVars = IRNode.free(this);
-        P2<Set<Integer>, Set<Integer>> escapeSet = IRNode.escape(this);
-        canEscapeVar = escapeSet._1();
-        canEscapeObj = escapeSet._2();*/
-        // TODO cannotEscape
+
+        this.freeVars = free();
+        P2<Set<Integer>, Set<Integer>> escapeSet = escape();
+        this.canEscapeVar = escapeSet._1();
+        this.canEscapeObj = escapeSet._2();
+        if (s instanceof IRDecl) {
+            List<P2<IRPVar, IRExp>> bind = ((IRDecl) s).bind;
+            this.cannotEscape = Set.set(Ord.intOrd, bind.map(p -> p._1().n)).minus(this.canEscapeVar).insert(self.n).insert(args.n);
+        } else {
+            this.cannotEscape = Set.empty(Ord.hashEqualsOrd());
+        }
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return s.free().delete(self).delete(args);
+    }
+
+    P2<Set<Integer>, Set<Integer>> escape() {
+        Set<IRPVar> local;
+        if (s instanceof IRDecl) {
+            local = Set.set(Ord.hashEqualsOrd(), List.unzip(((IRDecl) s).bind)._1());
+        } else {
+            local = Set.empty(Ord.hashEqualsOrd());
+        }
+        return s.escape(local);
     }
 
     @Override

@@ -1,7 +1,9 @@
 package ir;
 
+import fj.Ord;
 import fj.P2;
 import fj.Unit;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -20,6 +22,11 @@ public class IRNull extends IRExp {
     @Override
     public String toString() {
         return "null";
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return Set.empty(Ord.hashEqualsOrd());
     }
 
     @Override

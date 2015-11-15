@@ -1,7 +1,9 @@
 package ir;
 
+import fj.Ord;
 import fj.P2;
 import fj.Unit;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -15,6 +17,11 @@ public class IRUndef extends IRExp {
     @Override
     public int hashCode() {
         return Unit.unit().hashCode();
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return Set.empty(Ord.hashEqualsOrd());
     }
 
     @Override

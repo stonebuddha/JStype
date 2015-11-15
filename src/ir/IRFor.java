@@ -2,6 +2,7 @@ package ir;
 
 import fj.P;
 import fj.P2;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -30,6 +31,21 @@ public class IRFor extends IRStmt {
     @Override
     public String toString() {
         return "for (" +  x + " in " + e + ")\n" + s;
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        Set<IRPVar> tmp = e.free().union(s.free());
+        if (x instanceof IRPVar) {
+            return tmp.insert((IRPVar)x);
+        } else {
+            return tmp;
+        }
+    }
+
+    @Override
+    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+        return s.escape(local);
     }
 
     @Override

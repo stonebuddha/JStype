@@ -1,7 +1,9 @@
 package ir;
 
+import fj.Ord;
 import fj.P;
 import fj.P2;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -11,6 +13,11 @@ public class IRStr extends IRExp {
 
     public IRStr(String v) {
         this.v = v;
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return Set.empty(Ord.hashEqualsOrd());
     }
 
     @Override

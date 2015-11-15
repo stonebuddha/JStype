@@ -1,7 +1,9 @@
 package ir;
 
+import fj.Ord;
 import fj.P;
 import fj.P2;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -30,6 +32,21 @@ public class IRCall extends IRStmt {
     @Override
     public String toString() {
         return x + " := " + e1 + "." + e2 + "(" + e3 + ");\n";
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        Set<IRPVar> _e = e1.free().union(e2.free()).union(e3.free());
+        if (x instanceof IRPVar) {
+            return _e.insert((IRPVar)x);
+        } else {
+            return _e;
+        }
+    }
+
+    @Override
+    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+        return P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd));
     }
 
     @Override

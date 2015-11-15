@@ -25,10 +25,7 @@ public abstract class IRNode {
         genId = 0;
     }
 
-    public static Set<IRPVar> free(IRNode node) {
-        // TODO
-        return null;
-    }
+    public abstract Set<IRPVar> free();
 
     public static P2<Set<Integer>, Set<Integer>> escape(IRMethod m) {
         // TODO

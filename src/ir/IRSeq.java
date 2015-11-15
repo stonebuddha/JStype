@@ -1,8 +1,10 @@
 package ir;
 
+import fj.Ord;
 import fj.P;
 import fj.P2;
 import fj.data.List;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -12,6 +14,19 @@ public class IRSeq extends IRStmt {
 
     public IRSeq(List<IRStmt> ss) {
         this.ss = ss;
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return ss.foldLeft((acc, cur) -> acc.union(cur.free()), Set.empty(Ord.hashEqualsOrd()));
+    }
+
+    @Override
+    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+        return ss.foldLeft((acc, s) -> {
+            P2<Set<Integer>, Set<Integer>> v = s.escape(local);
+            return P.p(acc._1().union(v._1()), acc._2().union(v._2()));
+        }, P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd)));
     }
 
     @Override

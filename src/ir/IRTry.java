@@ -2,6 +2,7 @@ package ir;
 
 import fj.P;
 import fj.P2;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -26,6 +27,17 @@ public class IRTry extends IRStmt {
     @Override
     public int hashCode() {
         return P.p(s1, x, s2, s3).hashCode();
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return s1.free().union(s2.free()).union(s3.free()).insert(x);
+    }
+
+    @Override
+    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+        P2<Set<Integer>, Set<Integer>> v1 = s1.escape(local), v2 = s2.escape(local), v3 = s3.escape(local);
+        return P.p(v1._1().union(v2._1()).union(v3._1()), v1._2().union(v2._2()).union(v3._2()));
     }
 
     @Override

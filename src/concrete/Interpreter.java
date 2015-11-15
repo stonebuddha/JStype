@@ -152,8 +152,18 @@ public class Interpreter {
 
                     @Override
                     public Object forNewfun(IRNewfun irNewfun) {
-                        // TODO
-                        return null;
+                        IRVar x = irNewfun.x;
+                        IRMethod m = irNewfun.m;
+                        IRNum n = irNewfun.n;
+                        Domains.Env env1 = env.filter(v -> m.freeVars.member(v));
+                        P2<Domains.Store, Domains.Address> tmp = Utils.allocFun(new Domains.Clo(env1, m), eval(n), store);
+                        Domains.Store store1 = tmp._1();
+                        Domains.Address a1 = tmp._2();
+                        if (x instanceof IRPVar) {
+                            return new State(new Domains.ValueTerm(a1), env, store1.extend(P.p(env.apply((IRPVar)x), a1)), pad, ks);
+                        } else {
+                            return new State(new Domains.ValueTerm(a1), env, store1, pad.update((IRScratch)x, a1), ks);
+                        }
                     }
 
                     @Override

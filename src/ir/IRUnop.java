@@ -2,6 +2,7 @@ package ir;
 
 import fj.P;
 import fj.P2;
+import fj.data.Set;
 
 /**
  * Created by wayne on 15/10/27.
@@ -23,6 +24,11 @@ public class IRUnop extends IRExp {
     @Override
     public int hashCode() {
         return P.p(op, e).hashCode();
+    }
+
+    @Override
+    public Set<IRPVar> free() {
+        return e.free();
     }
 
     @Override
