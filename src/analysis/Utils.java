@@ -91,12 +91,84 @@ public class Utils {
         for (JSClass key : classes.keys()) {
             addrs.set(key, trace.modAddr(a, key));
         }
-        
+
+        TreeMap<JSClass, Domains.BValue> pas = classes.map(
+                as -> {
+                    Set<Domains.AddressSpace.Address> acc = Domains.AddressSpace.Addresses.apply();
+                    for (Domains.AddressSpace.Address add : as) {
+                        Option<Domains.BValue> proto = store.getObj(add).apply(Fields.prototype);
+                        if (proto.isSome()) {
+                            if (proto.some().defAddr()) {
+                                acc = acc.union(proto.some().as);
+                            }
+                            else {
+                                acc = acc.union(proto.some().as).insert(Init.Object_prototype_Addr);
+                            }
+                        }
+                        else {
+                            acc = acc.insert(Init.Object_prototype_Addr);
+                        }
+                    }
+                    return Domains.AddressSpace.Addresses.inject(acc);
+                }
+        );
+
+        TreeMap<JSClass, TreeMap<Domains.Str, java.lang.Object>> intern = TreeMap.empty(Ord.<JSClass>hashEqualsOrd());
+        for (JSClass key : classes.keys()) {
+            intern.set(key, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+                    P.p(Fields.proto, pas.get(key).some()),
+                    P.p(Fields.classname, key)));
+        }
+
+        Domains.Store store1 = store;
+        for (JSClass key : classes.keys()) {
+            Domains.Object o = new Domains.Object(new Domains.ExternMap(), intern.get(key).some(), Set.empty(Ord.<Domains.Str>hashEqualsOrd()));
+            store1 = store1.alloc(addrs.get(key).some(), o);
+        }
+
+        Domains.BValue bv1 = Domains.AddressSpace.Addresses.inject(Set.set(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), addrs.values()));
+
+        return P.p(store1, bv1);
+    }
+
+    public static Set<Interpreter.State> applyClo(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
+        if (Interpreter.Mutable.splitStates) {
+            return applyCloWithSplits(bv1, bv2, bv3, x, env, store, pad, ks, trace);
+        }
+        Domains.BValue bv2as = Domains.AddressSpace.Addresses.inject(bv2.as);
+        // assert( bv2as.defAddr && bv3.defAddr && bv3.as.size == 1 )
+        Boolean isctor = store.getObj(bv3.as.iterator().next()).calledAsCtor();
+
+        Set<Domains.AddressSpace.Address> oas;
+        if (Interpreter.Mutable.pruneStore) {
+            oas = bv2.as.union(bv3.as).union(Init.keepInStore);
+        }
+        else {
+            oas = Domains.AddressSpace.Addresses.apply();
+        }
+
+        TreeMap<Domains.AddressSpace.Addresses, Domains.Store> memo = TreeMap.empty(Ord.<Domains.AddressSpace.Addresses>hashEqualsOrd());
+
+        Set<Interpreter.State> sigmas = Set.empty(Ord.<Interpreter.State>hashEqualsOrd());
+        Boolean nonfun = false;
+        for (Domains.AddressSpace.Address a : bv1.as) {
+            Set<Domains.Closure> clos = store.getObj(a).getCode();
+            if (!clos.isEmpty()) {
+                clos.map(Ord.<Interpreter.State>hashEqualsOrd(),
+                        closure -> {
+                            //TODO
+                           return null;
+                        });
+            }
+            else {
+                nonfun = true;
+            }
+        }
         // TODO
         return null;
     }
 
-    public static Set<Interpreter.State> applyClo(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
+    public static Set<Interpreter.State> applyCloWithSplits(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
         // TODO
         return null;
     }
