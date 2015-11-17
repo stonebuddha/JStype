@@ -1,11 +1,14 @@
 package analysis;
 
+import fj.Ord;
+import fj.P;
 import fj.data.Option;
 import fj.data.Set;
 import fj.P2;
 import fj.P3;
 import fj.data.*;
 import ir.*;
+import analysis.init.Init;
 
 /**
  * Created by wayne on 15/11/2.
@@ -41,21 +44,54 @@ public class Utils {
     }
 
     public static Domains.Store alloc(Domains.Store store, List<Domains.AddressSpace.Address> as, List<Domains.BValue> bvs) {
-        // TODO
-        return null;
+        return store.alloc(as.zip(bvs));
     }
 
     public static Domains.Store alloc(Domains.Store store, Domains.AddressSpace.Address a, Domains.KontStack ks) {
-        // TODO
-        return null;
+        return store.alloc(a, ks);
     }
 
     public static Domains.Store allocFun(Domains.Closure clo, Domains.BValue n, Domains.AddressSpace.Address a, Domains.Store store) {
-        // TODO
-        return null;
+        TreeMap<Domains.Str, java.lang.Object> intern = TreeMap.treeMap(Ord.hashEqualsOrd(),
+                P.p(Fields.proto, Domains.AddressSpace.Address.inject(Init.Function_prototype_Addr)),
+                P.p(Fields.classname, JSClass.CFunction),
+                P.p(Fields.code, Set.single(Ord.hashEqualsOrd(), clo))
+        );
+        Domains.ExternMap extern = new Domains.ExternMap().strongUpdate(Fields.length, n);
+        return store.alloc(a, new Domains.Object(extern, intern, Set.single(Ord.<Domains.Str>hashEqualsOrd(), Fields.length)));
     }
 
     public static P2<Domains.Store, Domains.BValue> allocObj(Domains.BValue bv, Domains.AddressSpace.Address a, Domains.Store store, Trace trace) {
+        TreeMap<JSClass, Set<Domains.AddressSpace.Address>> class1 = TreeMap.empty(Ord.<JSClass>hashEqualsOrd());
+        for (Domains.AddressSpace.Address add : bv.as) {
+            JSClass addClass = Init.classFromAddress.get(add).orSome(JSClass.CObject);
+            if (class1.contains(addClass)) {
+                class1.set(addClass, class1.get(addClass).some().insert(add));
+            }
+            else {
+                class1.set(addClass, Set.single(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), add));
+            }
+        }
+
+        TreeMap<JSClass, Set<Domains.AddressSpace.Address>> classes;
+        if (bv.defAddr()) {
+            classes = class1;
+        }
+        else {
+            classes = class1;
+            if (classes.get(JSClass.CObject).isSome()) {
+                classes.set(JSClass.CObject, classes.get(JSClass.CObject).some().insert(Init.Object_prototype_Addr));
+            }
+            else {
+                classes.set(JSClass.CObject, Set.single(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), Init.Object_prototype_Addr));
+            }
+        }
+
+        TreeMap<JSClass, Domains.AddressSpace.Address> addrs = TreeMap.empty(Ord.<JSClass>hashEqualsOrd());
+        for (JSClass key : classes.keys()) {
+            addrs.set(key, trace.modAddr(a, key));
+        }
+        
         // TODO
         return null;
     }

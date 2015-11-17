@@ -16,7 +16,12 @@ public abstract class Trace {
 
     public abstract Domains.AddressSpace.Address toAddr();
     public abstract Domains.AddressSpace.Address makeAddr(IRVar x);
-    public List<Domains.AddressSpace.Address> makeAddrs(List<IRPVar> xs) {
+    public List<Domains.AddressSpace.Address> makeAddrs(List<IRVar> xs) {
+        // TODO
+        return null;
+    }
+
+    public Domains.AddressSpace.Address modAddr(Domains.AddressSpace.Address a, JSClass c) {
         // TODO
         return null;
     }

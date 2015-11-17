@@ -175,22 +175,11 @@ public class Interpreter {
                     IRDecl irDecl = (IRDecl) stmt;
                     List<P2<IRPVar, IRExp>> bind = irDecl.bind;
                     IRStmt s = irDecl.s;
-
-                    List<IRPVar> xs = List.nil();
-                    List<Domains.BValue> bvs = List.nil();
-                    for (P2<IRPVar, IRExp> aBind : bind) {
-                        xs.cons(aBind._1());
-                        bvs.cons(eval(aBind._2()));
-                    }
-                    List<Domains.AddressSpace.Address> as = trace.makeAddrs(xs);///
-                    Domains.Store store1 = Utils.alloc(store, as, bvs);
-
-                    List<P2<IRPVar, Domains.AddressSpace.Address>> envBind = List.nil();
-                    for (int i = 0; i < xs.length(); ++i) {
-                        envBind.cons(P.p(xs.index(i), as.index(i)));
-                    }
-                    Domains.Env env1 = env.extendAll(envBind);
-                    ret.insert(new State(new Domains.StmtTerm(s), env1, store1, pad, ks, trace.update(s)));
+                    List<IRPVar> xs = bind.map((x) -> x._1());
+                    List<IRExp> es = bind.map((x) -> x._2());
+                    List<Domains.AddressSpace.Address> as = trace.makeAddrs(xs.map((x) -> ((IRVar) x)));
+                    Domains.Store store1 = Utils.alloc(store, as, es.map((e) -> eval(e)));
+                    ret.insert(new State(new Domains.StmtTerm(s), env.extendAll(xs.zip(as)), store1, pad, ks, trace.update(s)));
                 } else if (stmt instanceof IRSDecl) {
                     IRSDecl irSDecl = (IRSDecl) stmt;
                     Integer num = irSDecl.num;
