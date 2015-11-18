@@ -1,11 +1,8 @@
 package analysis;
 
-import fj.Ord;
-import fj.P;
+import fj.*;
 import fj.data.Option;
 import fj.data.Set;
-import fj.P2;
-import fj.P3;
 import fj.data.*;
 import ir.*;
 import analysis.init.Init;
@@ -137,7 +134,7 @@ public class Utils {
             return applyCloWithSplits(bv1, bv2, bv3, x, env, store, pad, ks, trace);
         }
         Domains.BValue bv2as = Domains.AddressSpace.Addresses.inject(bv2.as);
-        // assert( bv2as.defAddr && bv3.defAddr && bv3.as.size == 1 )
+        assert bv2as.defAddr() && bv3.defAddr() && bv3.as.size() == 1;
         Boolean isctor = store.getObj(bv3.as.iterator().next()).calledAsCtor();
 
         Set<Domains.AddressSpace.Address> oas;
@@ -203,8 +200,76 @@ public class Utils {
         return null;
     }
 
-        public static P2<Domains.Store, Domains.Scratchpad> refineExc(IRExp e, Domains.Store store, Domains.Env env, Domains.Scratchpad pad, Filters.BVFilter bvf) {
-        // TODO
-        return null;
+    public static P2<Domains.Store, Domains.Scratchpad> refineExc(IRExp e, Domains.Store store, Domains.Env env, Domains.Scratchpad pad, Filters.BVFilter bvf) {
+        P4<Domains.Store, Domains.Scratchpad, Domains.Store, Domains.Scratchpad> res = refine(bvf, e, store, env, pad);
+        return P.p(res._1(), res._2());
+    }
+
+    public static P4<Domains.Store, Domains.Scratchpad, Domains.Store, Domains.Scratchpad> refine(Filters.BVFilter bvf, IRExp e, Domains.Store store, Domains.Env env, Domains.Scratchpad pad) {
+        if (e instanceof IRPVar) {
+            IRPVar x = ((IRPVar) e);
+            Set<Domains.AddressSpace.Address> as = env.apply(x).orSome(Set.empty(Ord.<Domains.AddressSpace.Address>hashEqualsOrd()));
+            if (as.size() == 1) {
+                P2<Domains.BValue, Domains.BValue> newBVP = store.applyAll(as).filterBy(bvf, store);
+                Domains.BValue newBVT = newBVP._1(), newBVF = newBVP._2();
+                return P.p(store.extend(as, newBVT), pad, store.extend(as, newBVF), pad);
+            }
+            else {
+                return P.p(store, pad, store, pad);
+            }
+        }
+        else if (e instanceof IRScratch) {
+            IRScratch x = ((IRScratch) e);
+            P2<Domains.BValue, Domains.BValue> newBVP = pad.apply(x).filterBy(bvf, store);
+            Domains.BValue newBVT = newBVP._1(), newBVF = newBVP._2();
+            return P.p(store, pad.update(x, newBVT), store, pad.update(x, newBVF));
+        }
+        else if (e instanceof IRBinop && ((IRBinop) e).op == Bop.Access) {
+            IRExp el = ((IRBinop) e).e1, er = ((IRBinop) e).e2;
+            Domains.BValue objbv = Eval.eval(el, env, store, pad);
+            Domains.BValue strbv = Eval.eval(er, env, store, pad);
+            Option<P2<Domains.AddressSpace.Address, Domains.Object>> refineable = refineableAddrObj(objbv, strbv.str, store);
+            if (refineable.isSome()) {
+                Domains.AddressSpace.Address addr = refineable.some()._1();
+                Domains.Object o = refineable.some()._2();
+                Option<Domains.BValue> optBV = o.apply(strbv.str);
+                if (optBV.isNone()) {
+                    throw new RuntimeException("refineableAddrObj returned bad object");
+                }
+                Domains.BValue oldBV = optBV.some();
+
+                P2<Domains.BValue, Domains.BValue> newBVP = oldBV.filterBy(bvf, store);
+                Domains.BValue newBVT = newBVP._1(), newBVF = newBVP._2();
+                Domains.Object oT = new Domains.Object(o.extern.strongUpdate(strbv.str, newBVT), o.intern, o.present);
+                Domains.Store storeT = store.putObjStrong(addr, oT);
+                Domains.Object oF = new Domains.Object(o.extern.strongUpdate(strbv.str, newBVF), o.intern, o.present);
+                Domains.Store storeF = store.putObjStrong(addr, oF);
+                return P.p(storeT, pad, storeF, pad);
+            }
+            else {
+                return P.p(store, pad, store, pad);
+            }
+        }
+        else {
+            return P.p(store, pad, store, pad);
+        }
+    }
+
+    public static Option<P2<Domains.AddressSpace.Address, Domains.Object>> refineableAddrObj(Domains.BValue bv, Domains.Str str, Domains.Store store) {
+        if (bv.as.size() == 1 && store.isStrong(bv.as.iterator().next()) && Domains.Str.isExact(str)) {
+            Domains.Object obj = store.getObj(bv.as.iterator().next());
+            if (obj.defField(str)) {
+                return Option.some(P.p(bv.as.iterator().next(), obj));
+            }
+            else if (obj.defNotField(str)) {
+                return refineableAddrObj(obj.getProto(), str, store);
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
     }
 }

@@ -668,6 +668,16 @@ public class Domains {
             return new BValue(n, b, str, as, Null.Bot, Undef.Bot);
         }
 
+        public P2<BValue, BValue> filterBy(Utils.Filters.BVFilter bvf, Store store) {
+            if (bvf == Utils.Filters.IsFunc) {
+                return P.p(onlyAddr(), this);
+            }
+            else if (bvf == Utils.Filters.IsUndefNull) {
+                return P.p(removeNullAndUndef(), this);
+            }
+            return null;
+        }
+
         public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Undef.Bot);
     }
 
