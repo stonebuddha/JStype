@@ -196,8 +196,75 @@ public class Utils {
     }
 
     public static P2<Option<P2<Domains.BValue, Domains.Store>>, Option<Domains.EValue>> updateObj(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, Domains.Store store) {
-        // TODO
-        return null;
+        Domains.Str str = bv2.str;
+        Boolean maybeLength = Fields.length.partialLessEqual(str);
+        Boolean isStrong = bv1.as.size() == 1 && store.isStrong(bv1.as.iterator().next());
+        Domains.BValue bv3num = bv3.toNum();
+        Boolean maybeArray = bv1.as.filter(a -> store.getObj(a).getJSClass() == JSClass.CArray).size() > 0;
+        Boolean rhsMaybeU32 = Domains.Num.maybeU32(bv3num);
+        Boolean propertyMaybeU32 = Domains.Num.maybeU32(Domains.Num.inject(str.toNum()));
+
+        Option<P2<Domains.BValue, Domains.Store>> noexc;
+        if (isStrong) {
+            Domains.Object o = store.getObj(bv1.as.iterator().next());
+            Domains.Object o1;
+            if (!maybeArray) {
+                o1 = o.strongUpdate(str, bv3);
+            }
+            else if (!maybeLength) {
+                o1 = o.strongUpdate(str, bv3).strongUpdate(Fields.length, Domains.Num.inject(Domains.Num.U32));
+            }
+            else if (str != Fields.length) {
+                o1 = o.weakDelete(Domains.Str.U32).strongUpdate(str, bv3).strongUpdate(Fields.length, Domains.Num.inject(Domains.Num.U32));
+            }
+            else {
+                o1 = o.weakDelete(Domains.Str.U32).strongUpdate(Fields.length, Domains.Num.inject(Domains.Num.U32));
+            }
+            Domains.Store store1 = store.putObjStrong(bv1.as.iterator().next(), o1);
+            noexc = Option.some(P.p(bv3, store1));
+        }
+        else if (bv1.as.size() > 0 ) {
+            Domains.Store store1 = store;
+            for (Domains.AddressSpace.Address a : bv1.as) {
+                Domains.Object o = store1.getObj(a);
+                if (o.getJSClass() == JSClass.CArray) {
+                    Domains.Object o1;
+                    if (maybeLength && rhsMaybeU32) {
+                        o1 = o.weakDelete(Domains.Str.U32).weakUpdate(str, bv3);
+                    }
+                    else {
+                        o1 = o.weakUpdate(str, bv3);
+                    }
+                    Domains.Object o2;
+                    if (propertyMaybeU32) {
+                        o2 = o1.weakUpdate(Fields.length, Domains.Num.inject(Domains.Num.U32));
+                    }
+                    else {
+                        o2 = o1;
+                    }
+                    store1 = store1.putObjWeak(a, o2);
+                }
+                else {
+                    store1 = store1.putObjWeak(a, o.weakUpdate(str, bv3));
+                }
+            }
+            noexc = Option.some(P.p(bv3, store1));
+        }
+        else {
+            noexc = Option.none();
+        }
+
+        Option<Domains.EValue> exc;
+        if (bv1.nil == Domains.Null.Top || bv1.undef == Domains.Undef.Top) {
+            exc = Option.some(Errors.typeError);
+        }
+        else if (maybeArray && maybeLength && Domains.Num.maybeNotU32(bv3)) {
+            exc = Option.some(Errors.rangeError);
+        }
+        else {
+            exc = Option.none();
+        }
+        return P.p(noexc, exc);
     }
 
     public static P2<Domains.Store, Domains.Scratchpad> refineExc(IRExp e, Domains.Store store, Domains.Env env, Domains.Scratchpad pad, Filters.BVFilter bvf) {
@@ -265,11 +332,11 @@ public class Utils {
                 return refineableAddrObj(obj.getProto(), str, store);
             }
             else {
-                return null;
+                return Option.none();
             }
         }
         else {
-            return null;
+            return Option.none();
         }
     }
 }
