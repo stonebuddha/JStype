@@ -190,6 +190,53 @@ public class Utils {
         return null;
     }
 
+    public static P3<Domains.BValue, Domains.Store, Set<Domains.Domain>> toObjBody(Domains.BValue bv, Domains.Store store, Trace trace, Domains.AddressSpace.Address a) {
+        Set<Domains.Domain> sorts = bv.sorts.intersect(Set.set(Ord.<Domains.Domain>hashEqualsOrd(), Domains.DAddr, Domains.DNum, Domains.DBool, Domains.DStr));
+
+        Domains.BValue bv1 = Domains.BValue.Bot;
+        Domains.Store store1 = store;
+        for (Domains.Domain sort : sorts) {
+            if (sort == Domains.DAddr) {
+                bv1 = bv1.merge(Domains.AddressSpace.Addresses.inject(bv.as));
+            }
+            else if (sort == Domains.DNum) {
+                P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
+                Domains.Store store2 = res._1();
+                Domains.BValue bv2 = res._2();
+                assert bv2.as.size() == 1;
+                Domains.Object o = store.getObj(bv.as.iterator().next());
+                Domains.Object o1 = new Domains.Object(o.extern, o.intern.set(Fields.value, bv.onlyNum()), o.present);
+                bv1 = bv1.merge(bv2);
+                store1 = store2.putObj(bv2.as.iterator().next(), o1);
+            }
+            else if (sort == Domains.DBool) {
+                P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
+                Domains.Store store2 = res._1();
+                Domains.BValue bv2 = res._2();
+                assert bv2.as.size() == 1;
+                Domains.Object o = store.getObj(bv.as.iterator().next());
+                Domains.Object o1 = new Domains.Object(o.extern, o.intern.set(Fields.value, bv.onlyNum()), o.present);
+                bv1 = bv1.merge(bv2);
+                store1 = store2.putObj(bv2.as.iterator().next(), o1);
+            }
+            else if (sort == Domains.DStr) {
+                P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
+                Domains.Store store2 = res._1();
+                Domains.BValue bv2 = res._2();
+                assert bv2.as.size() == 1;
+                Domains.Object o = store.getObj(bv.as.iterator().next());
+                Option<String> exactStr = Domains.Str.getExact(bv.str);
+                Domains.ExternMap extern;
+                if (exactStr.isSome()) {
+                    String s = exactStr.some();
+                    // TODO
+                }
+            }
+        }
+
+        return null;
+    }
+
     public static P2<Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> toObj(Domains.BValue bv, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Trace trace) {
         // TODO
         return null;

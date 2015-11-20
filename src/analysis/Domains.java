@@ -620,6 +620,14 @@ public class Domains {
             return Num.inject(res);
         }
 
+        public final Set<Domain> sorts = Set.empty(Ord.<Domain>hashEqualsOrd()).
+                union(n == Num.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DNum)).
+                union(b == Bool.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DBool)).
+                union(str == Str.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DStr)).
+                union(as.isEmpty() ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DAddr)).
+                union(nil == Null.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DNull)).
+                union(undef == Undef.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DUndef));
+
         public Boolean isBot() {
             return types.isEmpty();
         }
