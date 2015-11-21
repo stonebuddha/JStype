@@ -248,6 +248,7 @@ public class Utils {
                 throw new RuntimeException("suppresses compiler warning; this case can't happen");
             }
         }
+        
         return P.p(bv1, store1, sorts);
     }
 
