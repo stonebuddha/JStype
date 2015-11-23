@@ -173,8 +173,67 @@ public class Utils {
     }
 
     public static P2<Option<P2<Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> delete(Domains.BValue bv1, Domains.BValue bv2, IRScratch x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
-        // TODO
-        return null;
+        Boolean isStrong = bv1.as.size() == 1 & store.isStrong(bv1.as.iterator().next());
+
+        Boolean defPresent = true, defAbsent = true;
+        for (Domains.AddressSpace.Address a : bv1.as) {
+            Domains.Object o = store.getObj(a);
+            Boolean dp, da;
+            if (defPresent) {
+                dp = o.defField(bv2.str) && !(Init.nodelete.get(o.getJSClass()).orSome(Set.empty(Ord.<Domains.Str>hashEqualsOrd())).member(bv2.str));
+            }
+            else {
+                dp = false;
+            }
+            if (defAbsent && !dp) {
+                da = o.defNotField(bv2.str) || (Init.nodelete.get(o.getJSClass()).orSome(Set.empty(Ord.<Domains.Str>hashEqualsOrd())).member(bv2.str));
+            }
+            else {
+                da = false;
+            }
+
+            defPresent = dp;
+            defAbsent = da;
+        }
+
+        Option<P2<Domains.Store, Domains.Scratchpad>> noexc;
+        if (bv1.as.isEmpty()) {
+            noexc = Option.none();
+        }
+        else if (defAbsent) {
+            noexc = Option.some(P.p(store, pad.update(x, Domains.Bool.FalseBV)));
+        }
+        else if (defPresent) {
+            if (isStrong) {
+                Domains.AddressSpace.Address a = bv1.as.iterator().next();
+                Domains.Store store1 = store.putObjStrong(a, store.getObj(a).strongDelete(bv2.str));
+                noexc = Option.some(P.p(store1, pad.update(x, Domains.Bool.TrueBV)));
+            }
+            else {
+                Domains.Store store1 = store;
+                for (Domains.AddressSpace.Address a : bv1.as) {
+                    store1 = store1.putObjWeak(a, store1.getObj(a).weakDelete(bv2.str));
+                }
+                noexc = Option.some(P.p(store1, pad.update(x, Domains.Bool.TrueBV)));
+            }
+        }
+        else {
+            Domains.Store store1 = store;
+            for (Domains.AddressSpace.Address a : bv1.as) {
+                store1 = store1.putObjWeak(a, store1.getObj(a).weakDelete(bv2.str));
+            }
+            noexc = Option.some(P.p(store1, pad.update(x, Domains.Bool.TopBV)));
+        }
+
+        Option<Domains.EValue> exc;
+        if (bv1.nil == Domains.Null.Top || bv1.undef == Domains.Undef.Top) {
+            exc = Option.some(Errors.typeError);
+        }
+        else {
+            exc = Option.none();
+        }
+
+        return P.p(noexc, exc);
     }
 
     public static Domains.BValue lookup(Set<Domains.AddressSpace.Address> as, Domains.Str str, Domains.Store store) {
