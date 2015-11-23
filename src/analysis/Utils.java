@@ -178,17 +178,65 @@ public class Utils {
     }
 
     public static Domains.BValue lookup(Set<Domains.AddressSpace.Address> as, Domains.Str str, Domains.Store store) {
-        return null; // TODO
+        Domains.BValue bv = Domains.BValue.Bot;
+        for (Domains.AddressSpace.Address a : as) {
+            bv = bv.merge(look(store.getObj(a), str, store));
+        }
+        return bv;
+    }
+
+    private static Domains.BValue look(Domains.Object o, Domains.Str str, Domains.Store store) {
+        Option<Domains.BValue> localBV = o.apply(str);
+        Set<Domains.BValue> local, chain, fin;
+        if (localBV.isSome()) {
+            local = Set.single(Ord.<Domains.BValue>hashEqualsOrd(), localBV.some());
+        }
+        else {
+            local = Set.empty(Ord.<Domains.BValue>hashEqualsOrd());
+        }
+
+        if (!o.defField(str)) {
+            chain = o.getProto().as.map(Ord.<Domains.BValue>hashEqualsOrd(), a -> look(store.getObj(a), str, store));
+        }
+        else {
+            chain = Set.empty(Ord.<Domains.BValue>hashEqualsOrd());
+        }
+
+        if (!o.defField(str) && o.getProto().nil == Domains.Null.Top) {
+            fin = Set.single(Ord.<Domains.BValue>hashEqualsOrd(), Domains.Undef.BV);
+        }
+        else {
+            fin = Set.empty(Ord.<Domains.BValue>hashEqualsOrd());
+        }
+        Domains.BValue bv = Domains.BValue.Bot;
+        for (Domains.BValue v : local.union(chain).union(fin)) {
+            bv = bv.merge(v);
+        }
+        return bv;
     }
 
     public static Set<Domains.Str> objAllKeys(Domains.BValue bv, Domains.Store store) {
-        // TODO
-        return null;
+        Set<Domains.Str> keys = Set.empty(Ord.<Domains.Str>hashEqualsOrd());
+        for (Domains.AddressSpace.Address a : bv.as) {
+            keys.union(recur(a, store));
+        }
+        return keys;
+    }
+
+    private static Set<Domains.Str> recur(Domains.AddressSpace.Address addr, Domains.Store store) {
+        Domains.Object o = store.getObj(addr);
+        Set<Domains.Str> ret = Set.empty(Ord.<Domains.Str>hashEqualsOrd());
+        for (Domains.AddressSpace.Address a : o.getProto().as) {
+            ret.union(recur(a, store));
+        }
+        return ret;
     }
 
     public static Domains.Store setConstr(Domains.Store store, Domains.BValue bv) {
-        // TODO
-        return null;
+        assert bv.as.size() == 1;
+        Domains.Object o = store.getObj(bv.as.iterator().next());
+        Domains.Object o1 = new Domains.Object(o.extern, o.intern.set(Fields.constructor, true), o.present);
+        return store.putObjStrong(bv.as.iterator().next(), o1);
     }
 
     public static P3<Domains.BValue, Domains.Store, Set<Domains.Domain>> toObjBody(Domains.BValue bv, Domains.Store store, Trace trace, Domains.AddressSpace.Address a) {
@@ -253,8 +301,32 @@ public class Utils {
     }
 
     public static P2<Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> toObj(Domains.BValue bv, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Trace trace) {
-        // TODO
-        return null;
+        P3<Domains.BValue, Domains.Store, Set<Domains.Domain>> objBody = toObjBody(bv, store, trace, trace.makeAddr(x));
+        Domains.BValue bv1 = objBody._1();
+        Domains.Store store1 = objBody._2();
+        Set<Domains.Domain> sorts = objBody._3();
+
+        Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>> noexc;
+        if (sorts.size() > 0) {
+            if (x instanceof IRPVar) {
+                noexc = Option.some(P.p(bv1, store1.extend(env.apply(((IRPVar) x)).some(), bv1), pad));
+            }
+            else {
+                noexc = Option.some(P.p(bv1, store1, pad.update(((IRScratch) x), bv1)));
+            }
+        }
+        else {
+            noexc = Option.none();
+        }
+
+        Option<Domains.EValue> exc;
+        if (bv.nil == Domains.Null.Top || bv.undef == Domains.Undef.Top) {
+            exc = Option.some(Errors.typeError);
+        }
+        else {
+            exc = Option.none();
+        }
+        return P.p(noexc, exc);
     }
 
     public static P2<Option<P2<Domains.BValue, Domains.Store>>, Option<Domains.EValue>> updateObj(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, Domains.Store store) {
