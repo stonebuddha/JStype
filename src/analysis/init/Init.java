@@ -195,7 +195,6 @@ public class Init {
     public static final Domains.AddressSpace.Address Date_prototype_Addr = NewAbstractAddress.apply();
 
     // Date.prototype NewAbstractAddresses
-    // TODO: Date's prototype has a lot more than just this in it!
     public static final Domains.AddressSpace.Address Date_prototype_toString_Addr = NewAbstractAddress.apply();
     public static final Domains.AddressSpace.Address Date_prototype_valueOf_Addr = NewAbstractAddress.apply();
     public static final Domains.AddressSpace.Address Date_prototype_toLocaleString_Addr = NewAbstractAddress.apply();
@@ -262,7 +261,8 @@ public class Init {
         Domains.Store initStore = new Domains.Store(
                 TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(window_binding_Addr, Domains.AddressSpace.Address.inject(window_Addr))),
                 TreeMap.treeMap(Ord.hashEqualsOrd(),
-                        P.p(window_Addr, InitGlobal.window_Obj)), //TODO
+                        P.p(window_Addr, InitGlobal.window_Obj)),
+                //TODO
                 TreeMap.empty(Ord.hashEqualsOrd()),
                 Set.empty(Ord.<Domains.AddressSpace.Address>hashEqualsOrd())
         );

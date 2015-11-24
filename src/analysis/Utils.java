@@ -8,6 +8,8 @@ import ir.*;
 import analysis.init.Init;
 import sun.text.resources.cldr.en.FormatData_en_IE;
 
+import java.util.Map;
+
 /**
  * Created by wayne on 15/11/2.
  */
@@ -146,29 +148,131 @@ public class Utils {
             oas = Domains.AddressSpace.Addresses.apply();
         }
 
-        TreeMap<Domains.AddressSpace.Addresses, Domains.Store> memo = TreeMap.empty(Ord.<Domains.AddressSpace.Addresses>hashEqualsOrd());
+        TreeMap<Set<Domains.AddressSpace.Address>, Domains.Store> memo = TreeMap.empty(Ord.<Set<Domains.AddressSpace.Address>>hashEqualsOrd());
 
         Set<Interpreter.State> sigmas = Set.empty(Ord.<Interpreter.State>hashEqualsOrd());
         Boolean nonfun = false;
+
         for (Domains.AddressSpace.Address a : bv1.as) {
             Set<Domains.Closure> clos = store.getObj(a).getCode();
-            if (!clos.isEmpty()) {
-                clos.map(Ord.<Interpreter.State>hashEqualsOrd(),
-                        closure -> {
-                            //TODO
-                           return null;
-                        });
+            if (clos.size() > 0) {
+                for (Domains.Closure clo : clos) {
+                    if (clo instanceof Domains.Clo) {
+                        Domains.Env envc = ((Domains.Clo) clo).env;
+                        IRMethod m = ((Domains.Clo) clo).m;
+                        IRPVar self = ((Domains.Clo) clo).m.self;
+                        IRPVar args = ((Domains.Clo) clo).m.args;
+                        IRStmt s = ((Domains.Clo) clo).m.s;
+
+                        if (Interpreter.Mutable.pruneStore) {
+                            Set<Domains.AddressSpace.Address> vas = envc.addrs();
+                            Domains.Store reach_store;
+                            Option<Domains.Store> storeOption = memo.get(vas);
+                            if (storeOption.isNone()) {
+                                P2<Domains.Store, Domains.Store> pruneStore = store.prune(vas, oas);
+                                Interpreter.PruneStoreToo.update(trace, P.p(pruneStore._2(), pad));
+                                memo.set(vas, pruneStore._1());
+                                reach_store = pruneStore._1();
+                            }
+                            else {
+                                reach_store = storeOption.some();
+                            }
+                            Trace trace1 = trace.update(envc, store, bv2as, bv3, new Domains.StmtTerm(s));
+                            Domains.AddressSpace.Address ka = trace1.toAddr();
+                            List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
+                            Domains.Store rstore1 = alloc(reach_store, as, List.list(bv2as, bv3));
+                            Domains.Store rstore2 = alloc(rstore1, ka, ks.push(new Domains.RetKont(x, env, isctor, trace)));
+                            Domains.Env envc1 = envc.extendAll(List.list(self, args).zip(as));
+                            Integer exc = ks.exc.head() != 0 ? 1 : 0;
+
+                            sigmas = sigmas.insert(new Interpreter.State(new Domains.StmtTerm(s), envc1, rstore2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1));
+                        }
+                        else {
+                            Trace trace1 = trace.update(envc, store, bv2as, bv3, new Domains.StmtTerm(s));
+                            Domains.AddressSpace.Address ka = trace1.toAddr();
+                            List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
+                            Domains.Store store1 = alloc(store, as, List.list(bv2as, bv3));
+                            Domains.Store store2 = alloc(store1, ka, ks.push(new Domains.RetKont(x, env, isctor, trace)));
+                            Domains.Env envc1 = envc.extendAll(List.list(self, args).zip(as));
+                            Integer exc = ks.exc.head() != 0 ? 1 : 0;
+                            Interpreter.PruneScratch.update(trace, pad);
+
+                            sigmas = sigmas.insert(new Interpreter.State(new Domains.StmtTerm(s), envc1, store2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1));
+                        }
+                    }
+                    else if (clo instanceof Domains.Native) {
+                        sigmas = sigmas.union(((Domains.Native) clo).f.f(bv2as, bv3, x, env, store, pad, ks, trace));
+                    }
+                }
             }
             else {
                 nonfun = true;
             }
         }
-        // TODO
-        return null;
+
+        if (Interpreter.Mutable.pruneStore && Interpreter.PruneStoreToo.contains(trace)) {
+            Trace merge_trace;
+            if (ks.top() instanceof Domains.SeqKont && ((Domains.SeqKont) ks.top()).ss.isNotEmpty()) {
+                merge_trace = trace.update(((Domains.SeqKont) ks.top()).ss.head());
+            }
+            else {
+                throw new RuntimeException("translator reneged");
+            }
+
+            Set<Domains.AddressSpace.Address> as;
+            if (x instanceof IRPVar) {
+                as = env.apply((IRPVar) x).some();
+            }
+            else {
+                as = Domains.AddressSpace.Addresses.apply();
+            }
+
+            Interpreter.Mutable.prunedInfo.set(merge_trace, P.p(trace, x, as));
+        }
+
+        if (nonfun) {
+            sigmas = sigmas.insert(new Interpreter.State(new Domains.ValueTerm(Errors.typeError), env, store, pad, ks, trace));
+        }
+
+        return sigmas;
     }
 
     public static Set<Interpreter.State> applyCloWithSplits(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
-        // TODO
+        Domains.BValue bv2as = Domains.AddressSpace.Addresses.inject(bv2.as);
+        assert bv2as.defAddr() && bv3.defAddr() && bv3.as.size() == 1;
+        boolean isctor = store.getObj(bv3.as.iterator().next()).calledAsCtor();
+
+        Set<Domains.AddressSpace.Address> oas;
+        if (Interpreter.Mutable.pruneStore) {
+            oas = bv2.as.union(bv3.as).union(Init.keepInStore);
+        }
+        else {
+            oas = Domains.AddressSpace.Addresses.apply();
+        }
+
+        TreeMap<Set<Domains.AddressSpace.Address>, Domains.Store> memo = TreeMap.empty(Ord.<Set<Domains.AddressSpace.Address>>hashEqualsOrd());
+
+        Set<Interpreter.State> sigmaS = Set.empty(Ord.<Interpreter.State>hashEqualsOrd());
+        boolean nonfun = false;
+
+        for (Domains.AddressSpace.Address a : bv1.as) {
+            Set<Domains.Closure> clos = store.getObj(a).getCode();
+            if (clos.size() > 0) {
+                for (Domains.Closure clo : clos) {
+                    if (clo instanceof Domains.Clo) {
+                        Domains.Env envc = ((Domains.Clo) clo).env;
+                        IRPVar self = ((Domains.Clo) clo).m.self;
+                        IRPVar args = ((Domains.Clo) clo).m.args;
+                        IRStmt s = ((Domains.Clo) clo).m.s;
+                        if (Interpreter.Mutable.pruneStore) {
+                            Set<Domains.AddressSpace.Address> vas = envc.addrs();
+                            Domains.Store reach_store;
+                            // TODO
+                        }
+                    }
+                }
+            }
+        }
         return null;
     }
 

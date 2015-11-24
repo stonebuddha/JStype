@@ -22,7 +22,7 @@ public class Interpreter {
         public static Boolean catchExc = false;
         public static Boolean inPostFixpoint = false;
         public static Boolean splitStates = false;
-        public static HashMap<Trace, P3<Trace, IRVar, Domains.AddressSpace.Addresses>> prunedInfo = HashMap.hashMap();
+        public static HashMap<Trace, P3<Trace, IRVar, Set<Domains.AddressSpace.Address>>> prunedInfo = HashMap.hashMap();
 
         public static void clear() {
             Mutable.lightGC = false;
