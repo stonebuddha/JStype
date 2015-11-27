@@ -274,7 +274,7 @@ public class AST2IR {
                             str._3()
                     );
                 }
-                case "instanceOf": {
+                case "instanceof": {
                     return withStatements.f(
                             makeIf(
                                     new IRUnop(Uop.LogicalNot, new IRBinop(Bop.StrictEqual, new IRUnop(Uop.TypeOf, _right._2()), new IRStr("function"))),
@@ -710,7 +710,7 @@ public class AST2IR {
                 P3<IRStmt, IRExp, Set<IRPVar>> _e = e.accept(this);
                 P3<IRStmt, IRExp, Set<IRPVar>> _s = s.accept(this);
                 return P.p(
-                        List.list(_e._1(), makeIf(new IRBinop(Bop.Or, new IRBinop(Bop.StrictEqual, _e._2(), y0), y1), new IRSeq(List.list(_s._1(), new IRAssign(y1, new IRBool(true)))), PVarMapper.nopStmt)),
+                        List.list(_e._1(), makeIf(new IRBinop(Bop.LogicalOr, new IRBinop(Bop.StrictEqual, _e._2(), y0), y1), new IRSeq(List.list(_s._1(), new IRAssign(y1, new IRBool(true)))), PVarMapper.nopStmt)),
                         _e._3().union(_s._3())
                 );
             };

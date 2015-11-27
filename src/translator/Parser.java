@@ -290,7 +290,7 @@ public class Parser {
             Expression alternate = parseExpression(ele2);
             JsonElement ele3 = object.get("consequent");
             Expression consequent = parseExpression(ele3);
-            return new ConditionalExpression(test, alternate, consequent);
+            return new ConditionalExpression(test, consequent, alternate);
         } else if (type.equals("CallExpression")) {
             JsonElement ele1 = object.get("callee");
             Expression callee = parseExpression(ele1);

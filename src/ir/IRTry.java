@@ -20,6 +20,11 @@ public class IRTry extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "try {\n" + s1 + "} catch (" + x + ") {\n" + s2 + "} finally {\n" + s3 + "}";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRTry && s1.equals(((IRTry) obj).s1) && x.equals(((IRTry) obj).x) && s2.equals(((IRTry) obj).s2) && s3.equals(((IRTry) obj).s3));
     }

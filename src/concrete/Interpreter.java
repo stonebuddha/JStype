@@ -349,7 +349,7 @@ public class Interpreter {
                             }
                         }
                         else {
-                            return new State(new Domains.ValueTerm(Domains.Undef), env, store, pad, ks);
+                            return new State(new Domains.ValueTerm(Domains.Undef), env, store, pad, ks.pop());
                         }
                     }
                     else if (ks.top() instanceof Domains.RetKont) {
@@ -435,7 +435,7 @@ public class Interpreter {
                         Domains.CatchKont ck = (Domains.CatchKont) ks.top();
                         return new State(new Domains.StmtTerm(ck.sf), env, store, pad, ks.repl(new Domains.FinKont(jv)));
                     }
-                    else if (ks.top() instanceof Domains.LblKont && jv.lbl == ((Domains.LblKont)ks.top()).lbl) {
+                    else if (ks.top() instanceof Domains.LblKont && jv.lbl.equals(((Domains.LblKont)ks.top()).lbl)) {
                         return new State(new Domains.ValueTerm(jv.bv), env, store, pad, ks.pop());
                     }
                     else {
@@ -467,11 +467,11 @@ public class Interpreter {
         Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
         //System.err.println(program.accept(PrettyPrinter.formatProgram));
         program = AST2AST.transform(program);
-        //System.err.println(program.accept(PrettyPrinter.formatProgram));
+        System.err.println(program.accept(PrettyPrinter.formatProgram));
         IRStmt stmt = AST2IR.transform(program);
         //System.err.println(stmt);
         stmt = IR2IR.transform(stmt);
-        //System.err.println(stmt);
+        System.err.println(stmt);
         return stmt;
     }
 }
