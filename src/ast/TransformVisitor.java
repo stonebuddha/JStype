@@ -46,6 +46,7 @@ public interface TransformVisitor<T> {
     P2<Expression, T> forThisExpression(ThisExpression thisExpression);
     P2<Expression, T> forUnaryExpression(UnaryExpression unaryExpression);
     P2<Expression, T> forUpdateExpression(UpdateExpression updateExpression);
+    P2<Expression, T> forPrintExpression(PrintExpression printExpression);
 
     P2<CatchClause, T> forCatchClause(CatchClause catchClause);
 

@@ -39,11 +39,18 @@ public class Interpreter {
         try {
             State state = Init.initState(ir);
             while (!state.fin()) {
+                /*if (state.t instanceof Domains.StmtTerm) {
+                    System.out.println(((Domains.StmtTerm) state.t).s);
+                    System.out.println("----");
+                }*/
                 state = state.next();
             }
             return Mutable.outputMap;
         } catch (Exception e) {
-            System.out.println("Exception occurred: "+ e.getMessage() + "\n" + e.getStackTrace());
+            System.out.println("Exception occurred: "+ e.getMessage() + "\n");
+            for (StackTraceElement element : e.getStackTrace()) {
+                System.out.println(element);
+            }
             return Mutable.outputMap;
         }
     }
@@ -286,6 +293,13 @@ public class Interpreter {
                     public Object forMerge(IRMerge irMerge) {
                         return new State(new Domains.ValueTerm(Domains.Undef), env, store, pad, ks);
                     }
+
+                    @Override
+                    public Object forPrint(IRPrint irPrint) {
+                        Domains.BValue bv = eval(irPrint.e);
+                        System.out.println(bv);
+                        return new State(new Domains.ValueTerm(Domains.Undef), env, store, pad, ks);
+                    }
                 };
 
                 return (State)((Domains.StmtTerm) t).s.accept(stmtV);
@@ -303,7 +317,7 @@ public class Interpreter {
                                     ks.repl(new Domains.SeqKont(sk.ss.tail())));
                         }
                         else {
-                            return new State(new Domains.ValueTerm(Domains.Undef), env, store, pad, ks);
+                            return new State(new Domains.ValueTerm(Domains.Undef), env, store, pad, ks.pop());
                         }
                     }
                     else if (ks.top() instanceof Domains.WhileKont){
@@ -313,7 +327,7 @@ public class Interpreter {
                             return new State(new Domains.StmtTerm(wk.s), env, store, pad, ks);
                         }
                         else {
-                            return new State(new Domains.ValueTerm(Domains.Undef), env, store, pad, ks);
+                            return new State(new Domains.ValueTerm(Domains.Undef), env, store, pad, ks.pop());
                         }
                     }
                     else if (ks.top() instanceof Domains.ForKont) {
@@ -385,7 +399,7 @@ public class Interpreter {
                     else if (ks.top() instanceof Domains.LblKont) {
                         return new State(new Domains.ValueTerm(bv), env, store, pad, ks.pop());
                     }
-                    else if (ks.top().equals(Domains.HaltKont)) {
+                    else {
                         throw new RuntimeException("trying to transition from final state");
                     }
                 }
@@ -437,7 +451,6 @@ public class Interpreter {
                         return new State(new Domains.ValueTerm(jv), env, store, pad, ks1);
                     }
                 }
-                return null;
             }
         }
     }
@@ -448,17 +461,17 @@ public class Interpreter {
         String data;
         StringBuilder builder = new StringBuilder();
         while ((data = br.readLine()) != null) {
-            builder.append(data);
+            builder.append(data + "\n");
         }
         Parser.init();
         Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
-        System.err.println(program.accept(PrettyPrinter.formatProgram));
+        //System.err.println(program.accept(PrettyPrinter.formatProgram));
         program = AST2AST.transform(program);
-        System.err.println(program.accept(PrettyPrinter.formatProgram));
+        //System.err.println(program.accept(PrettyPrinter.formatProgram));
         IRStmt stmt = AST2IR.transform(program);
-        System.err.println(stmt);
+        //System.err.println(stmt);
         stmt = IR2IR.transform(stmt);
-        System.err.println(stmt);
+        //System.err.println(stmt);
         return stmt;
     }
 }

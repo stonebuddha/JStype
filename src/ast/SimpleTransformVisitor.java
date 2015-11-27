@@ -44,6 +44,7 @@ public interface SimpleTransformVisitor {
     Expression forThisExpression(ThisExpression thisExpression);
     Expression forUnaryExpression(UnaryExpression unaryExpression);
     Expression forUpdateExpression(UpdateExpression updateExpression);
+    Expression forPrintExpression(PrintExpression printExpression);
 
     CatchClause forCatchClause(CatchClause catchClause);
 

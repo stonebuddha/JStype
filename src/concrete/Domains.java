@@ -239,7 +239,7 @@ public class Domains {
             } else if (this instanceof Str && bv instanceof Num) {
                 return this.toNum().strictEqual(bv);
             }
-            return bv1.or(bv2);
+            return bv1.logicalOr(bv2);
         }
 
         public BValue negate() { throw new RuntimeException("translator reneged"); }
@@ -261,6 +261,11 @@ public class Domains {
 
         public Num(Double n) {
             this.n = n;
+        }
+
+        @Override
+        public String toString() {
+            return n.toString();
         }
 
         @Override
@@ -436,6 +441,11 @@ public class Domains {
     public static class Str extends BValue {
         public String str;
 
+        @Override
+        public String toString() {
+            return str;
+        }
+
         public Str(String str) {
             this.str = str;
         }
@@ -508,6 +518,11 @@ public class Domains {
         }
 
         @Override
+        public String toString() {
+            return b.toString();
+        }
+
+        @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Bool && b.equals(((Bool) obj).b));
         }
@@ -569,7 +584,7 @@ public class Domains {
     public static class Address extends BValue {
         public Integer a;
 
-        public Address() {}
+        //public Address() {}
         public Address(Integer a) {
             this.a = a;
         }
@@ -615,6 +630,11 @@ public class Domains {
     }
 
     public static final BValue Undef = new BValue() {
+        @Override
+        public String toString() {
+            return "undefined";
+        }
+
         @Override
         public Bool toBool() {
             return Bool.False;
@@ -959,7 +979,7 @@ public class Domains {
         }
 
         public KontStack push(Kont k) {
-            return new KontStack(ks.snoc(k));
+            return new KontStack(ks.cons(k));
         }
 
         public KontStack pop() {
@@ -967,7 +987,7 @@ public class Domains {
         }
 
         public KontStack repl(Kont k) {
-            return new KontStack(ks.tail().snoc(k));
+            return new KontStack(ks.tail().cons(k));
         }
 
         public Kont top() {

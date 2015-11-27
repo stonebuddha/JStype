@@ -90,7 +90,7 @@ public class InitString {
                     P.p(new Domains.Str("toLocaleLowerCase"), Init.String_prototype_toLocaleLowerCase_Addr),
                     P.p(new Domains.Str("toLocaleUpperCase"), Init.String_prototype_toLocaleUpperCase_Addr),
                     P.p(new Domains.Str("toLowerCase"), Init.String_prototype_toLowerCase_Addr),
-                    P.p(new Domains.Str("toInit.String"), Init.String_prototype_toString_Addr),
+                    P.p(new Domains.Str("toString"), Init.String_prototype_toString_Addr),
                     P.p(new Domains.Str("toUpperCase"), Init.String_prototype_toUpperCase_Addr),
                     P.p(new Domains.Str("trim"), Init.String_prototype_trim_Addr),
                     P.p(new Domains.Str("valueOf"), Init.String_prototype_valueOf_Addr)),

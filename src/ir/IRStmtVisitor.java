@@ -22,4 +22,5 @@ public interface IRStmtVisitor<T> {
     T forJump(IRJump irJump);
     T forFor(IRFor irFor);
     T forMerge(IRMerge irMerge);
+    T forPrint(IRPrint irPrint);
 }

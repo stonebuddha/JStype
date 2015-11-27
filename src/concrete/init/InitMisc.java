@@ -25,7 +25,7 @@ public class InitMisc {
                     boolValue = Domains.Bool.False;
                 }
                 if (calledAsConstr) {
-                    Domains.Address newAddr = new Domains.Address();
+                    Domains.Address newAddr = Domains.Address.generate();
                     Domains.Object newObj = InitUtils.createObj(TreeMap.empty(Ord.hashEqualsOrd()),
                             TreeMap.treeMap(Ord.hashEqualsOrd(),
                                     P.p(Utils.Fields.proto, Init.Boolean_prototype_Addr),

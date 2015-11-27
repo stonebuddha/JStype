@@ -310,6 +310,7 @@ public class Init {
 //                        P.p(Date_parse_Addr, Date_parse_Obj),
 //                        P.p(Date_prototype_Addr, Date_prototype_Obj),
 //                        P.p(RegExp_prototype_Addr, RegExp_prototype_Obj),
+                        P.p(Arguments_Addr, InitArguments.Arguments_Obj),
                         P.p(Dummy_Addr, InitUtils.createObj(TreeMap.empty(Ord.hashEqualsOrd())))));
         return new Interpreter.State(
                 new Domains.StmtTerm(s),

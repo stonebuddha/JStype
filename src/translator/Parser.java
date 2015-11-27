@@ -37,6 +37,7 @@ public class Parser {
 
     public static Program parse(String code, String name) {
         String json = rawParse(code, name);
+        //System.err.println(json);
         JsonParser parser = new JsonParser();
         JsonElement element = parser.parse(json);
         return parseProgram(element);
@@ -294,7 +295,11 @@ public class Parser {
             JsonElement ele1 = object.get("callee");
             Expression callee = parseExpression(ele1);
             JsonElement ele2 = object.get("arguments");
-            return new CallExpression(callee, List.list(ele2.getAsJsonArray()).map(Parser::parseExpression));
+            if (callee instanceof RealIdentifierExpression && ((RealIdentifierExpression) callee).getName().equals("print")) {
+                return new PrintExpression(parseExpression(ele2.getAsJsonArray().get(0)));
+            } else {
+                return new CallExpression(callee, List.list(ele2.getAsJsonArray()).map(Parser::parseExpression));
+            }
         } else if (type.equals("NewExpression")) {
             JsonElement ele1 = object.get("callee");
             Expression callee = parseExpression(ele1);

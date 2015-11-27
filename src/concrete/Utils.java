@@ -181,11 +181,10 @@ public class Utils {
                 a = Init.Number_Addr;
             } else if (bv instanceof Domains.Bool) {
                 a = Init.Boolean_Addr;
-            } else if (bv instanceof Domains.Address) {
+            } else if (bv instanceof Domains.Str) {
                 a = Init.String_Addr;
             } else {
-                //sys.error("can't happen")
-                return null;
+                throw new RuntimeException("implementation error");
             }
             P2<Domains.Store, Domains.Address> tmp = allocObj(a, store);
             Domains.Store store1 = tmp._1();

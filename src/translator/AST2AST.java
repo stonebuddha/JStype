@@ -313,6 +313,12 @@ public class AST2AST {
         }
 
         @Override
+        public Expression forPrintExpression(PrintExpression printExpression) {
+            Expression expression = printExpression.getExpression();
+            return new PrintExpression(expression.accept(this));
+        }
+
+        @Override
         public CatchClause forCatchClause(CatchClause catchClause) {
             IdentifierExpression param = catchClause.getParam();
             BlockStatement body = catchClause.getBody();
@@ -747,6 +753,14 @@ public class AST2AST {
             P2<List<Expression>, List<List<Statement>>> tmp2 = List.unzip(tmp1);
             assert tmp2._2().forall(List.isEmpty_());
             return P.p(new CallExpression(tmp._1(), tmp2._1()), List.list());
+        }
+
+        @Override
+        public P2<Expression, List<Statement>> forPrintExpression(PrintExpression printExpression) {
+            Expression expression = printExpression.getExpression();
+            P2<Expression, List<Statement>> tmp = expression.accept(this);
+            assert tmp._2().isEmpty();
+            return P.p(new PrintExpression(tmp._1()), List.list());
         }
 
         @Override
@@ -1198,6 +1212,13 @@ public class AST2AST {
         }
 
         @Override
+        public P2<Expression, Set<IdentifierExpression>> forPrintExpression(PrintExpression printExpression) {
+            Expression expression = printExpression.getExpression();
+            P2<Expression, Set<IdentifierExpression>> tmp = expression.accept(this);
+            return P.p(new PrintExpression(tmp._1()), tmp._2());
+        }
+
+        @Override
         public P2<Expression, Set<IdentifierExpression>> forConditionalExpression(ConditionalExpression conditionalExpression) {
             Expression test = conditionalExpression.getTest();
             Expression consequent = conditionalExpression.getConsequent();
@@ -1219,8 +1240,8 @@ public class AST2AST {
             List<VariableDeclarator> decls = tmp._2().toList().map(exp -> new VariableDeclarator(exp, Option.some(new LiteralExpression(new UndefinedLiteral()))));
             if (id.isSome()) {
                 RealIdentifierExpression y = VariableAllocator.freshRealVar();
-                Statement stmt1 = new VariableDeclaration(decls.cons(new VariableDeclarator(id.some(), Option.some(y))));
-                BlockStatement _body = new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(stmt1));
+                Statement stmt1 = new VariableDeclaration(decls.cons(new VariableDeclarator(id.some(), Option.some(new LiteralExpression(new UndefinedLiteral())))));
+                BlockStatement _body = new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(new ExpressionStatement(new AssignmentExpression("=", id.some(), y))).cons(stmt1));
                 Expression func = new AssignmentExpression("=", y, new FunctionExpression(id, params, _body));
                 return P.p(func, Set.set(Ord.hashEqualsOrd(), y));
             } else {
@@ -1484,6 +1505,21 @@ public class AST2AST {
             } else {
                 return new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), realIdentifierExpression, false);
             }
+        }
+
+        @Override
+        public Statement forContinueStatement(ContinueStatement continueStatement) {
+            return continueStatement;
+        }
+
+        @Override
+        public Statement forBreakStatement(BreakStatement breakStatement) {
+            return breakStatement;
+        }
+
+        @Override
+        public Statement forLabeledStatement(LabeledStatement labeledStatement) {
+            return new LabeledStatement(labeledStatement.getLabel(), labeledStatement.getBody().accept(this));
         }
 
         /*@Override

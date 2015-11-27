@@ -197,6 +197,12 @@ public class IR2IR {
             IRStmt s = irWhile.s;
             return new IRWhile(e.accept(this), s.accept(this));
         }
+
+        @Override
+        public IRStmt forPrint(IRPrint irPrint) {
+            IRExp e = irPrint.e;
+            return new IRPrint(e.accept(this));
+        }
     }
 
     public static class FlattenSequencesV extends DefaultClonePassV {
@@ -531,6 +537,13 @@ public class IR2IR {
             P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> _e = e.accept(this);
             P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> _s = s.accept(new InsertSDeclsV(_e._2()));
             return P.p(new IRWhile(_e._1(), _s._1()), _s._2());
+        }
+
+        @Override
+        public P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> forPrint(IRPrint irPrint) {
+            IRExp e = irPrint.e;
+            P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> _e = e.accept(this);
+            return P.p(new IRPrint(_e._1()), _e._2());
         }
     }
 

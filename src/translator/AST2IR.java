@@ -370,6 +370,13 @@ public class AST2IR {
         }
 
         @Override
+        public P3<IRStmt, IRExp, Set<IRPVar>> forPrintExpression(PrintExpression printExpression) {
+            Expression expression = printExpression.getExpression();
+            P3<IRStmt, IRExp, Set<IRPVar>> tmp = expression.accept(this);
+            return P.p(new IRSeq(List.list(tmp._1(), new IRPrint(tmp._2()))), new IRUndef(), tmp._3());
+        }
+
+        @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forCallExpression(CallExpression callExpression) {
             Expression callee = callExpression.getCallee();
             List<Expression> arguments = callExpression.getArguments();
@@ -789,6 +796,33 @@ public class AST2IR {
                 }
                 case "toObj": {
                     return withStatement.f(toObj(_argument._2()));
+                }
+                case "delete": {
+                    if (argument instanceof MemberExpression) {
+                        Expression object = ((MemberExpression) argument).getObject();
+                        Expression property = ((MemberExpression) argument).getProperty();
+                        P3<IRStmt, IRExp, Set<IRPVar>> _object = object.accept(this);
+                        P3<IRStmt, IRExp, Set<IRPVar>> _property = property.accept(this);
+                        P3<IRStmt, IRExp, Set<IRPVar>> _field = AST2IR.toString(_property._2());
+                        IRScratch y = freshScratch();
+                        return P.p(
+                                new IRSeq(List.list(_object._1(), _property._1(), _field._1(),
+                                        makeIf(
+                                                new IRBinop(Bop.LogicalOr,
+                                                        new IRBinop(Bop.StrictEqual, _object._2(), new IRUndef()),
+                                                        new IRBinop(Bop.StrictEqual, _object._2(), new IRNull())),
+                                                throwTypeError,
+                                                makeIf(
+                                                        new IRBinop(Bop.StrictEqual, new IRUnop(Uop.TypeOf, _object._2()), new IRStr("object")),
+                                                        new IRDel(y, _object._2(), _field._2()),
+                                                        new IRAssign(y, new IRBool(true))
+                                                )))),
+                                y,
+                                _object._3().union(_property._3()).union(_field._3())
+                        );
+                    } else {
+                        return P.p(_argument._1(), new IRBool(true), _argument._3());
+                    }
                 }
                 default:
                     throw new RuntimeException("unknown operator");

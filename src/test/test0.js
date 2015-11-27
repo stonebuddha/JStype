@@ -1,8 +1,5 @@
-function field() {
-    return "bar";
-}
-function foo(obj, y) {
-    var x = 1;
-    x += y;
-    obj[field()] += y;
-}
+// basic arithmetic
+var x = 1 + 2;
+var y = 3 + 4;
+print(x);
+print(y);

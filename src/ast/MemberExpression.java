@@ -12,7 +12,7 @@ public class MemberExpression extends Expression {
 
     public MemberExpression(Expression object, Expression property, Boolean computed) {
         this.object = object;
-        if (property instanceof RealIdentifierExpression) {
+        if (property instanceof RealIdentifierExpression && !computed) {
             this.property = new LiteralExpression(new StringLiteral(((RealIdentifierExpression) property).getName()));
         } else {
             this.property = property;

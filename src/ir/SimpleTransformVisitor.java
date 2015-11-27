@@ -22,6 +22,7 @@ public interface SimpleTransformVisitor {
     IRStmt forJump(IRJump irJump);
     IRStmt forFor(IRFor irFor);
     IRStmt forMerge(IRMerge irMerge);
+    IRStmt forPrint(IRPrint irPrint);
 
     IRExp forNum(IRNum irNum);
     IRExp forBool(IRBool irBool);

@@ -34,7 +34,7 @@ public class InitNumber {
                     pvalue = InitUtils.ToNumber(argsObj.apply(new Domains.Str("0")).some(), store);
                 }
                 if (calledAsConstr) {
-                    Domains.Address newAddr = new Domains.Address();
+                    Domains.Address newAddr = Domains.Address.generate();
                     Domains.Object newObj = InitUtils.createObj(TreeMap.empty(Ord.hashEqualsOrd()),
                             TreeMap.treeMap(Ord.hashEqualsOrd(),
                                     P.p(Utils.Fields.proto, Init.Number_prototype_Addr),

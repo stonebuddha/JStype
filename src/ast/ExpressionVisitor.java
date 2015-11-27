@@ -22,4 +22,5 @@ public interface ExpressionVisitor<T> {
     T forThisExpression(ThisExpression thisExpression);
     T forUnaryExpression(UnaryExpression unaryExpression);
     T forUpdateExpression(UpdateExpression updateExpression);
+    T forPrintExpression(PrintExpression printExpression);
 }

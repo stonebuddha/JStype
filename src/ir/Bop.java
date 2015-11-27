@@ -33,6 +33,10 @@ public class Bop {
 
     @Override
     public String toString() {
-        return "BOP";
+        if (this.equals(Plus)) return "+";
+        else if (this.equals(Minus)) return "-";
+        else if (this.equals(StrictEqual)) return "===";
+        else if (this.equals(NonStrictEqual)) return "==";
+        else return "BOP";
     }
 }

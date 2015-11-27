@@ -182,7 +182,7 @@ public class Eval {
                         @Override
                         public Domains.BValue forAddress(Domains.Address bAddress) {
                             Domains.Object obj = store.getObj(bAddress);
-                            if (obj.getCode() != null) {
+                            if (obj.getCode().isSome()) {
                                 return new Domains.Str("function");
                             } else {
                                 return new Domains.Str("object");

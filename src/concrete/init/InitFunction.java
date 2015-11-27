@@ -70,7 +70,7 @@ public class InitFunction {
                     return InitUtils.makeState(Utils.Errors.typeError, x, env, store, pad, ks);
                 } else {
                     TreeMap<Domains.Str, Domains.BValue> extm = external.some();
-                    Domains.Address newArgsAddr = new Domains.Address();
+                    Domains.Address newArgsAddr = Domains.Address.generate();
                     Domains.Object newObj = InitUtils.createObj(extm,
                             TreeMap.treeMap(Ord.hashEqualsOrd(),
                                     P.p(Utils.Fields.proto, Init.Object_prototype_Addr),
@@ -126,7 +126,7 @@ public class InitFunction {
                         },
                         TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(arglen - 1)))
                 );
-                Domains.Address newArgsAddr = new Domains.Address();
+                Domains.Address newArgsAddr = Domains.Address.generate();
                 Domains.Object newObj = InitUtils.createObj(external,
                         TreeMap.treeMap(Ord.hashEqualsOrd(),
                                 P.p(Utils.Fields.proto, Init.Object_prototype_Addr),

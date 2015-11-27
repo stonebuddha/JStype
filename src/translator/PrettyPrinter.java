@@ -316,6 +316,16 @@ public class PrettyPrinter {
         }
 
         @Override
+        public Object forPrintExpression(PrintExpression printExpression) {
+            Expression expression = printExpression.getExpression();
+            StringBuilder builder = new StringBuilder();
+            builder.append("print(");
+            builder.append((String) expression.accept(this));
+            builder.append(")");
+            return builder.toString();
+        }
+
+        @Override
         public Object forAssignmentExpression(AssignmentExpression assignmentExpression) {
             Node left = assignmentExpression.getLeft();
             String operator = assignmentExpression.getOperator();

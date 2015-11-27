@@ -24,6 +24,7 @@ public interface TransformVisitor<T> {
     P2<IRStmt, T> forJump(IRJump irJump);
     P2<IRStmt, T> forFor(IRFor irFor);
     P2<IRStmt, T> forMerge(IRMerge irMerge);
+    P2<IRStmt, T> forPrint(IRPrint irPrint);
 
     P2<IRExp, T> forNum(IRNum irNum);
     P2<IRExp, T> forBool(IRBool irBool);

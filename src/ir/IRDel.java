@@ -19,6 +19,11 @@ public class IRDel extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return x + " := delete(" + e1 + "." + e2 + ");\n";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRDel && x.equals(((IRDel) obj).x) && e1.equals(((IRDel) obj).e1) && e2.equals(((IRDel) obj).e2));
     }

@@ -2,6 +2,7 @@ package concrete.init;
 
 import analysis.Interpreter;
 import com.sun.java.browser.plugin2.DOM;
+import com.sun.xml.internal.ws.model.RuntimeModelerException;
 import concrete.Domains;
 import fj.*;
 import fj.data.List;
@@ -131,8 +132,7 @@ public class InitUtils {
             } else if (toString == Init.Array_prototype_toString_Addr) {
                 string = ArrayToString(a, store);
             } else {
-                //sys.error("Your toString is not sane.")
-                return null;
+                throw new RuntimeModelerException("implementation error");
             }
             return ToString(string, store);
         } else {
@@ -195,7 +195,7 @@ public class InitUtils {
                 //sys.error("inconceivable");
                 return null;
             }
-            Domains.Address newAddr = new Domains.Address();
+            Domains.Address newAddr = Domains.Address.generate();
             Domains.Object newObj = createObj(TreeMap.empty(Ord.hashEqualsOrd()),
                     TreeMap.treeMap(Ord.hashEqualsOrd(),
                             P.p(concrete.Utils.Fields.proto, proto),

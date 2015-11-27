@@ -16,6 +16,11 @@ public class IRMethod extends IRNode {
     public Set<IRPVar> freeVars;
     public Set<Integer> canEscapeVar, canEscapeObj, cannotEscape;
 
+    @Override
+    public String toString() {
+        return "method(" + self + "," + args + ") " + s;
+    }
+
     public IRMethod(IRPVar self, IRPVar args, IRStmt s) {
         this.self = self;
         this.args = args;

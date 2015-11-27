@@ -16,7 +16,7 @@ public class InitObject {
                 Domains.Object args = store.getObj(argArrayAddr);
                 Domains.BValue input = args.apply(new Domains.Str("0")).orSome(Domains.Undef);
                 if (input.equals(Domains.Null) || input.equals(Domains.Undef)) {
-                    Domains.Address newAddr = new Domains.Address();
+                    Domains.Address newAddr = Domains.Address.generate();
                     Domains.Object newObj = InitUtils.createObj(TreeMap.empty(Ord.hashEqualsOrd()));
                     Domains.Store newStore = store.putObj(newAddr, newObj);
                     return P.p(newAddr, newStore);
