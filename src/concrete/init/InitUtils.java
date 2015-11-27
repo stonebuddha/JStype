@@ -19,8 +19,7 @@ import javafx.beans.property.ReadOnlyMapProperty;
  */
 public class InitUtils {
     public static Domains.Object unimplemented = createFunctionObject(new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
-        //sys.error("!! Not Implemented")
-        return null;
+        throw new RuntimeException("not implemented");
     }), TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0))));
 
     public static Domains.Object approx_str = makeNativeValue((selfAddr, argArrayAddr, store) -> {
@@ -105,11 +104,10 @@ public class InitUtils {
             Domains.Object o = store.getObj(a);
             Domains.BValue valueOf = concrete.Utils.lookup(o, new Domains.Str("valueOf"), store);
             Domains.BValue value;
-            if (valueOf == Init.Number_prototype_valueOf_Addr || valueOf == Init.String_prototype_valueOf_Addr || valueOf == Init.Boolean_prototype_valueOf_Addr) {
-                value =  o.getValue().some();
+            if (valueOf.equals(Init.Number_prototype_valueOf_Addr) || valueOf.equals(Init.String_prototype_valueOf_Addr) || valueOf.equals(Init.Boolean_prototype_valueOf_Addr)) {
+                value = o.getValue().some();
             } else {
-                //sys.error("Your valueOf is not sane.")
-                return null;
+                throw new RuntimeException("implementation error: Your valueOf is not saned.");
             }
             return ToNumber(value, store);
         } else {
@@ -123,13 +121,13 @@ public class InitUtils {
             Domains.Object o = store.getObj(a);
             Domains.BValue toString = concrete.Utils.lookup(o, new Domains.Str("toString"), store);
             Domains.BValue string;
-            if (toString == Init.Number_prototype_toString_Addr || toString == Init.Boolean_prototype_toString_Addr) {
+            if (toString.equals(Init.Number_prototype_toString_Addr) || toString.equals(Init.Boolean_prototype_toString_Addr)) {
                 string = o.getValue().some().toStr();
-            } else if (toString == Init.String_prototype_toString_Addr) {
+            } else if (toString.equals(Init.String_prototype_toString_Addr)) {
                 string = o.getValue().some();
-            } else if (toString == Init.Object_prototype_toString_Addr) {
+            } else if (toString.equals(Init.Object_prototype_toString_Addr)) {
                 string = Object_toString_helper(o);
-            } else if (toString == Init.Array_prototype_toString_Addr) {
+            } else if (toString.equals(Init.Array_prototype_toString_Addr)) {
                 string = ArrayToString(a, store);
             } else {
                 throw new RuntimeModelerException("implementation error");
@@ -149,8 +147,7 @@ public class InitUtils {
             Double n = ((Domains.Num)tmp).n;
             len = n.intValue();
         } else {
-            //sys.error("!! Non-numeric array length not handled")
-            return null;
+            throw new RuntimeException("implementation error: Non-numeric array length not handled");
         }
         if (len == 0) {
             return new Domains.Str("");
@@ -192,8 +189,7 @@ public class InitUtils {
                 proto = Init.Number_prototype_Addr;
                 classname = JSClass.CNumber;
             } else {
-                //sys.error("inconceivable");
-                return null;
+                throw new RuntimeException("implementation error: inconceivable");
             }
             Domains.Address newAddr = Domains.Address.generate();
             Domains.Object newObj = createObj(TreeMap.empty(Ord.hashEqualsOrd()),

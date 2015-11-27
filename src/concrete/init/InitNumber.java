@@ -9,6 +9,7 @@ import fj.data.Option;
 import fj.data.TreeMap;
 import ir.JSClass;
 
+import javax.management.RuntimeErrorException;
 import javax.rmi.CORBA.Util;
 
 /**
@@ -23,8 +24,7 @@ public class InitNumber {
                 if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
                     arglen = ((Domains.Num) tmp.some()).n;
                 } else {
-                    //sys.error("inconceivable: args without length")
-                    return null;
+                    throw new RuntimeException("implementation error: inconceivable: args without length");
                 }
                 Boolean calledAsConstr = argsObj.calledAsCtor();
                 Domains.Num pvalue;
@@ -77,8 +77,7 @@ public class InitNumber {
                     if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
                         arglen = ((Domains.Num)tmp.some()).n.intValue();
                     } else {
-                        //sys.error("inconceivable");
-                        return null;
+                        throw new RuntimeException("implementation error: inconceivable");
                     }
                     int radix;
                     if (arglen == 0) {
@@ -90,8 +89,7 @@ public class InitNumber {
                         } else if (tmp2.equals(Domains.Undef)) {
                             radix = 10;
                         } else if (tmp2 instanceof Domains.Num && ((Domains.Num)tmp2).n >= 2 && ((Domains.Num)tmp2).n <= 36) {
-                            //sys.error("!! Not Implemented");
-                            return null;
+                            throw new RuntimeException("not implemented");
                         } else {
                             radix = -1;
                         }
@@ -102,8 +100,7 @@ public class InitNumber {
                         if (self.getValue().isSome() && self.getValue().some() instanceof Domains.Num) {
                             return self.getValue().some().toStr();
                         } else {
-                            //sys.error("inconceivable: Number without a number value")
-                            return null;
+                            throw new RuntimeException("implementation error: inconceivable: Number without a number value");
                         }
                     }
                 } else {

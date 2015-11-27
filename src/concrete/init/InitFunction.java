@@ -16,8 +16,7 @@ import ir.JSClass;
 public class InitFunction {
     public static Domains.Object Function_Obj = InitUtils.createFunctionObject(
             new concrete.Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
-                //sys.error("!! Won't implement: Function() is eval()")
-                return null;
+                throw new RuntimeException("Won't implement: Function() is eval()");
             }), TreeMap.treeMap(Ord.hashEqualsOrd(),
                     P.p(new concrete.Domains.Str("prototype"), Init.Function_prototype_Addr),
                     P.p(new concrete.Domains.Str("length"), new concrete.Domains.Num(1.0))),
@@ -53,8 +52,7 @@ public class InitFunction {
                         if (tmp2.isSome() && tmp2.some() instanceof Domains.Num) {
                             arglen = ((Domains.Num)tmp2.some()).n;
                         } else {
-                            //sys.error("inconceivable: array or arguments object with non-numeric length")
-                            return null;
+                            throw new RuntimeException("implementation error: inconceivable: array or arguments object with non-numeric length");
                         }
                         external = Option.fromNull(List.range(0, arglen.intValue()).foldLeft(
                                 (m, i) -> m.set(new Domains.Str(i.toString()), passedArgsObj.apply(new Domains.Str(i.toString())).some()),
@@ -102,8 +100,7 @@ public class InitFunction {
                 if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
                     arglen = ((Domains.Num)tmp.some()).n;
                 } else {
-                    //sys.error("inconceivable: arguments object with non-numeric length")
-                    return null;
+                    throw new RuntimeException("implementation error: inconceivable: arguments object with non-numeric length");
                 }
                 Domains.Value newThisAddress;
                 Domains.Store store1;

@@ -215,7 +215,7 @@ public class Utils {
             Domains.Str str = (Domains.Str)bv2;
             Domains.Object o = store.getObj(a);
             Domains.Object o1 = o.update(str, bv3);
-            if (o1.getJSClass() == JSClass.CArray) {
+            if (o1.getJSClass().equals(JSClass.CArray)) {
                 Domains.Num bv2num = bv2.toNum();
                 Domains.BValue bv3num;
                 if (bv3 instanceof Domains.Address) {
@@ -226,7 +226,7 @@ public class Utils {
                 if (str.equals(Fields.length) && !Domains.Num.isU32(bv3num)) {
                     return P.p(Errors.rangeError, store);
                 } else if (str.equals(Fields.length)) {
-                    if (o.apply(Fields.length).some().lessEqual(bv3num) == Domains.Bool.True) {
+                    if (o.apply(Fields.length).some().lessEqual(bv3num).equals(Domains.Bool.True)) {
                         return P.p(bv3, store.putObj(a, o.update(str, bv3num)));
                     } else {
                         Long n1, n2;
@@ -241,7 +241,7 @@ public class Utils {
                         return P.p(bv3, store.putObj(a, o2));
                     }
                 } else if (Domains.Num.isU32(bv2num)) {
-                    if ((bv2num.lessThan(o.apply(Fields.length).some())) == Domains.Bool.True || bv2num == new Domains.Num((double)Domains.Num.maxU32)) {
+                    if ((bv2num.lessThan(o.apply(Fields.length).some())).equals(Domains.Bool.True) || bv2num.equals(new Domains.Num((double)Domains.Num.maxU32))) {
                         return P.p(bv3, store.putObj(a, o1));
                     } else {
                         Domains.Object o2 = o1.update(Fields.length, bv2num.plus(new Domains.Num(1.0)));

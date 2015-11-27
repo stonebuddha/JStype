@@ -188,7 +188,7 @@ public class InitString {
     public static Domains.Object String_prototype_toString_Obj = InitUtils.makeNativeValue(
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object self = store.getObj(selfAddr);
-                if (self.getJSClass() == JSClass.CString || self.getJSClass() == JSClass.CString_prototype_Obj) {
+                if (self.getJSClass().equals(JSClass.CString) || self.getJSClass().equals(JSClass.CString_prototype_Obj)) {
                     if (self.getValue().isSome() && self.getValue().some() instanceof Domains.Str) {
                         return self.getValue().some();
                     }
@@ -209,7 +209,7 @@ public class InitString {
     public static Domains.Object String_prototype_valueOf_Obj = InitUtils.makeNativeValue(
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object self = store.getObj(selfAddr);
-                if (self.getJSClass() == JSClass.CString || self.getJSClass() == JSClass.CString_prototype_Obj) {
+                if (self.getJSClass().equals(JSClass.CString) || self.getJSClass().equals(JSClass.CString_prototype_Obj)) {
                     if (self.getValue().isSome() && self.getValue().some() instanceof Domains.Str) {
                         return self.getValue().some();
                     }

@@ -58,8 +58,7 @@ public class InitMisc {
                     } else if (tmp.isSome() && tmp.some().equals(Domains.Bool.False)) {
                         return new Domains.Str("False");
                     } else {
-                        //sys.error("We should not have a non-boolean as a Boolean's internal value")
-                        return null;
+                        throw new RuntimeException("implementation error: We should not have a non-boolean as a Boolean's internal value");
                     }
                 } else {
                     return Utils.Errors.typeError;
@@ -75,8 +74,7 @@ public class InitMisc {
                     if (tmp.isSome() && tmp.some() instanceof Domains.Bool) {
                         return tmp.some();
                     } else {
-                        //sys.error("We should not have a non-boolean as a Boolean's internal value")
-                        return null;
+                        throw new RuntimeException("implementation error: We should not have a non-boolean as a Boolean's internal value");
                     }
                 } else {
                     return Utils.Errors.typeError;

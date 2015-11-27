@@ -466,7 +466,7 @@ public class Interpreter {
         Parser.init();
         Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
         //System.err.println(program.accept(PrettyPrinter.formatProgram));
-        program = AST2AST.transform(program);
+        program =AST2AST.transform(program);
         System.err.println(program.accept(PrettyPrinter.formatProgram));
         IRStmt stmt = AST2IR.transform(program);
         //System.err.println(stmt);
