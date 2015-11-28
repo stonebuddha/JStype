@@ -82,5 +82,62 @@ public class InitMisc {
             }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
     );
 
-    //TODO
+    public static Domains.Object Error_Obj = InitUtils.createFunctionObject(new Domains.Native(
+            (selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
+                throw new RuntimeException("not implemented");
+            }),
+            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("prototype"), Init.Error_prototype_Addr), P.p(new Domains.Str("length"), new Domains.Num(1.0)))
+    );
+
+    public static Domains.Object Error_prototype_Obj = InitUtils.createObj(
+            TreeMap.treeMap(Ord.hashEqualsOrd(),
+                    P.p(new Domains.Str("constructor"), Init.Error_Addr),
+                    P.p(new Domains.Str("name"), new Domains.Str("Error")),
+                    P.p(new Domains.Str("message"), new Domains.Str("")),
+                    P.p(new Domains.Str("toString"), Init.Error_prototype_toString_Addr)));
+
+    public static Domains.Object Error_prototype_toString_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object JSON_Obj = InitUtils.createObj(
+            TreeMap.treeMap(Ord.hashEqualsOrd(),
+                    P.p(new Domains.Str("parse"), Init.JSON_parse_Addr),
+                    P.p(new Domains.Str("stringify"), Init.JSON_stringify_Addr)));
+
+    public static Domains.Object JSON_parse_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object JSON_stringify_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object Date_Obj = InitUtils.createFunctionObject(
+            new Domains.Native(
+                    (selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
+                        throw new RuntimeException("not implemented");
+                    }
+            ),
+            TreeMap.treeMap(Ord.hashEqualsOrd(),
+                    P.p(new Domains.Str("now"), Init.Date_now_Addr),
+                    P.p(new Domains.Str("parse"), Init.Date_parse_Addr),
+                    P.p(new Domains.Str("prototype"), Init.Date_prototype_Addr),
+                    P.p(new Domains.Str("length"), new Domains.Num(7.0)))
+    );
+
+    public static Domains.Object Date_now_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object Date_parse_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object Date_prototype_Obj = InitUtils.createObj(
+            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("constructor"), Init.Date_Addr))
+    );
+
+    public static Domains.Object RegExp_Obj = InitUtils.createFunctionObject(
+            new Domains.Native(
+                    (selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
+                        throw new RuntimeException("not implemented");
+                    }
+            ),
+            TreeMap.treeMap(Ord.hashEqualsOrd(),
+                    P.p(new Domains.Str("prototype"), Init.RegExp_prototype_Addr),
+                    P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+    );
+
+    public static Domains.Object RegExp_prototype_Obj = InitUtils.createObj(TreeMap.empty(Ord.hashEqualsOrd()));
 }

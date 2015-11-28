@@ -42,5 +42,22 @@ public class InitMath {
             TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.classname, JSClass.CMath_Obj))
     );
 
-    //TODO
+    public static Domains.Object Math_abs_Obj = InitUtils.makeMath(Math::abs);
+    public static Domains.Object Math_acos_Obj = InitUtils.makeMath(Math::acos);
+    public static Domains.Object Math_asin_Obj = InitUtils.makeMath(Math::asin);
+    public static Domains.Object Math_atan_Obj = InitUtils.makeMath(Math::atan);
+    public static Domains.Object Math_atan2_Obj = InitUtils.approx_num;
+    public static Domains.Object Math_ceil_Obj = InitUtils.makeMath(Math::ceil);
+    public static Domains.Object Math_cos_Obj = InitUtils.makeMath(Math::cos);
+    public static Domains.Object Math_exp_Obj = InitUtils.makeMath(Math::exp);
+    public static Domains.Object Math_floor_Obj = InitUtils.makeMath(Math::floor);
+    public static Domains.Object Math_log_Obj = InitUtils.makeMath(Math::log);
+    public static Domains.Object Math_max_Obj = InitUtils.approx_num;
+    public static Domains.Object Math_min_Obj = InitUtils.approx_num;
+    public static Domains.Object Math_pow_Obj = InitUtils.approx_num;
+    public static Domains.Object Math_random_Obj = InitUtils.approx_num;
+    public static Domains.Object Math_round_Obj = InitUtils.makeMath(x -> 1.0 * Math.round(x));
+    public static Domains.Object Math_sin_Obj = InitUtils.makeMath(Math::sin);
+    public static Domains.Object Math_sqrt_Obj = InitUtils.makeMath(Math::sqrt);
+    public static Domains.Object Math_tan_Obj = InitUtils.makeMath(Math::tan);
 }
