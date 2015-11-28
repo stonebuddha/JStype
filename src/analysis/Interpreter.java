@@ -198,13 +198,13 @@ public class Interpreter {
                     IRStmt s1 = irIf.s1;
                     IRStmt s2 = irIf.s2;
                     Domains.Bool b = eval(e).b;
-                    if (b == Domains.Bool.True) {
+                    if (b.equals(Domains.Bool.True)) {
                         ret = ret.insert(new State(new Domains.StmtTerm(s1), env, store, pad, ks, trace.update(s1)));
                     }
-                    else if (b == Domains.Bool.False) {
+                    else if (b.equals(Domains.Bool.False)) {
                         ret = ret.insert(new State(new Domains.StmtTerm(s2), env, store, pad, ks, trace.update(s2)));
                     }
-                    else if (b == Domains.Bool.Top) {
+                    else if (b.equals(Domains.Bool.Top)) {
                         ret = ret.insert(new State(new Domains.StmtTerm(s1), env, store, pad, ks, trace.update(s1)));
                         ret = ret.insert(new State(new Domains.StmtTerm(s2), env, store, pad, ks, trace.update(s2)));
                     }
@@ -227,18 +227,18 @@ public class Interpreter {
                     IRExp e = irWhile.e;
                     IRStmt s = irWhile.s;
                     Domains.Bool b = eval(e).b;
-                    if (b == Domains.Bool.True) {
+                    if (b.equals(Domains.Bool.True)) {
                         ret = ret.insert(new State(new Domains.StmtTerm(s),
-                                            env,
-                                            store,
-                                            pad,
-                                            ks.push(new Domains.WhileKont(e, s)),
-                                            trace.update(s)));
+                                env,
+                                store,
+                                pad,
+                                ks.push(new Domains.WhileKont(e, s)),
+                                trace.update(s)));
                     }
-                    else if (b == Domains.Bool.False) {
+                    else if (b.equals(Domains.Bool.False)) {
                         ret = ret.union(advanceBV(Domains.Undef.BV, store, pad, ks));
                     }
-                    else if (b == Domains.Bool.Top) {
+                    else if (b.equals(Domains.Bool.Top)) {
                         ret = ret.union(advanceBV(Domains.Undef.BV, store, pad, ks));
                         ret = ret.insert(new State(new Domains.StmtTerm(s),
                                 env,
@@ -469,13 +469,13 @@ public class Interpreter {
                 IRExp e = wk.e;
                 IRStmt s = wk.s;
                 Domains.Bool b = Eval.eval(e, env, store1, pad1).b;
-                if (b == Domains.Bool.True) {
+                if (b.equals(Domains.Bool.True)) {
                     ret = ret.insert(new State(new Domains.StmtTerm(s), env, store1, pad1, ks1, trace.update(s)));
                 }
-                else if (b == Domains.Bool.False) {
+                else if (b.equals(Domains.Bool.False)) {
                     ret = ret.union(advanceBV(Domains.Undef.BV, store1, pad1, ks1.pop()));
                 }
-                else if (b == Domains.Bool.Top) {
+                else if (b.equals(Domains.Bool.Top)) {
                     ret = ret.insert(new State(new Domains.StmtTerm(s), env, store1, pad1, ks1, trace.update(s)));
                     ret = ret.union(advanceBV(Domains.Undef.BV, store1, pad1, ks1.pop()));
                 }
@@ -714,7 +714,7 @@ public class Interpreter {
                 IRStmt s3 = ck.sf;
                 ret = ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), jv))), trace));
             }
-            else if (ks1.top() instanceof Domains.LblKont && ((Domains.LblKont)ks1.top()).lbl == jv.lbl) {
+            else if (ks1.top() instanceof Domains.LblKont && ((Domains.LblKont)ks1.top()).lbl.equals(jv.lbl)) {
                 ret = ret.union(advanceBV(jv.bv, store1, pad1, ks1.pop()));
             }
             else if (ks1.top() != Domains.HaltKont) {

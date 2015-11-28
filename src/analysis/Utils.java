@@ -344,7 +344,7 @@ public class Utils {
         }
 
         return sigmas;
-        
+
     }
 
     public static P2<Option<P2<Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> delete(Domains.BValue bv1, Domains.BValue bv2, IRScratch x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
@@ -401,7 +401,7 @@ public class Utils {
         }
 
         Option<Domains.EValue> exc;
-        if (bv1.nil == Domains.Null.Top || bv1.undef == Domains.Undef.Top) {
+        if (bv1.nil.equals(Domains.Null.Top) || bv1.undef.equals(Domains.Undef.Top)) {
             exc = Option.some(Errors.typeError);
         }
         else {
@@ -436,7 +436,7 @@ public class Utils {
             chain = Set.empty(Ord.<Domains.BValue>hashEqualsOrd());
         }
 
-        if (!o.defField(str) && o.getProto().nil == Domains.Null.Top) {
+        if (!o.defField(str) && o.getProto().nil.equals(Domains.Null.Top)) {
             fin = Set.single(Ord.<Domains.BValue>hashEqualsOrd(), Domains.Undef.BV);
         }
         else {
@@ -479,10 +479,10 @@ public class Utils {
         Domains.BValue bv1 = Domains.BValue.Bot;
         Domains.Store store1 = store;
         for (Domains.Domain sort : sorts) {
-            if (sort == Domains.DAddr) {
+            if (sort.equals(Domains.DAddr)) {
                 bv1 = bv1.merge(Domains.AddressSpace.Addresses.inject(bv.as));
             }
-            else if (sort == Domains.DNum) {
+            else if (sort.equals(Domains.DNum)) {
                 P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
@@ -492,7 +492,7 @@ public class Utils {
                 bv1 = bv1.merge(bv2);
                 store1 = store2.putObj(bv2.as.iterator().next(), o1);
             }
-            else if (sort == Domains.DBool) {
+            else if (sort.equals(Domains.DBool)) {
                 P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
@@ -502,7 +502,7 @@ public class Utils {
                 bv1 = bv1.merge(bv2);
                 store1 = store2.putObj(bv2.as.iterator().next(), o1);
             }
-            else if (sort == Domains.DStr) {
+            else if (sort.equals(Domains.DStr)) {
                 P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
@@ -526,7 +526,7 @@ public class Utils {
                 bv1 = bv1.merge(bv2);
                 store1 = store2.putObj(bv2.as.iterator().next(), o1);
             }
-            else if (sort == Domains.DUndef || sort == Domains.DNull) {
+            else if (sort.equals(Domains.DUndef) || sort.equals(Domains.DNull)) {
                 throw new RuntimeException("suppresses compiler warning; this case can't happen");
             }
         }
@@ -554,7 +554,7 @@ public class Utils {
         }
 
         Option<Domains.EValue> exc;
-        if (bv.nil == Domains.Null.Top || bv.undef == Domains.Undef.Top) {
+        if (bv.nil.equals(Domains.Null.Top) || bv.undef.equals(Domains.Undef.Top)) {
             exc = Option.some(Errors.typeError);
         }
         else {
@@ -568,7 +568,7 @@ public class Utils {
         Boolean maybeLength = Fields.length.partialLessEqual(str);
         Boolean isStrong = bv1.as.size() == 1 && store.isStrong(bv1.as.iterator().next());
         Domains.BValue bv3num = bv3.toNum();
-        Boolean maybeArray = bv1.as.filter(a -> store.getObj(a).getJSClass() == JSClass.CArray).size() > 0;
+        Boolean maybeArray = bv1.as.filter(a -> store.getObj(a).getJSClass().equals(JSClass.CArray)).size() > 0;
         Boolean rhsMaybeU32 = Domains.Num.maybeU32(bv3num);
         Boolean propertyMaybeU32 = Domains.Num.maybeU32(Domains.Num.inject(str.toNum()));
 
@@ -595,7 +595,7 @@ public class Utils {
             Domains.Store store1 = store;
             for (Domains.AddressSpace.Address a : bv1.as) {
                 Domains.Object o = store1.getObj(a);
-                if (o.getJSClass() == JSClass.CArray) {
+                if (o.getJSClass().equals(JSClass.CArray)) {
                     Domains.Object o1;
                     if (maybeLength && rhsMaybeU32) {
                         o1 = o.weakDelete(Domains.Str.U32).weakUpdate(str, bv3);
@@ -623,7 +623,7 @@ public class Utils {
         }
 
         Option<Domains.EValue> exc;
-        if (bv1.nil == Domains.Null.Top || bv1.undef == Domains.Undef.Top) {
+        if (bv1.nil.equals(Domains.Null.Top) || bv1.undef.equals(Domains.Undef.Top)) {
             exc = Option.some(Errors.typeError);
         }
         else if (maybeArray && maybeLength && Domains.Num.maybeNotU32(bv3)) {
@@ -659,7 +659,7 @@ public class Utils {
             Domains.BValue newBVT = newBVP._1(), newBVF = newBVP._2();
             return P.p(store, pad.update(x, newBVT), store, pad.update(x, newBVF));
         }
-        else if (e instanceof IRBinop && ((IRBinop) e).op == Bop.Access) {
+        else if (e instanceof IRBinop && ((IRBinop) e).op.equals(Bop.Access)) {
             IRExp el = ((IRBinop) e).e1, er = ((IRBinop) e).e2;
             Domains.BValue objbv = Eval.eval(el, env, store, pad);
             Domains.BValue strbv = Eval.eval(er, env, store, pad);
