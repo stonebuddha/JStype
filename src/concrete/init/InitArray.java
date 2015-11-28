@@ -175,4 +175,132 @@ public class InitArray {
     public static Domains.Object Array_prototype_forEach_Obj = InitUtils.unimplemented;
 
     public static Domains.Object Array_prototype_indexOf_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object Array_prototype_join_Obj = InitUtils.makeNativeValue(
+            (selfAddr, argArrayAddr, store) -> {
+                Domains.Object selfObj = store.getObj(selfAddr);
+                Domains.Object argObj = store.getObj(argArrayAddr);
+                Domains.Str sep;
+                Option<Domains.BValue> tmp = argObj.apply(new Domains.Str("0"));
+                if (tmp.isSome()) {
+                    if (tmp.some().equals(Domains.Undef)) {
+                        sep = new Domains.Str(",");
+                    } else {
+                        sep = InitUtils.ToString(tmp.some(), store);
+                    }
+                } else {
+                    sep = new Domains.Str(",");
+                }
+                Double len;
+                Domains.BValue tmp2 = Utils.lookup(selfObj, new Domains.Str("length"), store);
+                if (tmp2 instanceof Domains.Num) {
+                    len = ((Domains.Num) tmp2).n;
+                } else {
+                    throw new RuntimeException("not implemented: Array.join on array of non-numeric length");
+                }
+                if (len == 0) {
+                    return new Domains.Str("");
+                } else {
+                    Domains.BValue tmp3 = Utils.lookup(selfObj, new Domains.Str("0"), store);
+                    Domains.Str begin;
+                    if (tmp3.equals(Domains.Null) || tmp3.equals(Domains.Undef)) {
+                        begin = new Domains.Str("");
+                    } else {
+                        begin = InitUtils.ToString(tmp3, store);
+                    }
+                    return List.range(1, len.intValue()).foldLeft((acc, cur) -> {
+                        Domains.BValue tmp4 = Utils.lookup(selfObj, new Domains.Str(cur.toString()), store);
+                        if (tmp4.equals(Domains.Null) || tmp4.equals(Domains.Undef)) {
+                            return acc.strConcat(sep.strConcat(new Domains.Str("")));
+                        } else {
+                            return acc.strConcat(sep.strConcat(InitUtils.ToString(tmp4, store)));
+                        }
+                    }, begin);
+                }
+            },
+            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0)))
+    );
+
+    public static Domains.Object Array_prototype_lastIndexOf_Obj = InitUtils.approx_num;
+
+    public static Domains.Object Array_prototype_map_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object Array_prototype_pop_Obj = InitUtils.makeNativeValueStore(
+            (selfAddr, argArrayAddr, store) -> {
+                Domains.Object selfObj = store.getObj(selfAddr);
+                Domains.BValue len = Utils.lookup(selfObj, new Domains.Str("length"), store);
+                if (len instanceof Domains.Num) {
+                    Double n = ((Domains.Num) len).n;
+                    if (n == 0) {
+                        return P.p(Domains.Undef, store.putObj(selfAddr, selfObj.update(new Domains.Str("length"), new Domains.Num(0.0))));
+                    } else {
+                        Domains.Str last = new Domains.Str(String.valueOf(n.intValue() - 1));
+                        Domains.BValue res = Utils.lookup(selfObj, last, store);
+                        Domains.Object o = selfObj.delete(last)._1();
+                        return P.p(res, store.putObj(selfAddr, o.update(new Domains.Str("length"), new Domains.Num(n - 1))));
+                    }
+                } else {
+                    throw new RuntimeException("not implemented: non-numeric array length");
+                }
+            },
+            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+    );
+
+    public static Domains.Object Array_prototype_push_Obj = InitUtils.makeNativeValueStore(
+            (selfAddr, argArrayAddr, store) -> {
+                Domains.Object selfObj = store.getObj(selfAddr);
+                Domains.BValue len = Utils.lookup(selfObj, new Domains.Str("length"), store);
+                if (len instanceof Domains.Num) {
+                    Double n = ((Domains.Num) len).n;
+                    Domains.Object argObj = store.getObj(argArrayAddr);
+                    Option<Domains.BValue> tmp = argObj.apply(new Domains.Str("length"));
+                    Double arglen;
+                    if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
+                        arglen = ((Domains.Num) tmp.some()).n;
+                    } else {
+                        throw new RuntimeException("implementation error: args without length");
+                    }
+                    Domains.Store store1 = List.range(0, arglen.intValue()).foldLeft((acc, cur) -> {
+                        return acc.putObj(selfAddr, acc.getObj(selfAddr).update(new Domains.Str(String.valueOf(n.intValue() + cur)), argObj.apply(new Domains.Str(cur.toString())).some()));
+                    }, store);
+                    Domains.Store store2 = store1.putObj(selfAddr, store1.getObj(selfAddr).update(new Domains.Str("length"), new Domains.Num(arglen + n)));
+                    return P.p(new Domains.Num(arglen + n), store2);
+                } else {
+                    throw new RuntimeException("not implemented: non-numeric array length");
+                }
+            },
+            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0)))
+    );
+
+    public static Domains.Object Array_prototype_reduce_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object Array_prototype_reduceRight_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object Array_prototype_reverse_Obj = InitUtils.makeNativeValueStore(
+            (selfAddr, argArrayAddr, store) -> {
+                Domains.Object selfObj = store.getObj(selfAddr);
+                Domains.BValue len = Utils.lookup(selfObj, new Domains.Str("length"), store);
+                if (len instanceof Domains.Num) {
+                    Double n = ((Domains.Num) len).n;
+                    List<Domains.BValue> lst = List.range(0, n.intValue()).map(i -> Utils.lookup(selfObj, new Domains.Str(i.toString()), store));
+                    List<Domains.BValue> lst1 = lst.reverse();
+                    Domains.Store store1 = List.range(0, n.intValue()).zip(lst1).foldLeft((acc, cur) -> {
+                        return acc.putObj(selfAddr, acc.getObj(selfAddr).update(new Domains.Str(cur._1().toString()), cur._2()));
+                    }, store);
+                    return P.p(selfAddr, store1);
+                } else {
+                    throw new RuntimeException("not implemented: non-numeric array length");
+                }
+            },
+            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+    );
+
+    public static Domains.Object Array_prototype_shift_Obj = InitUtils.unimplemented;
+    public static Domains.Object Array_prototype_slice_Obj = InitUtils.unimplemented;
+    public static Domains.Object Array_prototype_some_Obj = InitUtils.unimplemented;
+    public static Domains.Object Array_prototype_sort_Obj = InitUtils.unimplemented;
+    public static Domains.Object Array_prototype_splice_Obj = InitUtils.unimplemented;
+    public static Domains.Object Array_prototype_toLocaleString_Obj = InitUtils.unimplemented;
+    public static Domains.Object Array_prototype_toString_Obj = InitUtils.unimplemented;
+    public static Domains.Object Array_prototype_unshift_Obj = InitUtils.unimplemented;
 }
