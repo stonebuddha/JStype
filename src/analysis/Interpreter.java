@@ -26,7 +26,9 @@ public class Interpreter {
         public static Boolean catchExc = false;
         public static Boolean inPostFixpoint = false;
         public static Boolean splitStates = false;
-        public static HashMap<Trace, P3<Trace, IRVar, Set<Domains.AddressSpace.Address>>> prunedInfo = HashMap.hashMap();
+        public static HashMap<Trace, P3<Trace, IRVar, Set<Domains.AddressSpace.Address>>> prunedInfo = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
+        public static HashMap<Integer, Set<Domains.BValue>> outputMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
+
 
         public static void clear() {
             Mutable.lightGC = false;
@@ -39,6 +41,7 @@ public class Interpreter {
             Mutable.inPostFixpoint = false;
             Mutable.splitStates = false;
             Mutable.prunedInfo.clear();
+            Mutable.outputMap.clear();
         }
     }
 
@@ -70,14 +73,74 @@ public class Interpreter {
                 else {
                     memo = memo.set(sigma.trace, sigma.merge(memoSigma.some()));
                 }
+                work.add(P.p(sigma.order(), sigma.trace));
             }
+            do {
+                while (!work.isEmpty()) {
+                    Trace trace = work.poll()._2();
+                    while (!work.isEmpty() && work.peek()._2().equals(trace)) {
+                        work.poll();
+                    }
+
+                    for (State sigma : process(memo.get(trace).some())) {
+                        Option<State> memoSigma = memo.get(sigma.trace);
+                        if (memoSigma.isNone()) {
+                            memo = memo.set(sigma.trace, sigma);
+                            work.add(P.p(sigma.order(), sigma.trace));
+                        }
+                        else {
+                            State merged = sigma.merge(memoSigma.some());
+                            if (!memoSigma.some().equals(merged)) {
+                                memo = memo.set(sigma.trace, merged);
+                                work.add(P.p(merged.order(), merged.trace));
+                            }
+                        }
+                    }
+                }
+
+                for (Trace mtrace : Mutable.prunedInfo) {
+                    Trace ptrace = Mutable.prunedInfo.get(mtrace).some()._1();
+                    IRVar x = Mutable.prunedInfo.get(mtrace).some()._2();
+                    Set<Domains.AddressSpace.Address> as = Mutable.prunedInfo.get(mtrace).some()._3();
+                    P2<Domains.Store, Domains.Scratchpad> valuePruned = PruneStoreToo.apply(ptrace);
+                    Domains.Store pstore = valuePruned._1();
+                    Domains.Scratchpad ppad = valuePruned._2();
+
+                    Option<State> memoSigma = memo.get(mtrace);
+                    if (memoSigma.isSome()) {
+                        State sigma1 = memoSigma.some();
+                        Domains.Store new_store;
+                        Domains.Scratchpad new_pad;
+                        if (x instanceof IRPVar && pstore.toValueContains(as)) {
+                            new_store = pstore.extend(as, Domains.BValue.Bot).merge(sigma1.store);
+                            new_pad = ppad.merge(sigma1.pad);
+                        }
+                        else if (x instanceof IRScratch) {
+                            new_store = pstore.merge(sigma1.store);
+                            new_pad = ppad.update(((IRScratch)x), Domains.BValue.Bot).merge(sigma1.pad);
+                        }
+                        else {
+                            new_store = pstore.merge(sigma1.store);
+                            new_pad = ppad.merge(sigma1.pad);
+                        }
+                        State merged = new State(sigma1.t, sigma1.env, new_store, new_pad, sigma1.ks, sigma1.trace);
+                        if (!merged.equals(sigma1)) {
+                            memo = memo.set(mtrace, merged);
+                            work.add(P.p(merged.order(), merged.trace));
+                        }
+                    }
+                }
+                Mutable.prunedInfo.clear();
+            } while (!work.isEmpty());
+
+            return Mutable.outputMap;
         } catch (Exception e) {
-
+            System.out.println("Exception occurred: "+ e.getMessage() + "\n");
+            for (StackTraceElement element : e.getStackTrace()) {
+                System.out.println(element);
+            }
+            return Mutable.outputMap;
         }
-
-
-        // TODO
-        return null;
     }
 
     public static Trace optionToTrace(String str) {
@@ -101,7 +164,7 @@ public class Interpreter {
     }
 
     public static class PruneScratch {
-        public static HashMap<Trace, Domains.Scratchpad> pruned = HashMap.hashMap();
+        public static HashMap<Trace, Domains.Scratchpad> pruned = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
 
         public static void clear() {
             pruned.clear();
@@ -127,7 +190,7 @@ public class Interpreter {
     }
 
     public static class PruneStoreToo {
-        public static HashMap<Trace, P2<Domains.Store, Domains.Scratchpad>> pruned = HashMap.hashMap();
+        public static HashMap<Trace, P2<Domains.Store, Domains.Scratchpad>> pruned = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
 
         public static void clear() {
             pruned.clear();
