@@ -28,6 +28,11 @@ public class AST2IR {
         public static final IRPVar numberVar = newMangledVar("number");
         public static final IRPVar objectVar = newMangledVar("object");
         public static final IRPVar arrayVar = newMangledVar("array");
+        public static final IRPVar functionVar = newMangledVar("function");
+        public static final IRPVar stringVar = newMangledVar("string");
+        public static final IRPVar booleanVar = newMangledVar("boolean");
+        public static final IRPVar dateVar = newMangledVar("date");
+        public static final IRPVar errorVar = newMangledVar("error");
         public static final IRPVar argumentsVar = newMangledVar("arguments");
         public static final IRPVar regexpVar = newMangledVar("regexp");
         public static final IRPVar dummyAddressVar = newMangledVar("dummyAddress");
@@ -1166,6 +1171,13 @@ public class AST2IR {
     public static final List<P2<IRPVar, IRExp>> preambleBindings =
             List.list(
                     P.p(PVarMapper.dummy, new IRUndef()),
+                    P.p(PVarMapper.arrayVar, PVarMapper.windowAccess("Array")),
+                    P.p(PVarMapper.functionVar, PVarMapper.windowAccess("Function")),
+                    P.p(PVarMapper.stringVar, PVarMapper.windowAccess("String")),
+                    P.p(PVarMapper.regexpVar, PVarMapper.windowAccess("RegExp")),
+                    P.p(PVarMapper.booleanVar, PVarMapper.windowAccess("Boolean")),
+                    P.p(PVarMapper.dateVar, PVarMapper.windowAccess("Date")),
+                    P.p(PVarMapper.errorVar, PVarMapper.windowAccess("Error")),
                     P.p(PVarMapper.argumentsVar, PVarMapper.windowAccess("Arguments")),
                     P.p(PVarMapper.dummyAddressVar, PVarMapper.windowAccess("dummyAddress")),
                     P.p(PVarMapper.numberVar, PVarMapper.windowAccess("Number")),

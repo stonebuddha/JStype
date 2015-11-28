@@ -658,6 +658,11 @@ public class Domains {
 
     public static final BValue Null = new BValue() {
         @Override
+        public String toString() {
+            return "null";
+        }
+
+        @Override
         public Bool toBool() {
             return Bool.False;
         }

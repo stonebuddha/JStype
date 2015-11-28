@@ -34,7 +34,7 @@ public class InitArray {
                 }
                 Domains.Store store1 = tmp1._1();
                 Domains.Address arrayAddr = tmp1._2();
-                TreeMap<Domains.Str, Object> internal = store1.getObj(argArrayAddr).intern;
+                TreeMap<Domains.Str, Object> internal = store1.getObj(arrayAddr).intern;
                 if (arglen == 0 || arglen >= 2) {
                     List<Integer> range = List.range(0, arglen.intValue());
                     TreeMap<Domains.Str, Domains.BValue> initial = TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(arglen)));
@@ -295,12 +295,74 @@ public class InitArray {
             TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
     );
 
-    public static Domains.Object Array_prototype_shift_Obj = InitUtils.unimplemented;
+    public static Domains.Object Array_prototype_shift_Obj = InitUtils.makeNativeValueStore(
+            (selfAddr, argArrayAddr, store) -> {
+                Domains.Object selfObj = store.getObj(selfAddr);
+                Domains.BValue len = Utils.lookup(selfObj, new Domains.Str("length"), store);
+                if (len instanceof Domains.Num) {
+                    Double n = ((Domains.Num) len).n;
+                    if (n == 0) {
+                        return P.p(Domains.Undef, store);
+                    } else {
+                        Domains.BValue first = Utils.lookup(selfObj, new Domains.Str("0"), store);
+                        Domains.Str last = new Domains.Str(String.valueOf(n.intValue() - 1));
+                        List<Domains.BValue> newList = List.range(1, n.intValue()).map(i -> Utils.lookup(selfObj, new Domains.Str(i.toString()), store));
+                        Domains.Store store1 = List.range(0, n.intValue() - 1).zip(newList).foldLeft((acc, cur) -> {
+                            return acc.putObj(selfAddr, acc.getObj(selfAddr).update(new Domains.Str(cur._1().toString()), cur._2()));
+                        }, store);
+                        Domains.Object o = store1.getObj(selfAddr).delete(last)._1();
+                        Domains.Store store2 = store1.putObj(selfAddr, o.update(new Domains.Str("length"), new Domains.Num(n - 1)));
+                        return P.p(first, store2);
+                    }
+                } else {
+                    throw new RuntimeException("not implemented: non-numeric array length");
+                }
+            },
+            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+    );
     public static Domains.Object Array_prototype_slice_Obj = InitUtils.unimplemented;
     public static Domains.Object Array_prototype_some_Obj = InitUtils.unimplemented;
     public static Domains.Object Array_prototype_sort_Obj = InitUtils.unimplemented;
     public static Domains.Object Array_prototype_splice_Obj = InitUtils.unimplemented;
     public static Domains.Object Array_prototype_toLocaleString_Obj = InitUtils.unimplemented;
-    public static Domains.Object Array_prototype_toString_Obj = InitUtils.unimplemented;
+
+    public static Domains.Object Array_prototype_toString_Obj = InitUtils.makeNativeValue(
+            (selfAddr, argArrayAddr, store) -> {
+                Domains.Object selfObj = store.getObj(selfAddr);
+                JSClass klass = selfObj.getJSClass();
+                if (klass.equals(JSClass.CArray)) {
+                    Domains.Str sep = new Domains.Str(",");
+                    Domains.BValue len = Utils.lookup(selfObj, new Domains.Str("length"), store);
+                    if (len instanceof Domains.Num) {
+                        Double n = ((Domains.Num) len).n;
+                        if (n == 0) {
+                            return new Domains.Str("");
+                        } else {
+                            Domains.BValue tmp = Utils.lookup(selfObj, new Domains.Str("0"), store);
+                            Domains.Str start;
+                            if (tmp.equals(Domains.Null) || tmp.equals(Domains.Undef)) {
+                                start = new Domains.Str("");
+                            } else {
+                                start = InitUtils.ToString(tmp, store);
+                            }
+                            return List.range(1, n.intValue()).foldLeft((acc, cur) -> {
+                                Domains.BValue _tmp = Utils.lookup(selfObj, new Domains.Str(cur.toString()), store);
+                                if (_tmp.equals(Domains.Null) || _tmp.equals(Domains.Undef)) {
+                                    return acc.strConcat(sep.strConcat(new Domains.Str("")));
+                                } else {
+                                    return acc.strConcat(sep.strConcat(InitUtils.ToString(_tmp, store)));
+                                }
+                            }, start);
+                        }
+                    } else {
+                        throw new RuntimeException("not implemented");
+                    }
+                } else {
+                    return Utils.Errors.typeError;
+                }
+            },
+            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+    );
+
     public static Domains.Object Array_prototype_unshift_Obj = InitUtils.unimplemented;
 }
