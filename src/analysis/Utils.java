@@ -6,6 +6,7 @@ import fj.data.Set;
 import fj.data.*;
 import ir.*;
 import analysis.init.Init;
+import analysis.Traces.Trace;
 import sun.text.resources.cldr.en.FormatData_en_IE;
 
 import java.util.Map;
@@ -66,10 +67,10 @@ public class Utils {
         for (Domains.AddressSpace.Address add : bv.as) {
             JSClass addClass = Init.classFromAddress.get(add).orSome(JSClass.CObject);
             if (class1.contains(addClass)) {
-                class1.set(addClass, class1.get(addClass).some().insert(add));
+                class1 = class1.set(addClass, class1.get(addClass).some().insert(add));
             }
             else {
-                class1.set(addClass, Set.single(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), add));
+                class1 = class1.set(addClass, Set.single(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), add));
             }
         }
 
@@ -80,16 +81,16 @@ public class Utils {
         else {
             classes = class1;
             if (classes.get(JSClass.CObject).isSome()) {
-                classes.set(JSClass.CObject, classes.get(JSClass.CObject).some().insert(Init.Object_prototype_Addr));
+                classes = classes.set(JSClass.CObject, classes.get(JSClass.CObject).some().insert(Init.Object_prototype_Addr));
             }
             else {
-                classes.set(JSClass.CObject, Set.single(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), Init.Object_prototype_Addr));
+                classes = classes.set(JSClass.CObject, Set.single(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), Init.Object_prototype_Addr));
             }
         }
 
         TreeMap<JSClass, Domains.AddressSpace.Address> addrs = TreeMap.empty(Ord.<JSClass>hashEqualsOrd());
         for (JSClass key : classes.keys()) {
-            addrs.set(key, trace.modAddr(a, key));
+            addrs = addrs.set(key, trace.modAddr(a, key));
         }
 
         TreeMap<JSClass, Domains.BValue> pas = classes.map(
@@ -116,7 +117,7 @@ public class Utils {
 
         TreeMap<JSClass, TreeMap<Domains.Str, java.lang.Object>> intern = TreeMap.empty(Ord.<JSClass>hashEqualsOrd());
         for (JSClass key : classes.keys()) {
-            intern.set(key, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+            intern = intern.set(key, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
                     P.p(Fields.proto, pas.get(key).some()),
                     P.p(Fields.classname, key)));
         }
@@ -171,13 +172,13 @@ public class Utils {
                             if (storeOption.isNone()) {
                                 P2<Domains.Store, Domains.Store> pruneStore = store.prune(vas, oas);
                                 Interpreter.PruneStoreToo.update(trace, P.p(pruneStore._2(), pad));
-                                memo.set(vas, pruneStore._1());
+                                memo = memo.set(vas, pruneStore._1());
                                 reach_store = pruneStore._1();
                             }
                             else {
                                 reach_store = storeOption.some();
                             }
-                            Trace trace1 = trace.update(envc, store, bv2as, bv3, new Domains.StmtTerm(s));
+                            Trace trace1 = trace.update(envc, store, bv2as, bv3, s);
                             Domains.AddressSpace.Address ka = trace1.toAddr();
                             List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
                             Domains.Store rstore1 = alloc(reach_store, as, List.list(bv2as, bv3));
@@ -188,7 +189,7 @@ public class Utils {
                             sigmas = sigmas.insert(new Interpreter.State(new Domains.StmtTerm(s), envc1, rstore2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1));
                         }
                         else {
-                            Trace trace1 = trace.update(envc, store, bv2as, bv3, new Domains.StmtTerm(s));
+                            Trace trace1 = trace.update(envc, store, bv2as, bv3, s);
                             Domains.AddressSpace.Address ka = trace1.toAddr();
                             List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
                             Domains.Store store1 = alloc(store, as, List.list(bv2as, bv3));
@@ -272,7 +273,7 @@ public class Utils {
                             if (storeOption.isNone()) {
                                 P2<Domains.Store, Domains.Store> pruneStore = store.prune(vas, oas);
                                 Interpreter.PruneStoreToo.update(trace, P.p(pruneStore._2(), pad));
-                                memo.set(vas, pruneStore._1());
+                                memo = memo.set(vas, pruneStore._1());
                                 reach_store = pruneStore._1();
                             }
                             else {
@@ -281,7 +282,7 @@ public class Utils {
                             sigmas = bv2.as.map(Ord.<Interpreter.State>hashEqualsOrd(),
                                     selfAddr -> {
                                         Domains.BValue selfBV = Domains.AddressSpace.Address.inject(selfAddr);
-                                        Trace trace1 = trace.update(envc, store, selfBV, bv3, new Domains.StmtTerm(s));
+                                        Trace trace1 = trace.update(envc, store, selfBV, bv3, s);
                                         Domains.AddressSpace.Address ka = trace1.toAddr();
                                         List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
                                         Domains.Store rstore1 = alloc(reach_store, ka, ks.push(new Domains.RetKont(x, env, isctor, trace)));
@@ -295,7 +296,7 @@ public class Utils {
                             sigmas = bv2.as.map(Ord.<Interpreter.State>hashEqualsOrd(),
                                     selfAddr -> {
                                         Domains.BValue selfBV = Domains.AddressSpace.Address.inject(selfAddr);
-                                        Trace trace1 = trace.update(envc, store, selfBV, bv3, new Domains.StmtTerm(s));
+                                        Trace trace1 = trace.update(envc, store, selfBV, bv3, s);
                                         Domains.AddressSpace.Address ka = trace1.toAddr();
                                         List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
                                         Domains.Store store1 = alloc(store, ka, ks.push(new Domains.RetKont(x, env, isctor, trace)));

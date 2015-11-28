@@ -1,6 +1,7 @@
 package analysis;
 
 import analysis.init.Init;
+import analysis.Traces.Trace;
 import fj.*;
 import fj.data.*;
 import ir.*;

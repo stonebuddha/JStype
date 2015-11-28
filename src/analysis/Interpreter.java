@@ -4,7 +4,11 @@ import fj.*;
 import fj.data.*;
 import ir.*;
 import analysis.init.*;
-import fj.F;
+import analysis.Traces.Trace;
+
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 /**
  * Created by BenZ on 15/11/5.
@@ -38,10 +42,40 @@ public class Interpreter {
         }
     }
 
-    public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) {
+    public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) throws IOException {
         Mutable.clear();
         PruneScratch.clear();
         PruneStoreToo.clear();
+
+        PriorityQueue<P2<Integer, Trace>> work = new PriorityQueue<P2<Integer, Trace>>(new Comparator<P2<Integer, Trace>>() {
+            @Override
+            public int compare(P2<Integer, Trace> p1, P2<Integer, Trace> p2) {
+                return Integer.compare(p2._1(), p1._1());
+            }
+        });
+
+        // default: flow-sensitive context-insensitive
+        Trace initTrace = new Traces.FSCI(0);
+        Mutable.splitStates = false;
+        IRStmt ast = readAST(args[0]);
+        TreeMap<Trace, State> memo = TreeMap.empty(Ord.<Trace>hashEqualsOrd());
+
+        try {
+            State initSigma = Init.initState(ast, initTrace);
+            for (State sigma : process(initSigma)) {
+                Option<State> memoSigma = memo.get(sigma.trace);
+                if (memoSigma.isNone()) {
+                    memo = memo.set(sigma.trace, sigma);
+                }
+                else {
+                    memo = memo.set(sigma.trace, sigma.merge(memoSigma.some()));
+                }
+            }
+        } catch (Exception e) {
+
+        }
+
+
         // TODO
         return null;
     }

@@ -2,7 +2,7 @@ package analysis.init;
 
 import analysis.Domains;
 import analysis.Interpreter;
-import analysis.Trace;
+import analysis.Traces.Trace;
 import fj.Ord;
 import fj.P;
 import fj.data.List;
