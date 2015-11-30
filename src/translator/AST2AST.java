@@ -14,6 +14,9 @@ import fj.data.TreeMap;
  */
 public class AST2AST {
 
+    public static final Ord<IdentifierExpression> IDENTIFIER_EXPRESSION_ORD = Ord.hashEqualsOrd();
+    public static final Ord<RealIdentifierExpression> REAL_IDENTIFIER_EXPRESSION_ORD = Ord.hashEqualsOrd();
+
     public static class DefaultPassV implements SimpleTransformVisitor {
         @Override
         public Program forProgram(Program program) {
@@ -965,7 +968,7 @@ public class AST2AST {
         static Set<IdentifierExpression> combine(Set<IdentifierExpression> s1, Set<IdentifierExpression> s2) {
             return s1.union(s2);
         }
-        static final Set<IdentifierExpression> EMPTY = Set.empty(Ord.hashEqualsOrd());
+        static final Set<IdentifierExpression> EMPTY = Set.empty(IDENTIFIER_EXPRESSION_ORD);
 
         @Override
         public P2<Program, Set<IdentifierExpression>> forProgram(Program program) {
@@ -976,7 +979,7 @@ public class AST2AST {
             Set<IdentifierExpression> s2 = ss.filter(exp -> exp instanceof ScratchIdentifierExpression);
             Statement stmt1 = new VariableDeclaration(s2.toList().map(exp -> new VariableDeclarator(exp, Option.some(new LiteralExpression(new UndefinedLiteral())))));
             List<Statement> stmts = s1.toList().map(exp -> new ExpressionStatement(new AssignmentExpression("=", exp, new LiteralExpression(new UndefinedLiteral()))));
-            return P.p(new Program(stmts.cons(stmt1).append(tmp._1())), Set.empty(Ord.hashEqualsOrd()));
+            return P.p(new Program(stmts.cons(stmt1).append(tmp._1())), EMPTY);
         }
 
         @Override
@@ -1085,7 +1088,7 @@ public class AST2AST {
             assert tmp._1() instanceof BlockStatement;
             Statement stmt1 = new VariableDeclaration(tmp._2().toList().map(exp -> new VariableDeclarator(exp, Option.some(new LiteralExpression(new UndefinedLiteral())))));
             BlockStatement _body = new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(stmt1));
-            return P.p(new FunctionDeclaration(id, params, _body), Set.set(Ord.hashEqualsOrd(), id));
+            return P.p(new FunctionDeclaration(id, params, _body), Set.set(IDENTIFIER_EXPRESSION_ORD, id));
         }
 
         @Override
@@ -1243,7 +1246,7 @@ public class AST2AST {
                 Statement stmt1 = new VariableDeclaration(decls.cons(new VariableDeclarator(id.some(), Option.some(new LiteralExpression(new UndefinedLiteral())))));
                 BlockStatement _body = new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(new ExpressionStatement(new AssignmentExpression("=", id.some(), y))).cons(stmt1));
                 Expression func = new AssignmentExpression("=", y, new FunctionExpression(id, params, _body));
-                return P.p(func, Set.set(Ord.hashEqualsOrd(), y));
+                return P.p(func, Set.set(IDENTIFIER_EXPRESSION_ORD, y));
             } else {
                 Statement stmt1 = new VariableDeclaration(decls);
                 return P.p(new FunctionExpression(id, params, new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(stmt1))), EMPTY);
@@ -1435,7 +1438,7 @@ public class AST2AST {
         public HoistGlobalVariablesV() {
             RealIdentifierExpression id1 = new RealIdentifierExpression(AST2IR.PVarMapper.WINDOW_NAME);
             RealIdentifierExpression id2 = new RealIdentifierExpression(AST2IR.PVarMapper.windowName);
-            Set<RealIdentifierExpression> ss = Set.set(Ord.hashEqualsOrd(), id1, id2);
+            Set<RealIdentifierExpression> ss = Set.set(REAL_IDENTIFIER_EXPRESSION_ORD, id1, id2);
             this.stack = List.cons(ss, List.list());
         }
 
@@ -1444,7 +1447,7 @@ public class AST2AST {
             List<Statement> body = program.getBody();
             assert body.isNotEmpty();
             assert body.head() instanceof VariableDeclaration;
-            HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(Set.set(Ord.hashEqualsOrd(), ((VariableDeclaration)body.head()).getDeclarations().map(decl -> (RealIdentifierExpression) decl.getId()))));
+            HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(Set.set(REAL_IDENTIFIER_EXPRESSION_ORD, ((VariableDeclaration)body.head()).getDeclarations().map(decl -> (RealIdentifierExpression) decl.getId()))));
             return new Program(body.tail().map(stmt -> stmt.accept(v)).cons(body.head()));
         }
 
@@ -1457,8 +1460,8 @@ public class AST2AST {
             assert body.getBody().head() instanceof VariableDeclaration;
             VariableDeclaration declaration = (VariableDeclaration) body.getBody().head();
             List<Statement> rest = body.getBody().tail();
-            Set<RealIdentifierExpression> vars = Set.set(Ord.hashEqualsOrd(), declaration.getDeclarations().map(decl -> (RealIdentifierExpression) decl.getId()));
-            Set<RealIdentifierExpression> vars1 = vars.union(Set.set(Ord.hashEqualsOrd(), params.map(i -> (RealIdentifierExpression)i)));
+            Set<RealIdentifierExpression> vars = Set.set(REAL_IDENTIFIER_EXPRESSION_ORD, declaration.getDeclarations().map(decl -> (RealIdentifierExpression) decl.getId()));
+            Set<RealIdentifierExpression> vars1 = vars.union(Set.set(REAL_IDENTIFIER_EXPRESSION_ORD, params.map(i -> (RealIdentifierExpression)i)));
             HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(vars1));
             List<Statement> tmp = rest.map(stmt -> stmt.accept(v));
             return new FunctionDeclaration(id, params, new BlockStatement(tmp.cons(declaration)));
@@ -1473,8 +1476,8 @@ public class AST2AST {
             assert body.getBody().head() instanceof VariableDeclaration;
             VariableDeclaration declaration = (VariableDeclaration) body.getBody().head();
             List<Statement> rest = body.getBody().tail();
-            Set<RealIdentifierExpression> vars = Set.set(Ord.hashEqualsOrd(), declaration.getDeclarations().map(decl -> (RealIdentifierExpression) decl.getId()));
-            Set<RealIdentifierExpression> vars1 = vars.union(Set.set(Ord.hashEqualsOrd(), params.map(i -> (RealIdentifierExpression)i)));
+            Set<RealIdentifierExpression> vars = Set.set(REAL_IDENTIFIER_EXPRESSION_ORD, declaration.getDeclarations().map(decl -> (RealIdentifierExpression) decl.getId()));
+            Set<RealIdentifierExpression> vars1 = vars.union(Set.set(REAL_IDENTIFIER_EXPRESSION_ORD, params.map(i -> (RealIdentifierExpression)i)));
             HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(vars1));
             List<Statement> tmp = rest.map(stmt -> stmt.accept(v));
             return new FunctionExpression(id, params, new BlockStatement(tmp.cons(declaration)));
@@ -1540,7 +1543,7 @@ public class AST2AST {
             Option<CatchClause> _handler = handler.map(cc -> {
                 IdentifierExpression param = cc.getParam();
                 BlockStatement body = cc.getBody();
-                HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(Set.set(Ord.hashEqualsOrd(), (RealIdentifierExpression) param)));
+                HoistGlobalVariablesV v = new HoistGlobalVariablesV(stack.cons(Set.set(REAL_IDENTIFIER_EXPRESSION_ORD, (RealIdentifierExpression) param)));
                 BlockStatement _body = (BlockStatement)body.accept(v);
                 return new CatchClause(param, _body);
             });
@@ -1630,7 +1633,7 @@ public class AST2AST {
 
         public HandleCatchScopingV() {
             super();
-            this.renaming = TreeMap.empty(Ord.hashEqualsOrd());
+            this.renaming = TreeMap.empty(IDENTIFIER_EXPRESSION_ORD);
         }
 
         public HandleCatchScopingV(TreeMap<IdentifierExpression, IdentifierExpression> renaming) {
@@ -1670,8 +1673,8 @@ public class AST2AST {
             BlockStatement body = functionExpression.getBody();
             assert body.getBody().isNotEmpty() && body.getBody().head() instanceof VariableDeclaration;
             VariableDeclaration declaration = (VariableDeclaration)body.getBody().head();
-            Set<IdentifierExpression> locals = Set.set(Ord.hashEqualsOrd(), params.append(declaration.getDeclarations().map(decl -> decl.getId())));
-            TreeMap<IdentifierExpression, IdentifierExpression> tmp = TreeMap.treeMap(Ord.hashEqualsOrd(), renaming.keys().filter(exp -> !locals.member(exp)).map(exp -> P.p(exp, renaming.get(exp).some())));
+            Set<IdentifierExpression> locals = Set.set(IDENTIFIER_EXPRESSION_ORD, params.append(declaration.getDeclarations().map(decl -> decl.getId())));
+            TreeMap<IdentifierExpression, IdentifierExpression> tmp = TreeMap.treeMap(IDENTIFIER_EXPRESSION_ORD, renaming.keys().filter(exp -> !locals.member(exp)).map(exp -> P.p(exp, renaming.get(exp).some())));
             HandleCatchScopingV v = new HandleCatchScopingV(tmp);
             P2<List<Statement>, List<Set<IdentifierExpression>>> tmp1 = List.unzip(body.getBody().tail().map(stmt -> stmt.accept(v)));
             List<VariableDeclarator> bindings = declaration.getDeclarations().append(

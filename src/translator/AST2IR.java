@@ -10,6 +10,9 @@ import ir.*;
  */
 public class AST2IR {
 
+    public static final Ord<IRPVar> IRP_VAR_ORD = Ord.hashEqualsOrd();
+    public static final Set<IRPVar> EMPTY = Set.empty(IRP_VAR_ORD);
+
     public static class PVarMapper {
         static HashMap<Integer, String> numToName = new HashMap<>(Equal.intEqual, Hash.intHash);
         static HashMap<String, Integer> nameToNum = new HashMap<>(Equal.stringEqual, Hash.stringHash);
@@ -44,7 +47,7 @@ public class AST2IR {
         public static final List<P2<IRPVar, IRExp>> indicateSequence = List.list(P.p(dummy, new IRNull()));
 
         public static TreeMap<Integer, String> getMapping() {
-            return TreeMap.fromMutableMap(Ord.hashEqualsOrd(), numToName.toMap());
+            return TreeMap.fromMutableMap(Ord.intOrd, numToName.toMap());
         }
 
         public static IRExp windowAccess(String str) {
@@ -178,7 +181,7 @@ public class AST2IR {
             F<IRExp, P3<IRStmt, IRExp, Set<IRPVar>>> asPrimitive = e -> {
                 P3<IRStmt, IRExp, Set<IRPVar>> val = valueOf(e);
                 P3<IRStmt, IRExp, Set<IRPVar>> str = toSomething(val._2(), exp -> exp, AST2IR::callToString);
-                P3<IRStmt, IRExp, Set<IRPVar>> fin = toSomething(str._2(), exp -> exp, (target, obj) -> P.p(throwTypeError, new IRUndef(), Set.empty(Ord.hashEqualsOrd())));
+                P3<IRStmt, IRExp, Set<IRPVar>> fin = toSomething(str._2(), exp -> exp, (target, obj) -> P.p(throwTypeError, new IRUndef(), EMPTY));
                 return P.p(new IRSeq(List.list(val._1(), str._1(), fin._1())), fin._2(), fin._3().union(str._3()).union(val._3()));
             };
             F3<Bop, Bop, Boolean, P3<IRStmt, IRExp, Set<IRPVar>>> lessThanCore = (opStr, opNum, b) -> {
@@ -287,7 +290,7 @@ public class AST2IR {
                                     PVarMapper.nopStmt
                             ),
                             new IRBinop(Bop.InstanceOf, _left._2(), new IRBinop(Bop.Access, _right._2(), new IRStr("prototype"))),
-                            Set.empty(Ord.hashEqualsOrd())
+                            EMPTY
                     );
                 }
                 case ",": {
@@ -322,7 +325,7 @@ public class AST2IR {
                             })),
                             new IRUpdate(y, new IRStr("length"), new IRNum((double)eles.length())))),
                     y,
-                    args._3().union(_eles._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd())))
+                    args._3().union(_eles._3().foldLeft((a, b) -> a.union(b), EMPTY))
             );
         }
 
@@ -359,7 +362,7 @@ public class AST2IR {
                 return nopStmt(new IRUndef());
             } else {
                 P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _body = unzip3(body.map(stmt -> stmt.accept(this)));
-                return P.p(new IRSeq(_body._1()), _body._2().last(), _body._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd())));
+                return P.p(new IRSeq(_body._1()), _body._2().last(), _body._3().foldLeft((a, b) -> a.union(b), EMPTY));
             }
         }
 
@@ -371,7 +374,7 @@ public class AST2IR {
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forBreakStatement(BreakStatement breakStatement) {
             String lbl = breakStatement.getLabel().map(id -> ((RealIdentifierExpression)id).getName()).orSome(":BREAK:");
-            return P.p(new IRJump(lbl, new IRUndef()), new IRUndef(), Set.empty(Ord.hashEqualsOrd()));
+            return P.p(new IRJump(lbl, new IRUndef()), new IRUndef(), EMPTY);
         }
 
         @Override
@@ -396,7 +399,7 @@ public class AST2IR {
                 return P.p(
                         new IRSeq(List.list(_object._1(), _property._1(), new IRSeq(_arguments._1()), access._1(), tmp._1())),
                         y,
-                        _object._3().union(_property._3()).union(_arguments._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd()))).union(access._4()).union(tmp._3()));
+                        _object._3().union(_property._3()).union(_arguments._3().foldLeft((a, b) -> a.union(b), EMPTY)).union(access._4()).union(tmp._3()));
             } else {
                 P3<IRStmt, IRExp, Set<IRPVar>> _callee = callee.accept(this);
                 P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _arguments = unzip3(arguments.map(exp -> exp.accept(this)));
@@ -405,7 +408,7 @@ public class AST2IR {
                 return P.p(
                         new IRSeq(List.list(_callee._1(), new IRSeq(_arguments._1()), tmp._1())),
                         y,
-                        _callee._3().union(_arguments._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd()))).union(tmp._3()));
+                        _callee._3().union(_arguments._3().foldLeft((a, b) -> a.union(b), EMPTY)).union(tmp._3()));
             }
         }
 
@@ -431,7 +434,7 @@ public class AST2IR {
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forContinueStatement(ContinueStatement continueStatement) {
             String lbl = continueStatement.getLabel().map(id -> ((RealIdentifierExpression)id).getName()).orSome(":CONTINUE:");
-            return P.p(new IRJump(lbl, new IRUndef()), new IRUndef(), Set.empty(Ord.hashEqualsOrd()));
+            return P.p(new IRJump(lbl, new IRUndef()), new IRUndef(), EMPTY);
         }
 
         @Override
@@ -463,7 +466,7 @@ public class AST2IR {
             assert body.isNotEmpty();
             assert body.head() instanceof VariableDeclaration;
             VariableDeclaration declaration = (VariableDeclaration)body.head();
-            assert params.length() == Set.set(Ord.hashEqualsOrd(), params).size();
+            assert params.length() == Set.set(AST2AST.IDENTIFIER_EXPRESSION_ORD, params).size();
             List<Statement> tail = body.tail();
             P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _tail = unzip3(tail.map(stmt -> stmt.accept(this)));
             IRPVar args = PVarMapper.getPVar(PVarMapper.ARGUMENTS_NAME);
@@ -487,7 +490,7 @@ public class AST2IR {
                 return P.p(PVarMapper.getPVar(id.getName()), rhs);
             });
             P3<IRStmt, IRExp, Set<IRPVar>> tmp = makeArguments(List.list());
-            Set<IRPVar> ss = _tail._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd()));
+            Set<IRPVar> ss = _tail._3().foldLeft((a, b) -> a.union(b), EMPTY);
             List<P2<IRPVar, IRExp>> tmpBind = ss.toList().map(y -> P.p(y, new IRUndef()));
             IRDecl decl = new IRDecl(declParams.append(declLocal).append(tmpBind), new IRLbl(":RETURN:", new IRSeq(List.list(new IRMerge(), new IRSeq(_tail._1())))));
             IRMethod method = new IRMethod(PVarMapper.selfVar, args, decl);
@@ -572,7 +575,7 @@ public class AST2IR {
             P3<IRStmt, IRExp, Set<IRPVar>> _callee = callee.accept(this);
             P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _arguments = unzip3(arguments.map(exp -> exp.accept(this)));
             IRStmt pred = new IRSeq(List.list(_callee._1(), new IRSeq(_arguments._1())));
-            Set<IRPVar> ys = _callee._3().union(_arguments._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd())));
+            Set<IRPVar> ys = _callee._3().union(_arguments._3().foldLeft((a, b) -> a.union(b), EMPTY));
             Option<Boolean> _ = staticIsPrim(_callee._2());
             if (_.isNone()) {
                 P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(_arguments._2());
@@ -616,7 +619,7 @@ public class AST2IR {
             P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(List.list());
             IRScratch y = freshScratch();
             List<P2<IRExp, IRExp>> _ = tmp._1().zip(tmp._3());
-            Set<IRPVar> _ss = tmp._4().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd()));
+            Set<IRPVar> _ss = tmp._4().foldLeft((a, b) -> a.union(b), EMPTY);
             return P.p(
                     new IRSeq(List.list(
                             new IRSeq(tmp._2()), args._1(), new IRNew(y, PVarMapper.objectVar, args._2()),
@@ -634,7 +637,7 @@ public class AST2IR {
             List<P2<IRPVar, IRExp>> bind1 = declaration.getDeclarations().map(decl -> P.p(PVarMapper.getPVar(((RealIdentifierExpression) decl.getId()).getName()), new IRUndef()));
             P3<IRStmt, IRExp, Set<IRPVar>> tmp = new BlockStatement(body.tail()).accept(this);
             List<P2<IRPVar, IRExp>> bind2 = tmp._3().toList().map(x -> P.p(x, new IRUndef()));
-            return P.p(new IRDecl(bind1.append(bind2), tmp._1()), new IRUndef(), Set.empty(Ord.hashEqualsOrd()));
+            return P.p(new IRDecl(bind1.append(bind2), tmp._1()), new IRUndef(), EMPTY);
         }
 
         @Override
@@ -676,16 +679,16 @@ public class AST2IR {
             List<Expression> exps = sequenceExpression.getExpressions();
             if (exps.isEmpty()) {
                 if (sequenceExpression.getOrig()) {
-                    return P.p(new IRDecl(PVarMapper.indicateSequence, PVarMapper.nopStmt), new IRUndef(), Set.empty(Ord.hashEqualsOrd()));
+                    return P.p(new IRDecl(PVarMapper.indicateSequence, PVarMapper.nopStmt), new IRUndef(), EMPTY);
                 } else {
                     return nopStmt(new IRUndef());
                 }
             } else {
                 P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _exps = unzip3(exps.map(exp -> exp.accept(this)));
                 if (sequenceExpression.getOrig()) {
-                    return P.p(new IRDecl(PVarMapper.indicateSequence, new IRSeq(_exps._1())), _exps._2().last(), _exps._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd())));
+                    return P.p(new IRDecl(PVarMapper.indicateSequence, new IRSeq(_exps._1())), _exps._2().last(), _exps._3().foldLeft((a, b) -> a.union(b), EMPTY));
                 } else {
-                    return P.p(new IRSeq(_exps._1()), _exps._2().last(), _exps._3().foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd())));
+                    return P.p(new IRSeq(_exps._1()), _exps._2().last(), _exps._3().foldLeft((a, b) -> a.union(b), EMPTY));
                 }
             }
         }
@@ -723,7 +726,7 @@ public class AST2IR {
             rest.foldRight((cur, res) -> {
                 P2<List<IRStmt>, Set<IRPVar>> tmp = handleCase.f(cur.getTest().some(), new BlockStatement(cur.getConsequent()));
                 return P.p(tmp._1().append(res._1()), tmp._2().union(res._2()));
-            }, P.p(List.list(), Set.empty(Ord.hashEqualsOrd())));
+            }, P.p(List.list(), EMPTY));
             return P.p(
                     makeLbl(":BREAK:", new IRSeq(List.list(_discriminant._1(), new IRAssign(y0, _discriminant._2()), new IRAssign(y1, new IRBool(false)), new IRSeq(_cases._1()), _def._1()))),
                     new IRUndef(),
@@ -753,7 +756,7 @@ public class AST2IR {
             P3<IRPVar, IRStmt, Set<IRPVar>> _catch;
             if (handler.isNone()) {
                 IRPVar x = PVarMapper.freshPVar();
-                _catch = P.p(x, new IRThrow(x), Set.set(Ord.hashEqualsOrd(), x));
+                _catch = P.p(x, new IRThrow(x), Set.set(IRP_VAR_ORD, x));
             } else {
                 CatchClause cc = handler.some();
                 RealIdentifierExpression id = (RealIdentifierExpression)cc.getParam();
@@ -1019,7 +1022,7 @@ public class AST2IR {
                                                 afterBody,
                                                 new IRAssign(y, toBool(normalTest)))))))),
                 new IRUndef(),
-                Set.empty(Ord.hashEqualsOrd())
+                EMPTY
         );
     }
 
@@ -1028,12 +1031,12 @@ public class AST2IR {
             return nopStmt(e);
         } else {
             IRScratch y = freshScratch();
-            return P.p(new IRToObj(y, e), y, Set.empty(Ord.hashEqualsOrd()));
+            return P.p(new IRToObj(y, e), y, EMPTY);
         }
     }
 
     static P3<IRStmt, IRExp, Set<IRPVar>> nopStmt(IRExp e) {
-        return P.p(PVarMapper.nopStmt, e, Set.empty(Ord.hashEqualsOrd()));
+        return P.p(PVarMapper.nopStmt, e, EMPTY);
     }
 
     static P3<IRStmt, IRExp, Set<IRPVar>> toSomething(IRExp e, F<IRExp, IRExp> ifPrim, F2<IRVar, IRExp, P3<IRStmt, IRExp, Set<IRPVar>>> ifNotPrim) {
@@ -1062,7 +1065,7 @@ public class AST2IR {
                 makeNew(y, PVarMapper.argumentsVar, PVarMapper.dummyAddressVar),
                 new IRSeq(_tmp),
                 new IRUpdate(y, new IRStr("length"), new IRNum((double)args.length()))));
-        return P.p(_s, y, Set.empty(Ord.hashEqualsOrd()));
+        return P.p(_s, y, EMPTY);
     }
 
     static IRStmt makeTry(IRStmt s1, IRPVar x, IRStmt s2, IRStmt s3) {

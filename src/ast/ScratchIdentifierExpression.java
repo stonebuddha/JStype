@@ -20,7 +20,7 @@ public class ScratchIdentifierExpression extends IdentifierExpression {
 
     @Override
     public int hashCode() {
-        return P.p(num).hashCode();
+        return num;
     }
 
     public Integer getNum() {

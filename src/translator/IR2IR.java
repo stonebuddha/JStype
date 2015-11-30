@@ -259,10 +259,12 @@ public class IR2IR {
         Integer maxScratchMade;
         TreeMap<Integer, Integer> mapping;
 
+        static final TreeMap<Integer, Integer> EMPTY = TreeMap.empty(Ord.intOrd);
+
         public InsertSDeclsV() {
             this.counter = 0;
             this.maxScratchMade = 0;
-            this.mapping = TreeMap.empty(Ord.hashEqualsOrd());
+            this.mapping = EMPTY;
         }
 
         public InsertSDeclsV(Integer counter, Integer maxScratchMade, TreeMap<Integer, Integer> mapping) {
@@ -390,7 +392,7 @@ public class IR2IR {
                     List<IRStmt> curStmts = res._3();
                     P2<IRStmt, P3<Integer, Integer, TreeMap<Integer, Integer>>> _cur = cur.accept(new InsertSDeclsV(0, curNumScratch, curMapping));
                     return P.p(_cur._2()._2(), _cur._2()._3(), curStmts.snoc(_cur._1()));
-                }, P.p(maxScratchMade, mapping, List.<IRStmt>list(Set.empty(Ord.hashEqualsOrd()))));
+                }, P.p(maxScratchMade, mapping, List.<IRStmt>list()));
                 return P.p(new IRSeq(tmp._3()), P.p(0, tmp._1(), tmp._2()));
             } else {
                 P4<List<P2<IRPVar, IRExp>>, Integer, Integer, TreeMap<Integer, Integer>> _bind =

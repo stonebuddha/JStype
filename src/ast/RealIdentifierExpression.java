@@ -8,9 +8,11 @@ import fj.P2;
  */
 public class RealIdentifierExpression extends IdentifierExpression {
     String name;
+    final int recordHash;
 
     public RealIdentifierExpression(String name) {
         this.name = name;
+        this.recordHash = name.hashCode();
     }
 
     @Override
@@ -20,7 +22,7 @@ public class RealIdentifierExpression extends IdentifierExpression {
 
     @Override
     public int hashCode() {
-        return P.p(name).hashCode();
+        return recordHash;
     }
 
     public String getName() {
