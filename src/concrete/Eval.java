@@ -46,12 +46,12 @@ public class Eval {
         final IRExpVisitor<Domains.BValue> innerEval = new IRExpVisitor<Domains.BValue>() {
             @Override
             public Domains.BValue forNum(final IRNum irNum) {
-                final Double n = irNum.v;
+                final double n = irNum.v;
                 return new Domains.Num(n);
             }
             @Override
             public Domains.BValue forBool(final IRBool irBool) {
-                final Boolean b = irBool.v;
+                final boolean b = irBool.v;
                 return Domains.Bool.apply(b);
             }
             @Override

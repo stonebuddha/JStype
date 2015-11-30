@@ -13,6 +13,11 @@ import ir.*;
  */
 public class Utils {
 
+    public static final Ord<Domains.Str> StrOrd = Ord.hashEqualsOrd();
+    public static final Ord<JSClass> JSClassOrd = Ord.hashEqualsOrd();
+    public static final Ord<IRPVar> IRPVarOrd = Ord.hashEqualsOrd();
+    public static final Ord<Domains.Address> AddressOrd = Ord.hashEqualsOrd();
+
     public static class Recursive<I> {
         public I func;
     }
@@ -41,11 +46,11 @@ public class Utils {
 
     public static P2<Domains.Store, Domains.Address> allocFun(final Domains.Closure clo, final Domains.BValue n, final Domains.Store store) {
         final Domains.Address a1 = Domains.Address.generate();
-        final TreeMap<Domains.Str, Object> intern = TreeMap.treeMap(Ord.hashEqualsOrd(),
+        final TreeMap<Domains.Str, Object> intern = TreeMap.treeMap(StrOrd,
                 P.p(Fields.proto, Init.Function_prototype_Addr),
                 P.p(Fields.classname, JSClass.CFunction),
                 P.p(Fields.code, clo));
-        final TreeMap<Domains.Str, Domains.BValue> extern = TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Fields.length, n));
+        final TreeMap<Domains.Str, Domains.BValue> extern = TreeMap.treeMap(StrOrd, P.p(Fields.length, n));
         return P.p(store.putObj(a1, new Domains.Object(extern, intern)), a1);
     }
 
@@ -59,10 +64,10 @@ public class Utils {
         } else {
             a2 = Init.Object_prototype_Addr;
         }
-        final TreeMap<Domains.Str, Object> intern = TreeMap.treeMap(Ord.hashEqualsOrd(),
+        final TreeMap<Domains.Str, Object> intern = TreeMap.treeMap(StrOrd,
                 P.p(Fields.proto, a2),
                 P.p(Fields.classname, c));
-        final Domains.Store store1 = store.putObj(a1, new Domains.Object(TreeMap.empty(Ord.hashEqualsOrd()), intern));
+        final Domains.Store store1 = store.putObj(a1, new Domains.Object(TreeMap.empty(StrOrd), intern));
         return P.p(store1, a1);
     }
 
@@ -72,7 +77,7 @@ public class Utils {
             final Domains.Address a2 = (Domains.Address)bv2;
             final Domains.Address a3 = (Domains.Address)bv3;
             final Domains.Object o = store.getObj(a1);
-            final Boolean isCtor = store.getObj(a3).calledAsCtor();
+            final boolean isCtor = store.getObj(a3).calledAsCtor();
 
             final Option<Domains.Closure> tmp = o.getCode();
             if (tmp.isNone()) {
@@ -106,7 +111,7 @@ public class Utils {
             final Domains.Str str = (Domains.Str)bv2;
             final P2<Domains.Object, Boolean> tmp = store.getObj(a).delete(str);
             final Domains.Object o1 = tmp._1();
-            final Boolean del = tmp._2();
+            final boolean del = tmp._2();
             if (del) {
                 return P.p(Domains.Undef, store.putObj(a, o1), pad.update(x, Domains.Bool.True));
             } else {
@@ -145,7 +150,7 @@ public class Utils {
             if (sth instanceof Domains.Address) {
                 pflds = recur.func.f((Domains.Address)sth);
             } else {
-                pflds = Set.empty(Ord.hashEqualsOrd());
+                pflds = Set.empty(StrOrd);
             }
             return flds.union(pflds);
         };
@@ -190,7 +195,7 @@ public class Utils {
             final Domains.Object updatedO;
             if (bv instanceof Domains.Str) {
                 final Domains.Str s = (Domains.Str)bv;
-                final TreeMap<Domains.Str, Domains.BValue> init = TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Fields.length, new Domains.Num((double)s.str.length())));
+                final TreeMap<Domains.Str, Domains.BValue> init = TreeMap.treeMap(StrOrd, P.p(Fields.length, new Domains.Num((double)s.str.length())));
                 updatedO = new Domains.Object(o.extern.union(List.range(0, s.str.length()).foldLeft((acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(s.str.substring(e, e + 1))), init)), o.intern);
             } else {
                 updatedO = o;
@@ -226,14 +231,14 @@ public class Utils {
                     if (o.apply(Fields.length).some().lessEqual(bv3num).equals(Domains.Bool.True)) {
                         return P.p(bv3, store.putObj(a, o.update(str, bv3num)));
                     } else {
-                        final Long n1, n2;
+                        final long n1, n2;
                         if (bv3num instanceof Domains.Num && o.apply(Fields.length).some() instanceof Domains.Num) {
-                            n1 = ((Domains.Num)bv3num).n.longValue();
-                            n2 = ((Domains.Num)o.apply(Fields.length).some()).n.longValue();
+                            n1 = (long)((Domains.Num)bv3num).n;
+                            n2 = (long)((Domains.Num)o.apply(Fields.length).some()).n;
                         } else {
                             throw new RuntimeException("implementation error: inconceivable");
                         }
-                        final Domains.Object o2 = List.range(n1.intValue(), n2.intValue()).foldLeft((acc, n) -> (acc.delete(new Domains.Str(n.toString())))._1(), o.update(str, bv3num));
+                        final Domains.Object o2 = List.range((int)n1, (int)n2).foldLeft((acc, n) -> (acc.delete(new Domains.Str(n.toString())))._1(), o.update(str, bv3num));
                         return P.p(bv3, store.putObj(a, o2));
                     }
                 } else if (Domains.Num.isU32(bv2num)) {

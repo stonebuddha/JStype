@@ -2,6 +2,7 @@ package concrete.init;
 
 import concrete.Domains;
 import concrete.Interpreter;
+import concrete.Utils;
 import fj.Ord;
 import fj.P;
 import fj.data.List;
@@ -176,12 +177,12 @@ public class Init {
     public static final Domains.Address Dummy_Addr = Domains.Address.generate();
 
     public static Interpreter.State initState(IRStmt s) {
-        Domains.Env env = new Domains.Env(TreeMap.treeMap(Ord.hashEqualsOrd(),
+        Domains.Env env = new Domains.Env(TreeMap.treeMap(Utils.IRPVarOrd,
                 P.p(window_Variable, window_binding_Addr)));
         Domains.Store store = new Domains.Store(
-                TreeMap.treeMap(Ord.hashEqualsOrd(),
+                TreeMap.treeMap(Utils.AddressOrd,
                         P.p(window_binding_Addr, window_Addr)),
-                TreeMap.treeMap(Ord.hashEqualsOrd(),
+                TreeMap.treeMap(Utils.AddressOrd,
                         P.<Domains.Address, Domains.Object>p(window_Addr, InitGlobal.window_Obj),
                         P.<Domains.Address, Domains.Object>p(decodeURI_Addr, InitGlobal.decodeURI_Obj),
                         P.<Domains.Address, Domains.Object>p(decodeURIComponent_Addr, InitGlobal.decodeURIComponent_Obj),
@@ -311,7 +312,7 @@ public class Init {
                         P.<Domains.Address, Domains.Object>p(Date_prototype_Addr, InitMisc.Date_prototype_Obj),
                         P.<Domains.Address, Domains.Object>p(RegExp_prototype_Addr, InitMisc.RegExp_prototype_Obj),
                         P.<Domains.Address, Domains.Object>p(Arguments_Addr, InitArguments.Arguments_Obj),
-                        P.<Domains.Address, Domains.Object>p(Dummy_Addr, InitUtils.createObj(TreeMap.empty(Ord.hashEqualsOrd())))));
+                        P.<Domains.Address, Domains.Object>p(Dummy_Addr, InitUtils.createObj(TreeMap.empty(Utils.StrOrd)))));
         return new Interpreter.State(
                 new Domains.StmtTerm(s),
                 env,
@@ -320,17 +321,17 @@ public class Init {
                 new Domains.KontStack(List.list(Domains.HaltKont)));
     }
 
-    public static final TreeMap<JSClass, Set<Domains.Str>> noenum = TreeMap.treeMap(Ord.hashEqualsOrd(),
-            P.p(JSClass.CFunction, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
-            P.p(JSClass.CArray, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
-            P.p(JSClass.CString, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
-            P.p(JSClass.CArguments, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
-            P.p(JSClass.CRegexp, Set.set(Ord.hashEqualsOrd(), new Domains.Str("source"),
+    public static final TreeMap<JSClass, Set<Domains.Str>> noenum = TreeMap.treeMap(Utils.JSClassOrd,
+            P.p(JSClass.CFunction, Set.set(Utils.StrOrd, new Domains.Str("length"))),
+            P.p(JSClass.CArray, Set.set(Utils.StrOrd, new Domains.Str("length"))),
+            P.p(JSClass.CString, Set.set(Utils.StrOrd, new Domains.Str("length"))),
+            P.p(JSClass.CArguments, Set.set(Utils.StrOrd, new Domains.Str("length"))),
+            P.p(JSClass.CRegexp, Set.set(Utils.StrOrd, new Domains.Str("source"),
                     new Domains.Str("global"),
                     new Domains.Str("ignoreCase"),
                     new Domains.Str("multiline"),
                     new Domains.Str("lastIndex"))),
-            P.p(JSClass.CObject_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CObject_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("create"),
                     new Domains.Str("defineProperties"),
@@ -347,7 +348,7 @@ public class Init {
                     new Domains.Str("preventExtensions"),
                     new Domains.Str("seal")
             )),
-            P.p(JSClass.CObject_prototype_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CObject_prototype_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("constructor"),
                     new Domains.Str("valueOf"),
                     new Domains.Str("toString"),
@@ -356,12 +357,12 @@ public class Init {
                     new Domains.Str("hasOwnProperty"),
                     new Domains.Str("toLocaleString")
             )),
-            P.p(JSClass.CArray_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CArray_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("isArray"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CArray_prototype_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CArray_prototype_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("constructor"),
                     new Domains.Str("concat"),
                     new Domains.Str("every"),
@@ -385,18 +386,18 @@ public class Init {
                     new Domains.Str("toString"),
                     new Domains.Str("unshift")
             )),
-            P.p(JSClass.CFunction_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CFunction_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CFunction_prototype_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CFunction_prototype_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("constructor"),
                     new Domains.Str("apply"),
                     new Domains.Str("call"),
                     new Domains.Str("toString"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CMath_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CMath_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("E"),
                     new Domains.Str("LN10"),
                     new Domains.Str("LN2"),
@@ -424,7 +425,7 @@ public class Init {
                     new Domains.Str("sqrt"),
                     new Domains.Str("tan")
             )),
-            P.p(JSClass.CNumber_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CNumber_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length"),
                     new Domains.Str("MAX_VALUE"),
@@ -433,7 +434,7 @@ public class Init {
                     new Domains.Str("NEGATIVE_INFINITY"),
                     new Domains.Str("POSITIVE_INFINITY")
             )),
-            P.p(JSClass.CNumber_prototype_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CNumber_prototype_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("constructor"),
                     new Domains.Str("toString"),
                     new Domains.Str("toLocaleString"),
@@ -442,12 +443,12 @@ public class Init {
                     new Domains.Str("toExponential"),
                     new Domains.Str("toPrecision")
             )),
-            P.p(JSClass.CString_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CString_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length"),
                     new Domains.Str("fromCharCode")
             )),
-            P.p(JSClass.CString_prototype_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CString_prototype_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("constructor"),
                     new Domains.Str("charAt"),
                     new Domains.Str("charCodeAt"),
@@ -472,29 +473,29 @@ public class Init {
             ))
     );
 
-    public static final TreeMap<JSClass, Set<Domains.Str>> nodelete = TreeMap.treeMap(Ord.hashEqualsOrd(),
-            P.p(JSClass.CFunction, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"), new Domains.Str("prototype"))),
-            P.p(JSClass.CArray, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
-            P.p(JSClass.CString, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
-            P.p(JSClass.CRegexp, Set.set(Ord.hashEqualsOrd(),
+    public static final TreeMap<JSClass, Set<Domains.Str>> nodelete = TreeMap.treeMap(Utils.JSClassOrd,
+            P.p(JSClass.CFunction, Set.set(Utils.StrOrd, new Domains.Str("length"), new Domains.Str("prototype"))),
+            P.p(JSClass.CArray, Set.set(Utils.StrOrd, new Domains.Str("length"))),
+            P.p(JSClass.CString, Set.set(Utils.StrOrd, new Domains.Str("length"))),
+            P.p(JSClass.CRegexp, Set.set(Utils.StrOrd,
                     new Domains.Str("source"),
                     new Domains.Str("global"),
                     new Domains.Str("ignoreCase"),
                     new Domains.Str("multiline"),
                     new Domains.Str("lastIndex"))),
-            P.p(JSClass.CObject_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CObject_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CArray_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CArray_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CFunction_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CFunction_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CMath_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CMath_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("E"),
                     new Domains.Str("LN10"),
                     new Domains.Str("LN2"),
@@ -504,37 +505,37 @@ public class Init {
                     new Domains.Str("SQRT1_2"),
                     new Domains.Str("SQRT2")
             )),
-            P.p(JSClass.CNumber_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CNumber_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CString_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CString_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ))
     );
 
-    public static final TreeMap<JSClass, Set<Domains.Str>> noupdate = TreeMap.treeMap(Ord.hashEqualsOrd(),
-            P.p(JSClass.CFunction, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
-            P.p(JSClass.CString, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
-            P.p(JSClass.CRegexp, Set.set(Ord.hashEqualsOrd(),
+    public static final TreeMap<JSClass, Set<Domains.Str>> noupdate = TreeMap.treeMap(Utils.JSClassOrd,
+            P.p(JSClass.CFunction, Set.set(Utils.StrOrd, new Domains.Str("length"))),
+            P.p(JSClass.CString, Set.set(Utils.StrOrd, new Domains.Str("length"))),
+            P.p(JSClass.CRegexp, Set.set(Utils.StrOrd,
                     new Domains.Str("source"),
                     new Domains.Str("global"),
                     new Domains.Str("ignoreCase"),
                     new Domains.Str("multiline"))),
-            P.p(JSClass.CObject_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CObject_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CArray_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CArray_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CFunction_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CFunction_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CMath_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CMath_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("E"),
                     new Domains.Str("LN10"),
                     new Domains.Str("LN2"),
@@ -544,17 +545,17 @@ public class Init {
                     new Domains.Str("SQRT1_2"),
                     new Domains.Str("SQRT2")
             )),
-            P.p(JSClass.CNumber_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CNumber_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )),
-            P.p(JSClass.CString_Obj, Set.set(Ord.hashEqualsOrd(),
+            P.p(JSClass.CString_Obj, Set.set(Utils.StrOrd,
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ))
     );
 
-    public static final TreeMap<Domains.Address, JSClass> classFromAddress = TreeMap.treeMap(Ord.hashEqualsOrd(),
+    public static final TreeMap<Domains.Address, JSClass> classFromAddress = TreeMap.treeMap(Utils.AddressOrd,
             P.p(Function_Addr, JSClass.CFunction),
             P.p(Array_Addr, JSClass.CArray),
             P.p(String_Addr, JSClass.CString),

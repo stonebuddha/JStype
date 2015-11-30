@@ -32,7 +32,7 @@ public class IRPVar extends IRVar {
 
     @Override
     public int hashCode() {
-        return P.p(n).hashCode();
+        return n;
     }
 
     @Override

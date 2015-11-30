@@ -15,7 +15,7 @@ public class InitMisc {
     public static Domains.Object Boolean_Obj = InitUtils.makeNativeValueStore(
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object argsObj = store.getObj(argArrayAddr);
-                Boolean calledAsConstr = argsObj.calledAsCtor();
+                boolean calledAsConstr = argsObj.calledAsCtor();
                 Domains.BValue boolValue;
                 Option<Domains.BValue> tmp = argsObj.apply(new Domains.Str("0"));
                 if (tmp.isSome()) {
@@ -26,8 +26,8 @@ public class InitMisc {
                 }
                 if (calledAsConstr) {
                     Domains.Address newAddr = Domains.Address.generate();
-                    Domains.Object newObj = InitUtils.createObj(TreeMap.empty(Ord.hashEqualsOrd()),
-                            TreeMap.treeMap(Ord.hashEqualsOrd(),
+                    Domains.Object newObj = InitUtils.createObj(TreeMap.empty(Utils.StrOrd),
+                            TreeMap.treeMap(Utils.StrOrd,
                                     P.p(Utils.Fields.proto, Init.Boolean_prototype_Addr),
                                     P.p(Utils.Fields.classname, JSClass.CBoolean),
                                     P.p(Utils.Fields.value, boolValue)));
@@ -36,14 +36,14 @@ public class InitMisc {
                 } else {
                     return P.p(boolValue, store);
                 }
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(),
+            }, TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.prototype, Init.Boolean_prototype_Addr),
                     P.p(Utils.Fields.length, new Domains.Num(1.0))
             )
     );
 
     public static Domains.Object Boolean_prototype_Obj = InitUtils.createObj(
-            TreeMap.treeMap(Ord.hashEqualsOrd(),
+            TreeMap.treeMap(Utils.StrOrd,
                     P.p(new Domains.Str("toString"), Init.Boolean_prototype_toString_Addr),
                     P.p(new Domains.Str("valueOf"), Init.Boolean_prototype_valueOf_Addr))
     );
@@ -63,7 +63,7 @@ public class InitMisc {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
     public static Domains.Object Boolean_prototype_valueOf_Obj = InitUtils.makeNativeValue(
@@ -79,18 +79,18 @@ public class InitMisc {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
     public static Domains.Object Error_Obj = InitUtils.createFunctionObject(new Domains.Native(
             (selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
                 throw new RuntimeException("not implemented");
             }),
-            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.prototype, Init.Error_prototype_Addr), P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.prototype, Init.Error_prototype_Addr), P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
     public static Domains.Object Error_prototype_Obj = InitUtils.createObj(
-            TreeMap.treeMap(Ord.hashEqualsOrd(),
+            TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.constructor, Init.Error_Addr),
                     P.p(new Domains.Str("name"), new Domains.Str("Error")),
                     P.p(new Domains.Str("message"), new Domains.Str("")),
@@ -99,7 +99,7 @@ public class InitMisc {
     public static Domains.Object Error_prototype_toString_Obj = InitUtils.unimplemented;
 
     public static Domains.Object JSON_Obj = InitUtils.createObj(
-            TreeMap.treeMap(Ord.hashEqualsOrd(),
+            TreeMap.treeMap(Utils.StrOrd,
                     P.p(new Domains.Str("parse"), Init.JSON_parse_Addr),
                     P.p(new Domains.Str("stringify"), Init.JSON_stringify_Addr)));
 
@@ -113,7 +113,7 @@ public class InitMisc {
                         throw new RuntimeException("not implemented");
                     }
             ),
-            TreeMap.treeMap(Ord.hashEqualsOrd(),
+            TreeMap.treeMap(Utils.StrOrd,
                     P.p(new Domains.Str("now"), Init.Date_now_Addr),
                     P.p(new Domains.Str("parse"), Init.Date_parse_Addr),
                     P.p(Utils.Fields.prototype, Init.Date_prototype_Addr),
@@ -125,7 +125,7 @@ public class InitMisc {
     public static Domains.Object Date_parse_Obj = InitUtils.unimplemented;
 
     public static Domains.Object Date_prototype_Obj = InitUtils.createObj(
-            TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.constructor, Init.Date_Addr))
+            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.constructor, Init.Date_Addr))
     );
 
     public static Domains.Object RegExp_Obj = InitUtils.createFunctionObject(
@@ -134,10 +134,10 @@ public class InitMisc {
                         throw new RuntimeException("not implemented");
                     }
             ),
-            TreeMap.treeMap(Ord.hashEqualsOrd(),
+            TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.prototype, Init.RegExp_prototype_Addr),
                     P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
-    public static Domains.Object RegExp_prototype_Obj = InitUtils.createObj(TreeMap.empty(Ord.hashEqualsOrd()));
+    public static Domains.Object RegExp_prototype_Obj = InitUtils.createObj(TreeMap.empty(Utils.StrOrd));
 }

@@ -76,7 +76,7 @@ public class Domains {
         }
 
         public Env filter(final F<IRPVar, Boolean> f) {
-            return new Env(TreeMap.treeMap(Ord.hashEqualsOrd(), env.keys().filter(f).map(x -> P.p(x, env.get(x).some()))));
+            return new Env(TreeMap.treeMap(Utils.IRPVarOrd, env.keys().filter(f).map(x -> P.p(x, env.get(x).some()))));
         }
     }
 
@@ -145,7 +145,7 @@ public class Domains {
             return new Scratchpad(mem.update(x.n, bv));
         }
 
-        public static Scratchpad apply(final Integer len) {
+        public static Scratchpad apply(final int len) {
             final ArrayList<BValue> bvs = new ArrayList<>(len);
             for (int i = 0; i < len; i += 1) {
                 bvs.add(i, Undef);
@@ -257,20 +257,20 @@ public class Domains {
     }
 
     public static final class Num extends BValue {
-        public final Double n;
+        public final double n;
 
-        public Num(final Double n) {
+        public Num(final double n) {
             this.n = n;
         }
 
         @Override
         public String toString() {
-            return n.toString();
+            return String.valueOf(n);
         }
 
         @Override
         public boolean equals(java.lang.Object obj) {
-            return (obj instanceof Num && n.equals(((Num) obj).n));
+            return (obj instanceof Num && n == ((Num) obj).n);
         }
 
         @Override
@@ -326,7 +326,7 @@ public class Domains {
         @Override
         public BValue shl(final BValue bv) {
             if (bv instanceof Num) {
-                return new Num((double)(n.longValue() << ((Num) bv).n.longValue()));
+                return new Num((double)((long)n << (long)((Num) bv).n));
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -335,7 +335,7 @@ public class Domains {
         @Override
         public BValue sar(final BValue bv) {
             if (bv instanceof Num) {
-                return new Num((double)(n.longValue() >> ((Num) bv).n.longValue()));
+                return new Num((double)((long)n >> (long)((Num) bv).n));
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -344,7 +344,7 @@ public class Domains {
         @Override
         public BValue shr(final BValue bv) {
             if (bv instanceof Num) {
-                return new Num((double)(n.longValue() >>> ((Num) bv).n.longValue()));
+                return new Num((double)((long)n >>> (long)((Num) bv).n));
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -371,7 +371,7 @@ public class Domains {
         @Override
         public BValue and(final BValue bv) {
             if (bv instanceof Num) {
-                return new Num((double)(n.longValue() & ((Num) bv).n.longValue()));
+                return new Num((double)((long)n & (long)((Num) bv).n));
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -380,7 +380,7 @@ public class Domains {
         @Override
         public BValue or(final BValue bv) {
             if (bv instanceof Num) {
-                return new Num((double)(n.longValue() | ((Num) bv).n.longValue()));
+                return new Num((double)((long)n | (long)((Num) bv).n));
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -389,7 +389,7 @@ public class Domains {
         @Override
         public BValue xor(final BValue bv) {
             if (bv instanceof Num) {
-                return new Num((double)(n.longValue() ^ ((Num) bv).n.longValue()));
+                return new Num((double)((long)n ^ (long)((Num) bv).n));
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -402,19 +402,19 @@ public class Domains {
 
         @Override
         public BValue not() {
-            return new Num((double)(~n.longValue()));
+            return new Num((double)(~(long)n));
         }
 
         @Override
         public Bool toBool() {
-            return Bool.apply(n != 0 && !n.isNaN());
+            return Bool.apply(n != 0 && !Double.isNaN(n));
         }
         @Override
         public Str toStr() {
-            if (n.longValue() == n) {
-                return new Str(Long.toString(n.longValue()));
+            if ((long)n == n) {
+                return new Str(Long.toString((long)n));
             } else {
-                return new Str(n.toString());
+                return new Str(String.valueOf(n));
             }
         }
         @Override
@@ -428,10 +428,10 @@ public class Domains {
         }
 
         static final long maxU32 = 4294967295L;
-        public static Boolean isU32(final BValue bv) {
+        public static boolean isU32(final BValue bv) {
             if (bv instanceof Num) {
-                Double n = ((Num) bv).n;
-                return (n.longValue() == n && n >= 0 && n <= maxU32);
+                double n = ((Num) bv).n;
+                return ((long)n == n && n >= 0 && n <= maxU32);
             } else {
                 return false;
             }
@@ -440,6 +440,7 @@ public class Domains {
 
     public static final class Str extends BValue {
         public final String str;
+        final int recordHash;
 
         @Override
         public String toString() {
@@ -448,6 +449,7 @@ public class Domains {
 
         public Str(final String str) {
             this.str = str;
+            this.recordHash = str.hashCode();
         }
 
         @Override
@@ -457,7 +459,7 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(str).hashCode();
+            return recordHash;
         }
 
         @Override
@@ -573,7 +575,7 @@ public class Domains {
         public static final Bool True = new Bool();
         public static final Bool False = new Bool();
 
-        public static Bool apply(final Boolean b) {
+        public static Bool apply(final boolean b) {
             if (b) {
                 return True;
             } else {
@@ -583,21 +585,21 @@ public class Domains {
     }
 
     public static final class Address extends BValue {
-        public final Integer a;
+        public final int a;
 
         //public Address() {}
-        public Address(final Integer a) {
+        public Address(final int a) {
             this.a = a;
         }
 
         @Override
         public boolean equals(java.lang.Object obj) {
-            return (obj instanceof Address && a.equals(((Address) obj).a));
+            return (obj instanceof Address && a == ((Address) obj).a);
         }
 
         @Override
         public int hashCode() {
-            return P.p(a).hashCode();
+            return a;
         }
 
         @Override
@@ -753,7 +755,7 @@ public class Domains {
         }
 
         public Object update(final Str str, final BValue bv) {
-            if (Init.noupdate.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str)) {
+            if (Init.noupdate.get(myClass).orSome(Set.empty(Utils.StrOrd)).member(str)) {
                 return this;
             } else {
                 return new Object(extern.set(str, bv), intern);
@@ -761,7 +763,7 @@ public class Domains {
         }
 
         public P2<Object, Boolean> delete(final Str str) {
-            if (Init.nodelete.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str) || !(extern.contains(str))) {
+            if (Init.nodelete.get(myClass).orSome(Set.empty(Utils.StrOrd)).member(str) || !(extern.contains(str))) {
                 return P.p(this, false);
             } else {
                 return P.p(new Object(extern.delete(str), intern), true);
@@ -769,7 +771,7 @@ public class Domains {
         }
 
         public Set<Str> fields() {
-            return Set.set(Ord.hashEqualsOrd(), extern.keys()).minus(Init.noenum.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())));
+            return Set.set(Utils.StrOrd, extern.keys()).minus(Init.noenum.get(myClass).orSome(Set.empty(Utils.StrOrd)));
         }
 
         public JSClass getJSClass() {
@@ -780,7 +782,7 @@ public class Domains {
             return myProto;
         }
 
-        public Boolean calledAsCtor() {
+        public boolean calledAsCtor() {
             return intern.contains(Utils.Fields.constructor);
         }
 
@@ -870,10 +872,10 @@ public class Domains {
     public static final class RetKont extends Kont {
         public final IRVar x;
         public final Env env;
-        public final Boolean isctor;
+        public final boolean isctor;
         public final Scratchpad pad;
 
-        public RetKont(final IRVar x, final Env env, final Boolean isctor, final Scratchpad pad) {
+        public RetKont(final IRVar x, final Env env, final boolean isctor, final Scratchpad pad) {
             this.x = x;
             this.env = env;
             this.isctor = isctor;
@@ -882,7 +884,7 @@ public class Domains {
 
         @Override
         public boolean equals(java.lang.Object obj) {
-            return (obj instanceof RetKont && x.equals(((RetKont) obj).x) && env.equals(((RetKont) obj).env) && isctor.equals(((RetKont) obj).isctor) && pad.equals(((RetKont) obj).pad));
+            return (obj instanceof RetKont && x.equals(((RetKont) obj).x) && env.equals(((RetKont) obj).env) && isctor == ((RetKont) obj).isctor && pad.equals(((RetKont) obj).pad));
         }
 
         @Override

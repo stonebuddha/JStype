@@ -363,10 +363,7 @@ function Init(CubeSize) {
 
     // create line pixels
     Q.NumPx = 9 * 2 * CubeSize;
-    for (var i = 0; i < Q.NumPx; i++) {
-        print(i);
-        CreateP(0,0,0);
-    }
+    for (var i = 0; i < Q.NumPx; i++) CreateP(0,0,0);
 
     MTrans = Translate(MTrans, Origin.V[0], Origin.V[1], Origin.V[2]);
     MQube = MMulti(MTrans, MQube);

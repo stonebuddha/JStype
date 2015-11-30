@@ -10,7 +10,7 @@ import fj.data.TreeMap;
  * Created by Hwhitetooth on 15/11/11.
  */
 public class InitGlobal {
-    public static Domains.Object window_Obj = InitUtils.createObj(TreeMap.treeMap(Ord.hashEqualsOrd(),
+    public static Domains.Object window_Obj = InitUtils.createObj(TreeMap.treeMap(Utils.StrOrd,
             P.p(new Domains.Str("window"), Init.window_Addr),
             P.p(new Domains.Str("Infinity"), new Domains.Num(Double.POSITIVE_INFINITY)),
             P.p(new Domains.Str("NaN"), new Domains.Num(Double.NaN)),
@@ -61,13 +61,13 @@ public class InitGlobal {
         Domains.Object args = store.getObj(argArrayAddr);
         Domains.Num input = InitUtils.ToNumber(args.apply(new Domains.Str("0")).orSome(Domains.Undef), store);
         return Domains.Bool.apply(input.equals(new Domains.Num(Double.POSITIVE_INFINITY)) || input.equals(new Domains.Num(Double.NEGATIVE_INFINITY)) || input.equals(new Domains.Num(Double.NaN)));
-    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0))));
+    }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(1.0))));
 
     public static Domains.Object isNaN_Obj = InitUtils.makeNativeValue((selfAddr, argArrayAddr, store) -> {
         Domains.Object args = store.getObj(argArrayAddr);
         Domains.Num input = InitUtils.ToNumber(args.apply(new Domains.Str("0")).orSome(Domains.Undef), store);
-        return Domains.Bool.apply(input.n.isNaN());
-    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0))));
+        return Domains.Bool.apply(Double.isNaN(input.n));
+    }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(1.0))));
 
     public static Domains.Object parseFloat_Obj = InitUtils.approx_num;
 

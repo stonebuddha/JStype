@@ -13,7 +13,7 @@ public class InitArguments {
     public static Domains.Object Arguments_Obj = InitUtils.createFunctionObject(
             new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
                 return InitUtils.makeState(selfAddr, x, env, store, pad, ks);
-            }), TreeMap.treeMap(Ord.hashEqualsOrd(),
+            }), TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.prototype, Init.Object_prototype_Addr),
                     P.p(Utils.Fields.length, new Domains.Num(0.0))));
 }

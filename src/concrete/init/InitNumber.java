@@ -15,14 +15,14 @@ public class InitNumber {
     public static Domains.Object Number_Obj = InitUtils.makeNativeValueStore(
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object argsObj = store.getObj(argArrayAddr);
-                Double arglen;
+                double arglen;
                 Option<Domains.BValue> tmp = argsObj.apply(Utils.Fields.length);
                 if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
                     arglen = ((Domains.Num) tmp.some()).n;
                 } else {
                     throw new RuntimeException("implementation error: inconceivable: args without length");
                 }
-                Boolean calledAsConstr = argsObj.calledAsCtor();
+                boolean calledAsConstr = argsObj.calledAsCtor();
                 Domains.Num pvalue;
                 if (arglen == 0) {
                     pvalue = new Domains.Num(0.0);
@@ -31,8 +31,8 @@ public class InitNumber {
                 }
                 if (calledAsConstr) {
                     Domains.Address newAddr = Domains.Address.generate();
-                    Domains.Object newObj = InitUtils.createObj(TreeMap.empty(Ord.hashEqualsOrd()),
-                            TreeMap.treeMap(Ord.hashEqualsOrd(),
+                    Domains.Object newObj = InitUtils.createObj(TreeMap.empty(Utils.StrOrd),
+                            TreeMap.treeMap(Utils.StrOrd,
                                     P.p(Utils.Fields.proto, Init.Number_prototype_Addr),
                                     P.p(Utils.Fields.classname, JSClass.CNumber),
                                     P.p(Utils.Fields.value, pvalue)));
@@ -41,7 +41,7 @@ public class InitNumber {
                 } else {
                     return P.p(pvalue, store);
                 }
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(),
+            }, TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.prototype, Init.Number_prototype_Addr),
                     P.p(Utils.Fields.length, new Domains.Num(1.0)),
                     P.p(new Domains.Str("MAX_VALUE"), new Domains.Num(Double.MAX_VALUE)),
@@ -52,7 +52,7 @@ public class InitNumber {
             JSClass.CNumber_Obj
     );
 
-    public static Domains.Object Number_prototype_Obj = InitUtils.createObj(TreeMap.treeMap(Ord.hashEqualsOrd(),
+    public static Domains.Object Number_prototype_Obj = InitUtils.createObj(TreeMap.treeMap(Utils.StrOrd,
             P.p(Utils.Fields.constructor, Init.Number_Addr),
             P.p(new Domains.Str("toString"), Init.Number_prototype_toString_Addr),
             P.p(new Domains.Str("toLocaleString"), Init.Number_prototype_toLocaleString_Addr),
@@ -60,7 +60,7 @@ public class InitNumber {
             P.p(new Domains.Str("toFixed"), Init.Number_prototype_toFixed_Addr),
             P.p(new Domains.Str("toExponential"), Init.Number_prototype_toExponential_Addr),
             P.p(new Domains.Str("toPrecision"), Init.Number_prototype_toPrecision_Addr)),
-        TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.classname, JSClass.CNumber_prototype_Obj))
+        TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.classname, JSClass.CNumber_prototype_Obj))
     );
 
     public static Domains.Object Number_prototype_toString_Obj = InitUtils.makeNativeValue(
@@ -71,7 +71,7 @@ public class InitNumber {
                     int arglen;
                     Option<Domains.BValue> tmp = args.apply(Utils.Fields.length);
                     if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
-                        arglen = ((Domains.Num)tmp.some()).n.intValue();
+                        arglen = (int)((Domains.Num)tmp.some()).n;
                     } else {
                         throw new RuntimeException("implementation error: inconceivable");
                     }
@@ -102,7 +102,7 @@ public class InitNumber {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
     public static Domains.Object Number_prototype_toLocaleString_Obj = InitUtils.unimplemented;
@@ -115,7 +115,7 @@ public class InitNumber {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
     public static Domains.Object Number_prototype_toFixed_Obj = InitUtils.unimplemented;

@@ -17,14 +17,14 @@ public class InitString {
     public static Domains.Object String_Obj = InitUtils.makeNativeValueStore(
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object argsObj = store.getObj(argArrayAddr);
-                Double arglen;
+                double arglen;
                 Option<Domains.BValue> tmp = argsObj.apply(Utils.Fields.length);
                 if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
                     arglen = ((Domains.Num) tmp.some()).n;
                 } else {
                     throw new RuntimeException("inconceivable: args without length");
                 }
-                Boolean calledAsConstr = argsObj.calledAsCtor();
+                boolean calledAsConstr = argsObj.calledAsCtor();
                 Domains.Str pvalue;
                 if (arglen == 0) {
                     pvalue = new Domains.Str("");
@@ -34,10 +34,10 @@ public class InitString {
                 if (calledAsConstr) {
                     TreeMap<Domains.Str, Domains.BValue> strmap = List.range(0, pvalue.str.length()).foldLeft(
                             (acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(pvalue.str.substring(e, e + 1).toString())),
-                            TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num((double) pvalue.str.length())))
+                            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num((double) pvalue.str.length())))
                     );
                     Domains.Object newObj = InitUtils.createObj(strmap,
-                            TreeMap.treeMap(Ord.hashEqualsOrd(),
+                            TreeMap.treeMap(Utils.StrOrd,
                                     P.p(Utils.Fields.proto, Init.String_prototype_Addr),
                                     P.p(Utils.Fields.classname, JSClass.CString),
                                     P.p(Utils.Fields.value, pvalue)));
@@ -46,7 +46,7 @@ public class InitString {
                 } else {
                     return P.p(pvalue, store);
                 }
-            }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+            }, TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.prototype, Init.String_prototype_Addr),
                     P.p(Utils.Fields.length, new Domains.Num(1.0)),
                     P.p(new Domains.Str("fromCharCode"), Init.String_fromCharCode_Addr)),
@@ -56,23 +56,23 @@ public class InitString {
     public static Domains.Object String_fromCharCode_Obj = InitUtils.makeNativeValue(
             (selfAddr, argArrayAddr, store) -> {
                 final Domains.Object args = store.getObj(argArrayAddr);
-                Double arglen;
+                double arglen;
                 if (args.apply(Utils.Fields.length).isSome() && args.apply(Utils.Fields.length).some() instanceof Domains.Num) {
                     arglen = ((Domains.Num) args.apply(Utils.Fields.length).some()).n;
                 } else {
                     throw new RuntimeException("inconceivable: arguments without numeric length");
                 }
-                String result = List.range(0, arglen.intValue()).foldLeft(
-                        (acc, k) -> acc + InitUtils.ToNumber(args.apply(new Domains.Str(k.toString())).orSome(Domains.Undef), store).n.toString(),
+                String result = List.range(0, (int)arglen).foldLeft(
+                        (acc, k) -> acc + String.valueOf(InitUtils.ToNumber(args.apply(new Domains.Str(k.toString())).orSome(Domains.Undef), store).n),
                         ""
                 );
                 return new Domains.Str(result);
-            }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+            }, TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
     public static Domains.Object String_prototype_Obj = InitUtils.createObj(
-            TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+            TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.constructor, Init.String_Addr),
                     P.p(new Domains.Str("charAt"), Init.String_prototype_charAt_Addr),
                     P.p(new Domains.Str("charCodeAt"), Init.String_prototype_charCodeAt_Addr),
@@ -94,7 +94,7 @@ public class InitString {
                     P.p(new Domains.Str("toUpperCase"), Init.String_prototype_toUpperCase_Addr),
                     P.p(new Domains.Str("trim"), Init.String_prototype_trim_Addr),
                     P.p(new Domains.Str("valueOf"), Init.String_prototype_valueOf_Addr)),
-            TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(), P.p(Utils.Fields.classname, JSClass.CString_Obj))
+            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.classname, JSClass.CString_Obj))
     );
 
     public static Domains.Object String_prototype_charAt_Obj = InitUtils.makeNativeValue(
@@ -104,7 +104,7 @@ public class InitString {
                 String selfStr = InitUtils.ToString(selfAddr, store).str;
                 int pos;
                 if (args.apply(new Domains.Str("0")).isSome()) {
-                    pos = InitUtils.ToNumber(args.apply(new Domains.Str("0")).some(), store).n.intValue();
+                    pos = (int)InitUtils.ToNumber(args.apply(new Domains.Str("0")).some(), store).n;
                 }
                 else {
                     pos = 0;
@@ -119,7 +119,7 @@ public class InitString {
                 }
 
                 return new Domains.Str(charAt);
-            }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+            }, TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
@@ -130,7 +130,7 @@ public class InitString {
                 String selfStr = InitUtils.ToString(selfAddr, store).str;
                 int pos;
                 if (args.apply(new Domains.Str("0")).isSome()) {
-                    pos = InitUtils.ToNumber(args.apply(new Domains.Str("0")).some(), store).n.intValue();
+                    pos = (int)InitUtils.ToNumber(args.apply(new Domains.Str("0")).some(), store).n;
                 }
                 else {
                     pos = 0;
@@ -138,14 +138,14 @@ public class InitString {
 
                 Domains.Num charCodeAt;
                 if (pos >= 0 && pos < selfStr.length()) {
-                    charCodeAt = new Domains.Num(new Double(selfStr.charAt(pos)));  //?
+                    charCodeAt = new Domains.Num(selfStr.charAt(pos));  //?
                 }
                 else {
-                    charCodeAt = new Domains.Num(new Double(Double.NaN));
+                    charCodeAt = new Domains.Num(Double.NaN);
                 }
 
                 return charCodeAt;
-            }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+            }, TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
@@ -153,21 +153,21 @@ public class InitString {
             (selfAddr, argArrayAddr, store) -> {
                 final Domains.Object args = store.getObj(argArrayAddr);
 
-                Double arglen;
+                double arglen;
                 if (args.apply(Utils.Fields.length).isSome() && args.apply(Utils.Fields.length).some() instanceof Domains.Num) {
                     arglen = ((Domains.Num) args.apply(Utils.Fields.length).some()).n;
                 } else {
                     throw new RuntimeException("inconceivable: arguments without numeric length");
                 }
 
-                return List.range(0, arglen.intValue()).foldLeft(
+                return List.range(0, (int)arglen).foldLeft(
                         (s, i) -> {
                             return s.strConcat(InitUtils.ToString(args.apply(new Domains.Str(String.valueOf(i))).orSome(Domains.Undef), store));
                         },
                         InitUtils.ToString(selfAddr, store)
                 );
 
-            }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+            }, TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
@@ -199,7 +199,7 @@ public class InitString {
                 else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+            }, TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
@@ -220,7 +220,7 @@ public class InitString {
                 else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
+            }, TreeMap.treeMap(Utils.StrOrd,
                     P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 }

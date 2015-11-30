@@ -39,10 +39,6 @@ public class Interpreter {
         try {
             State state = Init.initState(ir);
             while (!state.fin()) {
-                /*if (state.t instanceof Domains.StmtTerm) {
-                    System.out.println(((Domains.StmtTerm) state.t).s);
-                    System.out.println("----");
-                }*/
                 state = state.next();
             }
             return Mutable.outputMap;
@@ -70,7 +66,7 @@ public class Interpreter {
             this.ks = ks;
         }
 
-        @Override
+        /*@Override
         public boolean equals(Object obj) {
             return (obj instanceof State && t.equals(((State) obj).t) && env.equals(((State) obj).env) && store.equals(((State) obj).store) && pad.equals(((State) obj).pad) && ks.equals(((State) obj).ks));
         }
@@ -78,7 +74,7 @@ public class Interpreter {
         @Override
         public int hashCode() {
             return P.p(t, env, store, pad, ks).hashCode();
-        }
+        }*/
 
         public Boolean fin() {
             return (t instanceof Domains.ValueTerm && ks.top().equals(Domains.HaltKont));
