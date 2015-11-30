@@ -159,8 +159,35 @@ public class Interpreter {
     }
 
     public static Set<State> process(State initSigma) {
-        // TODO
-        return null;
+        List<State> todo = List.list(initSigma);
+        Set<State> done = Set.empty(Ord.<State>hashEqualsOrd());
+        Set<State> sigmas = Set.empty(Ord.<State>hashEqualsOrd());
+
+        while (todo.isNotEmpty()) {
+            sigmas = todo.head().next();
+            todo = todo.tail();
+
+            while (sigmas.size() == 1) {
+                if (sigmas.iterator().next().merge()) {
+                    done = done.insert(sigmas.iterator().next());
+                    sigmas = Set.empty(Ord.<State>hashEqualsOrd());
+                }
+                else {
+                    sigmas = sigmas.iterator().next().next();
+                }
+            }
+        }
+
+        for (State sigma : sigmas) {
+            if (sigma.merge()) {
+                done = done.insert(sigma);
+            }
+            else {
+                todo = todo.cons(sigma);
+            }
+        }
+
+        return done;
     }
 
     public static class PruneScratch {
@@ -820,7 +847,5 @@ public class Interpreter {
             }
             return ret;
         }
-
-        // TODO
     }
 }
