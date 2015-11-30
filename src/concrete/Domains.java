@@ -3,9 +3,10 @@ package concrete;
 import concrete.init.Init;
 import fj.*;
 import fj.data.*;
+import immutable.FHashMap;
+import immutable.FHashSet;
+import immutable.FVector;
 import ir.*;
-
-import java.util.ArrayList;
 
 /**
  * Created by wayne on 15/10/27.
@@ -51,9 +52,9 @@ public class Domains {
     }
 
     public static class Env {
-        public final TreeMap<IRPVar, Address> env;
+        public final FHashMap<IRPVar, Address> env;
 
-        public Env(final TreeMap<IRPVar, Address> env) {
+        public Env(final FHashMap<IRPVar, Address> env) {
             this.env = env;
         }
 
@@ -76,15 +77,15 @@ public class Domains {
         }
 
         public Env filter(final F<IRPVar, Boolean> f) {
-            return new Env(TreeMap.treeMap(Utils.IRPVarOrd, env.keys().filter(f).map(x -> P.p(x, env.get(x).some()))));
+            return new Env(env.filter(f));
         }
     }
 
     public static final class Store {
-        public final TreeMap<Address, BValue> toValue;
-        public final TreeMap<Address, Object> toObject;
+        public final FHashMap<Address, BValue> toValue;
+        public final FHashMap<Address, Object> toObject;
 
-        public Store(final TreeMap<Address, BValue> toValue, final TreeMap<Address, Object> toObject) {
+        public Store(final FHashMap<Address, BValue> toValue, final FHashMap<Address, Object> toObject) {
             this.toValue = toValue;
             this.toObject = toObject;
         }
@@ -121,9 +122,9 @@ public class Domains {
     }
 
     public static class Scratchpad {
-        public final Seq<BValue> mem;
+        public final FVector<BValue> mem;
 
-        public Scratchpad(final Seq<BValue> mem) {
+        public Scratchpad(final FVector<BValue> mem) {
             this.mem = mem;
         }
 
@@ -146,11 +147,7 @@ public class Domains {
         }
 
         public static Scratchpad apply(final int len) {
-            final ArrayList<BValue> bvs = new ArrayList<>(len);
-            for (int i = 0; i < len; i += 1) {
-                bvs.add(i, Undef);
-            }
-            return new Scratchpad(Seq.seq(List.list(bvs)));
+            return new Scratchpad(FVector.vector(len, Undef));
         }
     }
 
@@ -727,13 +724,13 @@ public class Domains {
     }
 
     public static final class Object {
-        public final TreeMap<Str, BValue> extern;
-        public final TreeMap<Str, java.lang.Object> intern;
+        public final FHashMap<Str, BValue> extern;
+        public final FHashMap<Str, java.lang.Object> intern;
 
         final JSClass myClass;
         final BValue myProto;
 
-        public Object(final TreeMap<Str, BValue> extern, final TreeMap<Str, java.lang.Object> intern) {
+        public Object(final FHashMap<Str, BValue> extern, final FHashMap<Str, java.lang.Object> intern) {
             this.extern = extern;
             this.intern = intern;
             myClass = (JSClass)intern.get(Utils.Fields.classname).some();
@@ -755,7 +752,7 @@ public class Domains {
         }
 
         public Object update(final Str str, final BValue bv) {
-            if (Init.noupdate.get(myClass).orSome(Set.empty(Utils.StrOrd)).member(str)) {
+            if (Init.noupdate.get(myClass).orSome(FHashSet.empty()).member(str)) {
                 return this;
             } else {
                 return new Object(extern.set(str, bv), intern);
@@ -763,15 +760,15 @@ public class Domains {
         }
 
         public P2<Object, Boolean> delete(final Str str) {
-            if (Init.nodelete.get(myClass).orSome(Set.empty(Utils.StrOrd)).member(str) || !(extern.contains(str))) {
+            if (Init.nodelete.get(myClass).orSome(FHashSet.empty()).member(str) || !(extern.contains(str))) {
                 return P.p(this, false);
             } else {
                 return P.p(new Object(extern.delete(str), intern), true);
             }
         }
 
-        public Set<Str> fields() {
-            return Set.set(Utils.StrOrd, extern.keys()).minus(Init.noenum.get(myClass).orSome(Set.empty(Utils.StrOrd)));
+        public FHashSet<Str> fields() {
+            return FHashSet.set(extern.keys()).minus(Init.noenum.get(myClass).orSome(FHashSet.empty()));
         }
 
         public JSClass getJSClass() {

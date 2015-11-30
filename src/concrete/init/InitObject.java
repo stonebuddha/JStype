@@ -2,9 +2,8 @@ package concrete.init;
 
 import concrete.Utils;
 import concrete.Domains;
-import fj.Ord;
 import fj.P;
-import fj.data.TreeMap;
+import immutable.FHashMap;
 import ir.JSClass;
 
 /**
@@ -17,43 +16,43 @@ public class InitObject {
                 Domains.BValue input = args.apply(new Domains.Str("0")).orSome(Domains.Undef);
                 if (input.equals(Domains.Null) || input.equals(Domains.Undef)) {
                     Domains.Address newAddr = Domains.Address.generate();
-                    Domains.Object newObj = InitUtils.createObj(TreeMap.empty(Utils.StrOrd));
+                    Domains.Object newObj = InitUtils.createObj(FHashMap.empty());
                     Domains.Store newStore = store.putObj(newAddr, newObj);
                     return P.p(newAddr, newStore);
                 } else {
                     return InitUtils.ToObject(input, store);
                 }
-            }, TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.prototype, Init.Object_prototype_Addr),
-                    P.p(new Domains.Str("create"), Init.Object_create_Addr),
-                    P.p(new Domains.Str("defineProperties"), Init.Object_defineProperties_Addr),
-                    P.p(new Domains.Str("defineProperty"), Init.Object_defineProperty_Addr),
-                    P.p(new Domains.Str("freeze"), Init.Object_freeze_Addr),
-                    P.p(new Domains.Str("getOwnPropertyDescriptor"), Init.Object_getOwnPropertyDescriptor_Addr),
-                    P.p(new Domains.Str("getOwnPropertyNames"), Init.Object_getOwnPropertyNames_Addr),
-                    P.p(new Domains.Str("getPrototypeOf"), Init.Object_getPrototypeOf_Addr),
-                    P.p(new Domains.Str("isExtensible"), Init.Object_isExtensible_Addr),
-                    P.p(new Domains.Str("isFrozen"), Init.Object_isFrozen_Addr),
-                    P.p(new Domains.Str("isSealed"), Init.Object_isSealed_Addr),
-                    P.p(new Domains.Str("keys"), Init.Object_keys_Addr),
-                    P.p(new Domains.Str("length"), new Domains.Num(1.0)),
-                    P.p(new Domains.Str("preventExtensions"), Init.Object_preventExtensions_Addr),
-                    P.p(new Domains.Str("seal"), Init.Object_seal_Addr)),
+            }, FHashMap.map(
+                    Utils.Fields.prototype, Init.Object_prototype_Addr,
+                    new Domains.Str("create"), Init.Object_create_Addr,
+                    new Domains.Str("defineProperties"), Init.Object_defineProperties_Addr,
+                    new Domains.Str("defineProperty"), Init.Object_defineProperty_Addr,
+                    new Domains.Str("freeze"), Init.Object_freeze_Addr,
+                    new Domains.Str("getOwnPropertyDescriptor"), Init.Object_getOwnPropertyDescriptor_Addr,
+                    new Domains.Str("getOwnPropertyNames"), Init.Object_getOwnPropertyNames_Addr,
+                    new Domains.Str("getPrototypeOf"), Init.Object_getPrototypeOf_Addr,
+                    new Domains.Str("isExtensible"), Init.Object_isExtensible_Addr,
+                    new Domains.Str("isFrozen"), Init.Object_isFrozen_Addr,
+                    new Domains.Str("isSealed"), Init.Object_isSealed_Addr,
+                    new Domains.Str("keys"), Init.Object_keys_Addr,
+                    new Domains.Str("length"), new Domains.Num(1.0),
+                    new Domains.Str("preventExtensions"), Init.Object_preventExtensions_Addr,
+                    new Domains.Str("seal"), Init.Object_seal_Addr),
             JSClass.CObject_Obj
     );
 
     public static Domains.Object Object_prototype_Obj = new Domains.Object(
-            TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.constructor, Init.Object_Addr),
-                    P.p(new Domains.Str("valueOf"), Init.Object_prototype_valueOf_Addr),
-                    P.p(new Domains.Str("toString"), Init.Object_prototype_toString_Addr),
-                    P.p(new Domains.Str("isPrototypeOf"), Init.Object_prototype_isPrototypeOf_Addr),
-                    P.p(new Domains.Str("propertyIsEnumerable"), Init.Object_prototype_propertyIsEnumerable_Addr),
-                    P.p(new Domains.Str("hasOwnProperty"), Init.Object_prototype_hasOwnProperty_Addr),
-                    P.p(new Domains.Str("toLocaleString"), Init.Object_prototype_toLocaleString_Addr)),
-            TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.proto, Domains.Null),
-                    P.p(Utils.Fields.classname, JSClass.CObject_prototype_Obj))
+            FHashMap.map(
+                    Utils.Fields.constructor, Init.Object_Addr,
+                    new Domains.Str("valueOf"), Init.Object_prototype_valueOf_Addr,
+                    new Domains.Str("toString"), Init.Object_prototype_toString_Addr,
+                    new Domains.Str("isPrototypeOf"), Init.Object_prototype_isPrototypeOf_Addr,
+                    new Domains.Str("propertyIsEnumerable"), Init.Object_prototype_propertyIsEnumerable_Addr,
+                    new Domains.Str("hasOwnProperty"), Init.Object_prototype_hasOwnProperty_Addr,
+                    new Domains.Str("toLocaleString"), Init.Object_prototype_toLocaleString_Addr),
+            FHashMap.map(
+                    Utils.Fields.proto, Domains.Null,
+                    Utils.Fields.classname, JSClass.CObject_prototype_Obj)
     );
 
     public static Domains.Object Object_create_Obj = InitUtils.unimplemented;
@@ -86,13 +85,13 @@ public class InitObject {
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object selfObj = store.getObj(selfAddr);
                 return InitUtils.Object_toString_helper(selfObj);
-            }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Object_prototype_valueOf_Obj = InitUtils.makeNativeValue(
             (selfAddr, argArrayAddr, store) -> {
                 return selfAddr;
-            }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Object_prototype_isPrototypeOf_Obj = InitUtils.unimplemented;
@@ -110,7 +109,7 @@ public class InitObject {
                 } else {
                     return Domains.Bool.False;
                 }
-            }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Object_prototype_toLocaleString_Obj = InitUtils.unimplemented;

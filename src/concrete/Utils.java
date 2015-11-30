@@ -4,19 +4,14 @@ import concrete.init.Init;
 import fj.*;
 import fj.data.List;
 import fj.data.Option;
-import fj.data.Set;
-import fj.data.TreeMap;
+import immutable.FHashMap;
+import immutable.FHashSet;
 import ir.*;
 
 /**
  * Created by wayne on 15/10/28.
  */
 public class Utils {
-
-    public static final Ord<Domains.Str> StrOrd = Ord.hashEqualsOrd();
-    public static final Ord<JSClass> JSClassOrd = Ord.hashEqualsOrd();
-    public static final Ord<IRPVar> IRPVarOrd = Ord.hashEqualsOrd();
-    public static final Ord<Domains.Address> AddressOrd = Ord.hashEqualsOrd();
 
     public static class Recursive<I> {
         public I func;
@@ -46,11 +41,11 @@ public class Utils {
 
     public static P2<Domains.Store, Domains.Address> allocFun(final Domains.Closure clo, final Domains.BValue n, final Domains.Store store) {
         final Domains.Address a1 = Domains.Address.generate();
-        final TreeMap<Domains.Str, Object> intern = TreeMap.treeMap(StrOrd,
-                P.p(Fields.proto, Init.Function_prototype_Addr),
-                P.p(Fields.classname, JSClass.CFunction),
-                P.p(Fields.code, clo));
-        final TreeMap<Domains.Str, Domains.BValue> extern = TreeMap.treeMap(StrOrd, P.p(Fields.length, n));
+        final FHashMap<Domains.Str, Object> intern = FHashMap.map(
+                Fields.proto, Init.Function_prototype_Addr,
+                Fields.classname, JSClass.CFunction,
+                Fields.code, clo);
+        final FHashMap<Domains.Str, Domains.BValue> extern = FHashMap.map(Fields.length, n);
         return P.p(store.putObj(a1, new Domains.Object(extern, intern)), a1);
     }
 
@@ -64,10 +59,10 @@ public class Utils {
         } else {
             a2 = Init.Object_prototype_Addr;
         }
-        final TreeMap<Domains.Str, Object> intern = TreeMap.treeMap(StrOrd,
-                P.p(Fields.proto, a2),
-                P.p(Fields.classname, c));
-        final Domains.Store store1 = store.putObj(a1, new Domains.Object(TreeMap.empty(StrOrd), intern));
+        final FHashMap<Domains.Str, Object> intern = FHashMap.map(
+                Fields.proto, a2,
+                Fields.classname, c);
+        final Domains.Store store1 = store.putObj(a1, new Domains.Object(FHashMap.empty(), intern));
         return P.p(store1, a1);
     }
 
@@ -141,16 +136,16 @@ public class Utils {
     }
 
     public static List<Domains.Str> objAllKeys(final Domains.BValue bv, final Domains.Store store) {
-        final Recursive<F<Domains.Address, Set<Domains.Str>>> recur = new Recursive<>();
+        final Recursive<F<Domains.Address, FHashSet<Domains.Str>>> recur = new Recursive<>();
         recur.func = a -> {
             final Domains.Object o = store.getObj(a);
-            final Set<Domains.Str> flds = o.fields();
-            final Set<Domains.Str> pflds;
+            final FHashSet<Domains.Str> flds = o.fields();
+            final FHashSet<Domains.Str> pflds;
             final Object sth = o.intern.get(Fields.proto).some();
             if (sth instanceof Domains.Address) {
                 pflds = recur.func.f((Domains.Address)sth);
             } else {
-                pflds = Set.empty(StrOrd);
+                pflds = FHashSet.empty();
             }
             return flds.union(pflds);
         };
@@ -195,7 +190,7 @@ public class Utils {
             final Domains.Object updatedO;
             if (bv instanceof Domains.Str) {
                 final Domains.Str s = (Domains.Str)bv;
-                final TreeMap<Domains.Str, Domains.BValue> init = TreeMap.treeMap(StrOrd, P.p(Fields.length, new Domains.Num((double)s.str.length())));
+                final FHashMap<Domains.Str, Domains.BValue> init = FHashMap.map(Fields.length, new Domains.Num((double)s.str.length()));
                 updatedO = new Domains.Object(o.extern.union(List.range(0, s.str.length()).foldLeft((acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(s.str.substring(e, e + 1))), init)), o.intern);
             } else {
                 updatedO = o;

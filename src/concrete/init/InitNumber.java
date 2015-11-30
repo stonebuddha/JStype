@@ -2,10 +2,9 @@ package concrete.init;
 
 import concrete.Utils;
 import concrete.Domains;
-import fj.Ord;
 import fj.P;
 import fj.data.Option;
-import fj.data.TreeMap;
+import immutable.FHashMap;
 import ir.JSClass;
 
 /**
@@ -31,36 +30,36 @@ public class InitNumber {
                 }
                 if (calledAsConstr) {
                     Domains.Address newAddr = Domains.Address.generate();
-                    Domains.Object newObj = InitUtils.createObj(TreeMap.empty(Utils.StrOrd),
-                            TreeMap.treeMap(Utils.StrOrd,
-                                    P.p(Utils.Fields.proto, Init.Number_prototype_Addr),
-                                    P.p(Utils.Fields.classname, JSClass.CNumber),
-                                    P.p(Utils.Fields.value, pvalue)));
+                    Domains.Object newObj = InitUtils.createObj(FHashMap.empty(),
+                            FHashMap.map(
+                                    Utils.Fields.proto, Init.Number_prototype_Addr,
+                                    Utils.Fields.classname, JSClass.CNumber,
+                                    Utils.Fields.value, pvalue));
                     Domains.Store newStore = store.putObj(newAddr, newObj);
                     return P.p(newAddr, newStore);
                 } else {
                     return P.p(pvalue, store);
                 }
-            }, TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.prototype, Init.Number_prototype_Addr),
-                    P.p(Utils.Fields.length, new Domains.Num(1.0)),
-                    P.p(new Domains.Str("MAX_VALUE"), new Domains.Num(Double.MAX_VALUE)),
-                    P.p(new Domains.Str("MIN_VALUE"), new Domains.Num(Double.MIN_VALUE)),
-                    P.p(new Domains.Str("NaN"), new Domains.Num(Double.NaN)),
-                    P.p(new Domains.Str("NEGATIVE_INFINITY"), new Domains.Num(Double.POSITIVE_INFINITY)),
-                    P.p(new Domains.Str("POSITIVE_INFINITY"), new Domains.Num(Double.NEGATIVE_INFINITY))),
+            }, FHashMap.map(
+                    Utils.Fields.prototype, Init.Number_prototype_Addr,
+                    Utils.Fields.length, new Domains.Num(1.0),
+                    new Domains.Str("MAX_VALUE"), new Domains.Num(Double.MAX_VALUE),
+                    new Domains.Str("MIN_VALUE"), new Domains.Num(Double.MIN_VALUE),
+                    new Domains.Str("NaN"), new Domains.Num(Double.NaN),
+                    new Domains.Str("NEGATIVE_INFINITY"), new Domains.Num(Double.POSITIVE_INFINITY),
+                    new Domains.Str("POSITIVE_INFINITY"), new Domains.Num(Double.NEGATIVE_INFINITY)),
             JSClass.CNumber_Obj
     );
 
-    public static Domains.Object Number_prototype_Obj = InitUtils.createObj(TreeMap.treeMap(Utils.StrOrd,
-            P.p(Utils.Fields.constructor, Init.Number_Addr),
-            P.p(new Domains.Str("toString"), Init.Number_prototype_toString_Addr),
-            P.p(new Domains.Str("toLocaleString"), Init.Number_prototype_toLocaleString_Addr),
-            P.p(new Domains.Str("valueOf"), Init.Number_prototype_valueOf_Addr),
-            P.p(new Domains.Str("toFixed"), Init.Number_prototype_toFixed_Addr),
-            P.p(new Domains.Str("toExponential"), Init.Number_prototype_toExponential_Addr),
-            P.p(new Domains.Str("toPrecision"), Init.Number_prototype_toPrecision_Addr)),
-        TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.classname, JSClass.CNumber_prototype_Obj))
+    public static Domains.Object Number_prototype_Obj = InitUtils.createObj(FHashMap.map(
+            Utils.Fields.constructor, Init.Number_Addr,
+            new Domains.Str("toString"), Init.Number_prototype_toString_Addr,
+            new Domains.Str("toLocaleString"), Init.Number_prototype_toLocaleString_Addr,
+            new Domains.Str("valueOf"), Init.Number_prototype_valueOf_Addr,
+            new Domains.Str("toFixed"), Init.Number_prototype_toFixed_Addr,
+            new Domains.Str("toExponential"), Init.Number_prototype_toExponential_Addr,
+            new Domains.Str("toPrecision"), Init.Number_prototype_toPrecision_Addr),
+        FHashMap.map(Utils.Fields.classname, JSClass.CNumber_prototype_Obj)
     );
 
     public static Domains.Object Number_prototype_toString_Obj = InitUtils.makeNativeValue(
@@ -102,7 +101,7 @@ public class InitNumber {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            }, FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Number_prototype_toLocaleString_Obj = InitUtils.unimplemented;
@@ -115,7 +114,7 @@ public class InitNumber {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Number_prototype_toFixed_Obj = InitUtils.unimplemented;

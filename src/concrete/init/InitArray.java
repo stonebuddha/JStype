@@ -2,12 +2,11 @@ package concrete.init;
 
 import concrete.Domains;
 import concrete.Utils;
-import fj.Ord;
 import fj.P;
 import fj.P2;
 import fj.data.List;
 import fj.data.Option;
-import fj.data.TreeMap;
+import immutable.FHashMap;
 import ir.JSClass;
 
 /**
@@ -33,11 +32,11 @@ public class InitArray {
                 }
                 Domains.Store store1 = tmp1._1();
                 Domains.Address arrayAddr = tmp1._2();
-                TreeMap<Domains.Str, Object> internal = store1.getObj(arrayAddr).intern;
+                FHashMap<Domains.Str, Object> internal = store1.getObj(arrayAddr).intern;
                 if (arglen == 0 || arglen >= 2) {
                     List<Integer> range = List.range(0, (int)arglen);
-                    TreeMap<Domains.Str, Domains.BValue> initial = TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(arglen)));
-                    TreeMap<Domains.Str, Domains.BValue> external =
+                    FHashMap<Domains.Str, Domains.BValue> initial = FHashMap.map(Utils.Fields.length, new Domains.Num(arglen));
+                    FHashMap<Domains.Str, Domains.BValue> external =
                             range.foldLeft((acc, cur) -> {
                                 Option<Domains.BValue> bv = args.apply(new Domains.Str(cur.toString()));
                                 return acc.set(new Domains.Str(cur.toString()), bv.orSome(Domains.Undef));
@@ -52,51 +51,51 @@ public class InitArray {
                         if ((int)n != n || n < 0) {
                             return P.p(Utils.Errors.rangeError, store);
                         } else {
-                            Domains.Object newObj = InitUtils.createObj(TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(n))), internal);
+                            Domains.Object newObj = InitUtils.createObj(FHashMap.map(Utils.Fields.length, new Domains.Num(n)), internal);
                             Domains.Store newStore = store1.putObj(arrayAddr, newObj);
                             return P.p(arrayAddr, newStore);
                         }
                     } else {
-                        Domains.Object newObj = InitUtils.createObj(TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(1.0)), P.p(new Domains.Str("0"), len)), internal);
+                        Domains.Object newObj = InitUtils.createObj(FHashMap.map(Utils.Fields.length, new Domains.Num(1.0), new Domains.Str("0"), len), internal);
                         Domains.Store newStore = store1.putObj(arrayAddr, newObj);
                         return P.p(arrayAddr, newStore);
                     }
                 }
             },
-            TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.prototype, Init.Array_prototype_Addr),
-                    P.p(new Domains.Str("isArray"), Init.Array_isArray_Addr),
-                    P.p(Utils.Fields.length, new Domains.Num(1.0))),
+            FHashMap.map(
+                    Utils.Fields.prototype, Init.Array_prototype_Addr,
+                    new Domains.Str("isArray"), Init.Array_isArray_Addr,
+                    Utils.Fields.length, new Domains.Num(1.0)),
             JSClass.CArray_Obj
     );
 
     public static Domains.Object Array_prototype_Obj = InitUtils.createObj(
-            TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.constructor, Init.Array_Addr),
-                    P.p(new Domains.Str("concat"), Init.Array_prototype_concat_Addr),
-                    P.p(new Domains.Str("every"), Init.Array_prototype_every_Addr),
-                    P.p(new Domains.Str("filter"), Init.Array_prototype_filter_Addr),
-                    P.p(new Domains.Str("forEach"), Init.Array_prototype_forEach_Addr),
-                    P.p(new Domains.Str("indexOf"), Init.Array_prototype_indexOf_Addr),
-                    P.p(new Domains.Str("join"), Init.Array_prototype_join_Addr),
-                    P.p(new Domains.Str("lastIndexOf"), Init.Array_prototype_lastIndexOf_Addr),
-                    P.p(new Domains.Str("map"), Init.Array_prototype_map_Addr),
-                    P.p(new Domains.Str("pop"), Init.Array_prototype_pop_Addr),
-                    P.p(new Domains.Str("push"), Init.Array_prototype_push_Addr),
-                    P.p(new Domains.Str("reduce"), Init.Array_prototype_reduce_Addr),
-                    P.p(new Domains.Str("reduceRight"), Init.Array_prototype_reduceRight_Addr),
-                    P.p(new Domains.Str("reverse"), Init.Array_prototype_reverse_Addr),
-                    P.p(new Domains.Str("shift"), Init.Array_prototype_shift_Addr),
-                    P.p(new Domains.Str("slice"), Init.Array_prototype_slice_Addr),
-                    P.p(new Domains.Str("some"), Init.Array_prototype_some_Addr),
-                    P.p(new Domains.Str("sort"), Init.Array_prototype_sort_Addr),
-                    P.p(new Domains.Str("splice"), Init.Array_prototype_splice_Addr),
-                    P.p(new Domains.Str("toLocaleString"), Init.Array_prototype_toLocaleString_Addr),
-                    P.p(new Domains.Str("toString"), Init.Array_prototype_toString_Addr),
-                    P.p(new Domains.Str("unshift"), Init.Array_prototype_unshift_Addr)
+            FHashMap.map(
+                    Utils.Fields.constructor, Init.Array_Addr,
+                    new Domains.Str("concat"), Init.Array_prototype_concat_Addr,
+                    new Domains.Str("every"), Init.Array_prototype_every_Addr,
+                    new Domains.Str("filter"), Init.Array_prototype_filter_Addr,
+                    new Domains.Str("forEach"), Init.Array_prototype_forEach_Addr,
+                    new Domains.Str("indexOf"), Init.Array_prototype_indexOf_Addr,
+                    new Domains.Str("join"), Init.Array_prototype_join_Addr,
+                    new Domains.Str("lastIndexOf"), Init.Array_prototype_lastIndexOf_Addr,
+                    new Domains.Str("map"), Init.Array_prototype_map_Addr,
+                    new Domains.Str("pop"), Init.Array_prototype_pop_Addr,
+                    new Domains.Str("push"), Init.Array_prototype_push_Addr,
+                    new Domains.Str("reduce"), Init.Array_prototype_reduce_Addr,
+                    new Domains.Str("reduceRight"), Init.Array_prototype_reduceRight_Addr,
+                    new Domains.Str("reverse"), Init.Array_prototype_reverse_Addr,
+                    new Domains.Str("shift"), Init.Array_prototype_shift_Addr,
+                    new Domains.Str("slice"), Init.Array_prototype_slice_Addr,
+                    new Domains.Str("some"), Init.Array_prototype_some_Addr,
+                    new Domains.Str("sort"), Init.Array_prototype_sort_Addr,
+                    new Domains.Str("splice"), Init.Array_prototype_splice_Addr,
+                    new Domains.Str("toLocaleString"), Init.Array_prototype_toLocaleString_Addr,
+                    new Domains.Str("toString"), Init.Array_prototype_toString_Addr,
+                    new Domains.Str("unshift"), Init.Array_prototype_unshift_Addr
             ),
-            TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.classname, JSClass.CArray_prototype_Obj))
+            FHashMap.map(
+                    Utils.Fields.classname, JSClass.CArray_prototype_Obj)
     );
 
     public static Domains.Object Array_isArray_Obj = InitUtils.makeNativeValue(
@@ -109,7 +108,7 @@ public class InitArray {
                     return Domains.Bool.apply(false);
                 }
             },
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Array_prototype_concat_Obj = InitUtils.makeNativeValueStore(
@@ -158,13 +157,13 @@ public class InitArray {
                     }
                 }, selfElems);
                 List<P2<Domains.Str, Domains.BValue>> lst = List.range(0, newElems.length()).map(x -> new Domains.Str(x.toString())).zip(newElems);
-                TreeMap<Domains.Str, Domains.BValue> external = TreeMap.treeMap(Utils.StrOrd, lst).set(Utils.Fields.length, new Domains.Num(1.0 * newElems.length()));
-                TreeMap<Domains.Str, Object> internal = TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.proto, Init.Array_prototype_Addr), P.p(Utils.Fields.classname, JSClass.CArray));
+                FHashMap<Domains.Str, Domains.BValue> external = FHashMap.map(lst).set(Utils.Fields.length, new Domains.Num(1.0 * newElems.length()));
+                FHashMap<Domains.Str, Object> internal = FHashMap.map(Utils.Fields.proto, Init.Array_prototype_Addr, Utils.Fields.classname, JSClass.CArray);
                 Domains.Object newArrayObj = InitUtils.createObj(external, internal);
                 Domains.Store store1 = store.putObj(newArrayAddr, newArrayObj);
                 return P.p(newArrayAddr, store1);
             },
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Array_prototype_every_Obj = InitUtils.unimplemented;
@@ -217,7 +216,7 @@ public class InitArray {
                     }, begin);
                 }
             },
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Array_prototype_lastIndexOf_Obj = InitUtils.approx_num;
@@ -242,7 +241,7 @@ public class InitArray {
                     throw new RuntimeException("not implemented: non-numeric array length");
                 }
             },
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Array_prototype_push_Obj = InitUtils.makeNativeValueStore(
@@ -268,7 +267,7 @@ public class InitArray {
                     throw new RuntimeException("not implemented: non-numeric array length");
                 }
             },
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Array_prototype_reduce_Obj = InitUtils.unimplemented;
@@ -291,7 +290,7 @@ public class InitArray {
                     throw new RuntimeException("not implemented: non-numeric array length");
                 }
             },
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Array_prototype_shift_Obj = InitUtils.makeNativeValueStore(
@@ -317,7 +316,7 @@ public class InitArray {
                     throw new RuntimeException("not implemented: non-numeric array length");
                 }
             },
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
     );
     public static Domains.Object Array_prototype_slice_Obj = InitUtils.unimplemented;
     public static Domains.Object Array_prototype_some_Obj = InitUtils.unimplemented;
@@ -360,7 +359,7 @@ public class InitArray {
                     return Utils.Errors.typeError;
                 }
             },
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Array_prototype_unshift_Obj = InitUtils.unimplemented;

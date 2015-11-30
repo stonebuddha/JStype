@@ -2,9 +2,7 @@ package concrete.init;
 
 import concrete.Utils;
 import concrete.Domains;
-import fj.Ord;
-import fj.P;
-import fj.data.TreeMap;
+import immutable.FHashMap;
 import ir.JSClass;
 
 /**
@@ -12,34 +10,34 @@ import ir.JSClass;
  */
 public class InitMath {
     public static Domains.Object Math_Obj = InitUtils.createObj(
-            TreeMap.treeMap(Utils.StrOrd,
-                    P.p(new Domains.Str("E"), new Domains.Num(2.7182818284590452354)),
-                    P.p(new Domains.Str("LN10"), new Domains.Num(2.302585092994046)),
-                    P.p(new Domains.Str("LN2"), new Domains.Num(0.6931471805599453)),
-                    P.p(new Domains.Str("LOG2E"), new Domains.Num(1.4426950408889634)),
-                    P.p(new Domains.Str("LOG10E"), new Domains.Num(0.4342944819032518)),
-                    P.p(new Domains.Str("PI"), new Domains.Num(3.1415926535897932)),
-                    P.p(new Domains.Str("SQRT1_2"), new Domains.Num(0.7071067811865476)),
-                    P.p(new Domains.Str("SQRT2"), new Domains.Num(1.4142135623730951)),
-                    P.p(new Domains.Str("abs"), Init.Math_abs_Addr),
-                    P.p(new Domains.Str("acos"), Init.Math_acos_Addr),
-                    P.p(new Domains.Str("asin"), Init.Math_asin_Addr),
-                    P.p(new Domains.Str("atan"), Init.Math_atan_Addr),
-                    P.p(new Domains.Str("atan2"), Init.Math_atan2_Addr),
-                    P.p(new Domains.Str("ceil"), Init.Math_ceil_Addr),
-                    P.p(new Domains.Str("cos"), Init.Math_cos_Addr),
-                    P.p(new Domains.Str("exp"), Init.Math_exp_Addr),
-                    P.p(new Domains.Str("floor"), Init.Math_floor_Addr),
-                    P.p(new Domains.Str("log"), Init.Math_log_Addr),
-                    P.p(new Domains.Str("max"), Init.Math_max_Addr),
-                    P.p(new Domains.Str("min"), Init.Math_min_Addr),
-                    P.p(new Domains.Str("pow"), Init.Math_pow_Addr),
-                    P.p(new Domains.Str("random"), Init.Math_random_Addr),
-                    P.p(new Domains.Str("round"), Init.Math_round_Addr),
-                    P.p(new Domains.Str("sin"), Init.Math_sin_Addr),
-                    P.p(new Domains.Str("sqrt"), Init.Math_sqrt_Addr),
-                    P.p(new Domains.Str("tan"), Init.Math_tan_Addr)),
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.classname, JSClass.CMath_Obj))
+            FHashMap.map(
+                    new Domains.Str("E"), new Domains.Num(2.7182818284590452354),
+                    new Domains.Str("LN10"), new Domains.Num(2.302585092994046),
+                    new Domains.Str("LN2"), new Domains.Num(0.6931471805599453),
+                    new Domains.Str("LOG2E"), new Domains.Num(1.4426950408889634),
+                    new Domains.Str("LOG10E"), new Domains.Num(0.4342944819032518),
+                    new Domains.Str("PI"), new Domains.Num(3.1415926535897932),
+                    new Domains.Str("SQRT1_2"), new Domains.Num(0.7071067811865476),
+                    new Domains.Str("SQRT2"), new Domains.Num(1.4142135623730951),
+                    new Domains.Str("abs"), Init.Math_abs_Addr,
+                    new Domains.Str("acos"), Init.Math_acos_Addr,
+                    new Domains.Str("asin"), Init.Math_asin_Addr,
+                    new Domains.Str("atan"), Init.Math_atan_Addr,
+                    new Domains.Str("atan2"), Init.Math_atan2_Addr,
+                    new Domains.Str("ceil"), Init.Math_ceil_Addr,
+                    new Domains.Str("cos"), Init.Math_cos_Addr,
+                    new Domains.Str("exp"), Init.Math_exp_Addr,
+                    new Domains.Str("floor"), Init.Math_floor_Addr,
+                    new Domains.Str("log"), Init.Math_log_Addr,
+                    new Domains.Str("max"), Init.Math_max_Addr,
+                    new Domains.Str("min"), Init.Math_min_Addr,
+                    new Domains.Str("pow"), Init.Math_pow_Addr,
+                    new Domains.Str("random"), Init.Math_random_Addr,
+                    new Domains.Str("round"), Init.Math_round_Addr,
+                    new Domains.Str("sin"), Init.Math_sin_Addr,
+                    new Domains.Str("sqrt"), Init.Math_sqrt_Addr,
+                    new Domains.Str("tan"), Init.Math_tan_Addr),
+            FHashMap.map(Utils.Fields.classname, JSClass.CMath_Obj)
     );
 
     public static Domains.Object Math_abs_Obj = InitUtils.makeMath(Math::abs);

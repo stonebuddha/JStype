@@ -2,11 +2,10 @@ package concrete.init;
 
 import concrete.Utils;
 import concrete.Domains;
-import fj.Ord;
 import fj.P;
 import fj.data.List;
 import fj.data.Option;
-import fj.data.TreeMap;
+import immutable.FHashMap;
 import ir.JSClass;
 
 /**
@@ -32,24 +31,24 @@ public class InitString {
                     pvalue = InitUtils.ToString(argsObj.apply(new Domains.Str("0")).orSome(Domains.Undef), store);
                 }
                 if (calledAsConstr) {
-                    TreeMap<Domains.Str, Domains.BValue> strmap = List.range(0, pvalue.str.length()).foldLeft(
-                            (acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(pvalue.str.substring(e, e + 1).toString())),
-                            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.length, new Domains.Num((double) pvalue.str.length())))
+                    FHashMap<Domains.Str, Domains.BValue> strmap = List.range(0, pvalue.str.length()).foldLeft(
+                            (acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(pvalue.str.substring(e, e + 1))),
+                            FHashMap.map(Utils.Fields.length, new Domains.Num((double) pvalue.str.length()))
                     );
                     Domains.Object newObj = InitUtils.createObj(strmap,
-                            TreeMap.treeMap(Utils.StrOrd,
-                                    P.p(Utils.Fields.proto, Init.String_prototype_Addr),
-                                    P.p(Utils.Fields.classname, JSClass.CString),
-                                    P.p(Utils.Fields.value, pvalue)));
+                            FHashMap.map(
+                                    Utils.Fields.proto, Init.String_prototype_Addr,
+                                    Utils.Fields.classname, JSClass.CString,
+                                    Utils.Fields.value, pvalue));
                     Domains.Store newStore = store.putObj(selfAddr, newObj);
                     return P.p(selfAddr, newStore);
                 } else {
                     return P.p(pvalue, store);
                 }
-            }, TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.prototype, Init.String_prototype_Addr),
-                    P.p(Utils.Fields.length, new Domains.Num(1.0)),
-                    P.p(new Domains.Str("fromCharCode"), Init.String_fromCharCode_Addr)),
+            }, FHashMap.map(
+                    Utils.Fields.prototype, Init.String_prototype_Addr,
+                    Utils.Fields.length, new Domains.Num(1.0),
+                    new Domains.Str("fromCharCode"), Init.String_fromCharCode_Addr),
             JSClass.CString_Obj
     );
 
@@ -67,34 +66,34 @@ public class InitString {
                         ""
                 );
                 return new Domains.Str(result);
-            }, TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            }, FHashMap.map(
+                    Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object String_prototype_Obj = InitUtils.createObj(
-            TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.constructor, Init.String_Addr),
-                    P.p(new Domains.Str("charAt"), Init.String_prototype_charAt_Addr),
-                    P.p(new Domains.Str("charCodeAt"), Init.String_prototype_charCodeAt_Addr),
-                    P.p(new Domains.Str("concat"), Init.String_prototype_concat_Addr),
-                    P.p(new Domains.Str("indexOf"), Init.String_prototype_indexOf_Addr),
-                    P.p(new Domains.Str("lastIndexOf"), Init.String_prototype_lastIndexOf_Addr),
-                    P.p(new Domains.Str("localeCompare"), Init.String_prototype_localeCompare_Addr),
-                    P.p(new Domains.Str("match"), Init.String_prototype_match_Addr),
-                    P.p(new Domains.Str("replace"), Init.String_prototype_replace_Addr),
-                    P.p(new Domains.Str("search"), Init.String_prototype_search_Addr),
-                    P.p(new Domains.Str("slice"), Init.String_prototype_slice_Addr),
-                    P.p(new Domains.Str("split"), Init.String_prototype_split_Addr),
-                    P.p(new Domains.Str("substr"), Init.String_prototype_substr_Addr),
-                    P.p(new Domains.Str("substring"), Init.String_prototype_substring_Addr),
-                    P.p(new Domains.Str("toLocaleLowerCase"), Init.String_prototype_toLocaleLowerCase_Addr),
-                    P.p(new Domains.Str("toLocaleUpperCase"), Init.String_prototype_toLocaleUpperCase_Addr),
-                    P.p(new Domains.Str("toLowerCase"), Init.String_prototype_toLowerCase_Addr),
-                    P.p(new Domains.Str("toString"), Init.String_prototype_toString_Addr),
-                    P.p(new Domains.Str("toUpperCase"), Init.String_prototype_toUpperCase_Addr),
-                    P.p(new Domains.Str("trim"), Init.String_prototype_trim_Addr),
-                    P.p(new Domains.Str("valueOf"), Init.String_prototype_valueOf_Addr)),
-            TreeMap.treeMap(Utils.StrOrd, P.p(Utils.Fields.classname, JSClass.CString_Obj))
+            FHashMap.map(
+                    Utils.Fields.constructor, Init.String_Addr,
+                    new Domains.Str("charAt"), Init.String_prototype_charAt_Addr,
+                    new Domains.Str("charCodeAt"), Init.String_prototype_charCodeAt_Addr,
+                    new Domains.Str("concat"), Init.String_prototype_concat_Addr,
+                    new Domains.Str("indexOf"), Init.String_prototype_indexOf_Addr,
+                    new Domains.Str("lastIndexOf"), Init.String_prototype_lastIndexOf_Addr,
+                    new Domains.Str("localeCompare"), Init.String_prototype_localeCompare_Addr,
+                    new Domains.Str("match"), Init.String_prototype_match_Addr,
+                    new Domains.Str("replace"), Init.String_prototype_replace_Addr,
+                    new Domains.Str("search"), Init.String_prototype_search_Addr,
+                    new Domains.Str("slice"), Init.String_prototype_slice_Addr,
+                    new Domains.Str("split"), Init.String_prototype_split_Addr,
+                    new Domains.Str("substr"), Init.String_prototype_substr_Addr,
+                    new Domains.Str("substring"), Init.String_prototype_substring_Addr,
+                    new Domains.Str("toLocaleLowerCase"), Init.String_prototype_toLocaleLowerCase_Addr,
+                    new Domains.Str("toLocaleUpperCase"), Init.String_prototype_toLocaleUpperCase_Addr,
+                    new Domains.Str("toLowerCase"), Init.String_prototype_toLowerCase_Addr,
+                    new Domains.Str("toString"), Init.String_prototype_toString_Addr,
+                    new Domains.Str("toUpperCase"), Init.String_prototype_toUpperCase_Addr,
+                    new Domains.Str("trim"), Init.String_prototype_trim_Addr,
+                    new Domains.Str("valueOf"), Init.String_prototype_valueOf_Addr),
+            FHashMap.map(Utils.Fields.classname, JSClass.CString_Obj)
     );
 
     public static Domains.Object String_prototype_charAt_Obj = InitUtils.makeNativeValue(
@@ -119,8 +118,8 @@ public class InitString {
                 }
 
                 return new Domains.Str(charAt);
-            }, TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            }, FHashMap.map(
+                    Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object String_prototype_charCodeAt_Obj = InitUtils.makeNativeValue(
@@ -145,8 +144,8 @@ public class InitString {
                 }
 
                 return charCodeAt;
-            }, TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            }, FHashMap.map(
+                    Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object String_prototype_concat_Obj = InitUtils.makeNativeValue(
@@ -167,8 +166,8 @@ public class InitString {
                         InitUtils.ToString(selfAddr, store)
                 );
 
-            }, TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.length, new Domains.Num(1.0)))
+            }, FHashMap.map(
+                    Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object String_prototype_indexOf_Obj = InitUtils.approx_num;
@@ -199,8 +198,8 @@ public class InitString {
                 else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            }, FHashMap.map(
+                    Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object String_prototype_toUpperCase_Obj = InitUtils.unimplemented;
@@ -220,7 +219,7 @@ public class InitString {
                 else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Utils.StrOrd,
-                    P.p(Utils.Fields.length, new Domains.Num(0.0)))
+            }, FHashMap.map(
+                    Utils.Fields.length, new Domains.Num(0.0))
     );
 }
