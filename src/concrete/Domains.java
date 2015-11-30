@@ -14,10 +14,10 @@ public class Domains {
 
     public static abstract class Term {}
 
-    public static class StmtTerm extends Term {
-        public IRStmt s;
+    public static final class StmtTerm extends Term {
+        public final IRStmt s;
 
-        public StmtTerm(IRStmt s) {
+        public StmtTerm(final IRStmt s) {
             this.s = s;
         }
 
@@ -32,10 +32,10 @@ public class Domains {
         }
     }
 
-    public static class ValueTerm extends Term {
-        public Value v;
+    public static final class ValueTerm extends Term {
+        public final Value v;
 
-        public ValueTerm(Value v) {
+        public ValueTerm(final Value v) {
             this.v = v;
         }
 
@@ -51,9 +51,9 @@ public class Domains {
     }
 
     public static class Env {
-        public TreeMap<IRPVar, Address> env;
+        public final TreeMap<IRPVar, Address> env;
 
-        public Env(TreeMap<IRPVar, Address> env) {
+        public Env(final TreeMap<IRPVar, Address> env) {
             this.env = env;
         }
 
@@ -67,24 +67,24 @@ public class Domains {
             return P.p(env).hashCode();
         }
 
-        public Address apply(IRPVar x) {
+        public Address apply(final IRPVar x) {
             return env.get(x).some();
         }
 
-        public Env extendAll(List<P2<IRPVar, Address>> bind) {
+        public Env extendAll(final List<P2<IRPVar, Address>> bind) {
             return new Env(env.union(bind));
         }
 
-        public Env filter(F<IRPVar, Boolean> f) {
+        public Env filter(final F<IRPVar, Boolean> f) {
             return new Env(TreeMap.treeMap(Ord.hashEqualsOrd(), env.keys().filter(f).map(x -> P.p(x, env.get(x).some()))));
         }
     }
 
-    public static class Store {
-        public TreeMap<Address, BValue> toValue;
-        public TreeMap<Address, Object> toObject;
+    public static final class Store {
+        public final TreeMap<Address, BValue> toValue;
+        public final TreeMap<Address, Object> toObject;
 
-        public Store(TreeMap<Address, BValue> toValue, TreeMap<Address, Object> toObject) {
+        public Store(final TreeMap<Address, BValue> toValue, final TreeMap<Address, Object> toObject) {
             this.toValue = toValue;
             this.toObject = toObject;
         }
@@ -99,31 +99,31 @@ public class Domains {
             return P.p(toValue, toObject).hashCode();
         }
 
-        public BValue apply(Address a) {
+        public BValue apply(final Address a) {
             return toValue.get(a).some();
         }
 
-        public Object getObj(Address a) {
+        public Object getObj(final Address a) {
             return toObject.get(a).some();
         }
 
-        public Store extend(P2<Address, BValue> av) {
+        public Store extend(final P2<Address, BValue> av) {
             return new Store(toValue.set(av._1(), av._2()), toObject);
         }
 
-        public Store extendAll(List<P2<Address, BValue>> avs) {
+        public Store extendAll(final List<P2<Address, BValue>> avs) {
             return new Store(toValue.union(avs), toObject);
         }
 
-        public Store putObj(Address a, Object o) {
+        public Store putObj(final Address a, final Object o) {
             return new Store(toValue, toObject.set(a, o));
         }
     }
 
     public static class Scratchpad {
-        public Seq<BValue> mem;
+        public final Seq<BValue> mem;
 
-        public Scratchpad(Seq<BValue> mem) {
+        public Scratchpad(final Seq<BValue> mem) {
             this.mem = mem;
         }
 
@@ -137,16 +137,16 @@ public class Domains {
             return P.p(mem).hashCode();
         }
 
-        public BValue apply(IRScratch x) {
+        public BValue apply(final IRScratch x) {
             return mem.index(x.n);
         }
 
-        public Scratchpad update(IRScratch x, BValue bv) {
+        public Scratchpad update(final IRScratch x, final BValue bv) {
             return new Scratchpad(mem.update(x.n, bv));
         }
 
-        public static Scratchpad apply(Integer len) {
-            ArrayList<BValue> bvs = new ArrayList<>(len);
+        public static Scratchpad apply(final Integer len) {
+            final ArrayList<BValue> bvs = new ArrayList<>(len);
             for (int i = 0; i < len; i += 1) {
                 bvs.add(i, Undef);
             }
@@ -156,10 +156,10 @@ public class Domains {
 
     public static abstract class Value {}
 
-    public static class EValue extends Value {
-        public BValue bv;
+    public static final class EValue extends Value {
+        public final BValue bv;
 
-        public EValue(BValue bv) {
+        public EValue(final BValue bv) {
             this.bv = bv;
         }
 
@@ -174,11 +174,11 @@ public class Domains {
         }
     }
 
-    public static class JValue extends Value {
-        public String lbl;
-        public BValue bv;
+    public static final class JValue extends Value {
+        public final String lbl;
+        public final BValue bv;
 
-        public JValue(String lbl, BValue bv) {
+        public JValue(final String lbl, final BValue bv) {
             this.lbl = lbl;
             this.bv = bv;
         }
@@ -256,10 +256,10 @@ public class Domains {
         public abstract <T> T accept(BValueVisitor<T> ask);
     }
 
-    public static class Num extends BValue {
-        public Double n;
+    public static final class Num extends BValue {
+        public final Double n;
 
-        public Num(Double n) {
+        public Num(final Double n) {
             this.n = n;
         }
 
@@ -279,7 +279,7 @@ public class Domains {
         }
 
         @Override
-        public BValue plus(BValue bv) {
+        public BValue plus(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num(n + ((Num) bv).n);
             } else {
@@ -288,7 +288,7 @@ public class Domains {
         }
 
         @Override
-        public BValue minus(BValue bv) {
+        public BValue minus(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num(n - ((Num) bv).n);
             } else {
@@ -297,7 +297,7 @@ public class Domains {
         }
 
         @Override
-        public BValue times(BValue bv) {
+        public BValue times(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num(n * ((Num) bv).n);
             } else {
@@ -306,7 +306,7 @@ public class Domains {
         }
 
         @Override
-        public BValue divide(BValue bv) {
+        public BValue divide(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num(n / ((Num) bv).n);
             } else {
@@ -315,7 +315,7 @@ public class Domains {
         }
 
         @Override
-        public BValue mod(BValue bv) {
+        public BValue mod(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num(n % ((Num) bv).n);
             } else {
@@ -324,7 +324,7 @@ public class Domains {
         }
 
         @Override
-        public BValue shl(BValue bv) {
+        public BValue shl(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num((double)(n.longValue() << ((Num) bv).n.longValue()));
             } else {
@@ -333,7 +333,7 @@ public class Domains {
         }
 
         @Override
-        public BValue sar(BValue bv) {
+        public BValue sar(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num((double)(n.longValue() >> ((Num) bv).n.longValue()));
             } else {
@@ -342,7 +342,7 @@ public class Domains {
         }
 
         @Override
-        public BValue shr(BValue bv) {
+        public BValue shr(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num((double)(n.longValue() >>> ((Num) bv).n.longValue()));
             } else {
@@ -351,7 +351,7 @@ public class Domains {
         }
 
         @Override
-        public BValue lessThan(BValue bv) {
+        public BValue lessThan(final BValue bv) {
             if (bv instanceof Num) {
                 return Bool.apply(n < ((Num) bv).n);
             } else {
@@ -360,7 +360,7 @@ public class Domains {
         }
 
         @Override
-        public BValue lessEqual(BValue bv) {
+        public BValue lessEqual(final BValue bv) {
             if (bv instanceof Num) {
                 return Bool.apply(n <= ((Num) bv).n);
             } else {
@@ -369,7 +369,7 @@ public class Domains {
         }
 
         @Override
-        public BValue and(BValue bv) {
+        public BValue and(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num((double)(n.longValue() & ((Num) bv).n.longValue()));
             } else {
@@ -378,7 +378,7 @@ public class Domains {
         }
 
         @Override
-        public BValue or(BValue bv) {
+        public BValue or(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num((double)(n.longValue() | ((Num) bv).n.longValue()));
             } else {
@@ -387,7 +387,7 @@ public class Domains {
         }
 
         @Override
-        public BValue xor(BValue bv) {
+        public BValue xor(final BValue bv) {
             if (bv instanceof Num) {
                 return new Num((double)(n.longValue() ^ ((Num) bv).n.longValue()));
             } else {
@@ -423,12 +423,12 @@ public class Domains {
         }
 
         @Override
-        public <T> T accept(BValueVisitor<T> ask) {
+        public <T> T accept(final BValueVisitor<T> ask) {
             return ask.forNum(this);
         }
 
         static final long maxU32 = 4294967295L;
-        public static Boolean isU32(BValue bv) {
+        public static Boolean isU32(final BValue bv) {
             if (bv instanceof Num) {
                 Double n = ((Num) bv).n;
                 return (n.longValue() == n && n >= 0 && n <= maxU32);
@@ -438,15 +438,15 @@ public class Domains {
         }
     }
 
-    public static class Str extends BValue {
-        public String str;
+    public static final class Str extends BValue {
+        public final String str;
 
         @Override
         public String toString() {
             return str;
         }
 
-        public Str(String str) {
+        public Str(final String str) {
             this.str = str;
         }
 
@@ -461,7 +461,7 @@ public class Domains {
         }
 
         @Override
-        public Str strConcat(BValue bv) {
+        public Str strConcat(final BValue bv) {
             if (bv instanceof Str) {
                 return new Str(str + ((Str) bv).str);
             } else {
@@ -470,7 +470,7 @@ public class Domains {
         }
 
         @Override
-        public BValue strLessThan(BValue bv) {
+        public BValue strLessThan(final BValue bv) {
             if (bv instanceof Str) {
                 return Bool.apply(str.compareTo(((Str) bv).str) < 0);
             } else {
@@ -479,7 +479,7 @@ public class Domains {
         }
 
         @Override
-        public BValue strLessEqual(BValue bv) {
+        public BValue strLessEqual(final BValue bv) {
             if (bv instanceof Str) {
                 return Bool.apply(str.compareTo(((Str) bv).str) <= 0);
             } else {
@@ -505,36 +505,23 @@ public class Domains {
         }
 
         @Override
-        public <T> T accept(BValueVisitor<T> ask) {
+        public <T> T accept(final BValueVisitor<T> ask) {
             return ask.forStr(this);
         }
     }
 
     public static class Bool extends BValue {
-        public Boolean b;
-
-        public Bool(Boolean b) {
-            this.b = b;
-        }
-
         @Override
         public String toString() {
-            return b.toString();
-        }
-
-        @Override
-        public boolean equals(java.lang.Object obj) {
-            return (obj instanceof Bool && b.equals(((Bool) obj).b));
-        }
-
-        @Override
-        public int hashCode() {
-            return P.p(b).hashCode();
+            if (this.equals(True))
+                return "true";
+            else
+                return "false";
         }
 
         @Override
         public BValue logicalAnd(BValue bv) {
-            if (!b) {
+            if (this.equals(False)) {
                 return this;
             } else {
                 return bv;
@@ -543,7 +530,7 @@ public class Domains {
 
         @Override
         public BValue logicalOr(BValue bv) {
-            if (b) {
+            if (this.equals(True)) {
                 return this;
             } else {
                 return bv;
@@ -552,11 +539,14 @@ public class Domains {
 
         @Override
         public BValue logicalNot() {
-            return Bool.apply(!b);
+            if (this.equals(True))
+                return False;
+            else
+                return True;
         }
 
         @Override
-        public <T> T accept(BValueVisitor<T> ask) {
+        public <T> T accept(final BValueVisitor<T> ask) {
             return ask.forBool(this);
         }
 
@@ -566,21 +556,24 @@ public class Domains {
         }
         @Override
         public Str toStr() {
-            return new Str(b.toString());
+            if (this.equals(True))
+                return new Str("true");
+            else
+                return new Str("false");
         }
         @Override
         public Num toNum() {
-            if (b) {
+            if (this.equals(True)) {
                 return new Num(1.0);
             } else {
                 return new Num(0.0);
             }
         }
 
-        public static final Bool True = new Bool(true);
-        public static final Bool False = new Bool(false);
+        public static final Bool True = new Bool();
+        public static final Bool False = new Bool();
 
-        public static Bool apply(Boolean b) {
+        public static Bool apply(final Boolean b) {
             if (b) {
                 return True;
             } else {
@@ -589,11 +582,11 @@ public class Domains {
         }
     }
 
-    public static class Address extends BValue {
-        public Integer a;
+    public static final class Address extends BValue {
+        public final Integer a;
 
         //public Address() {}
-        public Address(Integer a) {
+        public Address(final Integer a) {
             this.a = a;
         }
 
@@ -626,7 +619,7 @@ public class Domains {
         }
 
         @Override
-        public <T> T accept(BValueVisitor<T> ask) {
+        public <T> T accept(final BValueVisitor<T> ask) {
             return ask.forAddress(this);
         }
 
@@ -659,7 +652,7 @@ public class Domains {
         }
 
         @Override
-        public <T> T accept(BValueVisitor<T> ask) {
+        public <T> T accept(final BValueVisitor<T> ask) {
             return ask.forUndef(this);
         }
     };
@@ -686,18 +679,18 @@ public class Domains {
         }
 
         @Override
-        public <T> T accept(BValueVisitor<T> ask) {
+        public <T> T accept(final BValueVisitor<T> ask) {
             return ask.forNull(this);
         }
     };
 
     public static abstract class Closure {}
 
-    public static class Clo extends Closure {
-        public Env env;
-        public IRMethod m;
+    public static final class Clo extends Closure {
+        public final Env env;
+        public final IRMethod m;
 
-        public Clo(Env env, IRMethod m) {
+        public Clo(final Env env, final IRMethod m) {
             this.env = env;
             this.m = m;
         }
@@ -713,10 +706,10 @@ public class Domains {
         }
     }
 
-    public static class Native extends Closure {
-        public F7<Address, Address, IRVar, Env, Store, Scratchpad, KontStack, Interpreter.State> f;
+    public static final class Native extends Closure {
+        public final F7<Address, Address, IRVar, Env, Store, Scratchpad, KontStack, Interpreter.State> f;
 
-        public Native(F7<Address, Address, IRVar, Env, Store, Scratchpad, KontStack, Interpreter.State> f) {
+        public Native(final F7<Address, Address, IRVar, Env, Store, Scratchpad, KontStack, Interpreter.State> f) {
             this.f = f;
         }
 
@@ -731,14 +724,14 @@ public class Domains {
         }
     }
 
-    public static class Object {
-        public TreeMap<Str, BValue> extern;
-        public TreeMap<Str, java.lang.Object> intern;
+    public static final class Object {
+        public final TreeMap<Str, BValue> extern;
+        public final TreeMap<Str, java.lang.Object> intern;
 
-        JSClass myClass;
-        BValue myProto;
+        final JSClass myClass;
+        final BValue myProto;
 
-        public Object(TreeMap<Str, BValue> extern, TreeMap<Str, java.lang.Object> intern) {
+        public Object(final TreeMap<Str, BValue> extern, final TreeMap<Str, java.lang.Object> intern) {
             this.extern = extern;
             this.intern = intern;
             myClass = (JSClass)intern.get(Utils.Fields.classname).some();
@@ -755,11 +748,11 @@ public class Domains {
             return P.p(extern, intern).hashCode();
         }
 
-        public Option<BValue> apply(Str str) {
+        public Option<BValue> apply(final Str str) {
             return extern.get(str);
         }
 
-        public Object update(Str str, BValue bv) {
+        public Object update(final Str str, final BValue bv) {
             if (Init.noupdate.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str)) {
                 return this;
             } else {
@@ -767,7 +760,7 @@ public class Domains {
             }
         }
 
-        public P2<Object, Boolean> delete(Str str) {
+        public P2<Object, Boolean> delete(final Str str) {
             if (Init.nodelete.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str) || !(extern.contains(str))) {
                 return P.p(this, false);
             } else {
@@ -792,7 +785,7 @@ public class Domains {
         }
 
         public Option<Closure> getCode() {
-            Option<java.lang.Object> code = intern.get(Utils.Fields.code);
+            final Option<java.lang.Object> code = intern.get(Utils.Fields.code);
             if (code.isSome()) {
                 return Option.some((Closure)code.some());
             } else {
@@ -801,7 +794,7 @@ public class Domains {
         }
 
         public Option<BValue> getValue() {
-            Option<java.lang.Object> value = intern.get(Utils.Fields.value);
+            final Option<java.lang.Object> value = intern.get(Utils.Fields.value);
             if (value.isSome()) {
                 return Option.some((BValue)value.some());
             } else {
@@ -814,10 +807,10 @@ public class Domains {
 
     public static final Kont HaltKont = new Kont() {};
 
-    public static class SeqKont extends Kont {
-        public List<IRStmt> ss;
+    public static final class SeqKont extends Kont {
+        public final List<IRStmt> ss;
 
-        public SeqKont(List<IRStmt> ss) {
+        public SeqKont(final List<IRStmt> ss) {
             this.ss = ss;
         }
 
@@ -832,11 +825,11 @@ public class Domains {
         }
     }
 
-    public static class WhileKont extends Kont {
-        public IRExp e;
-        public IRStmt s;
+    public static final class WhileKont extends Kont {
+        public final IRExp e;
+        public final IRStmt s;
 
-        public WhileKont(IRExp e, IRStmt s) {
+        public WhileKont(final IRExp e, final IRStmt s) {
             this.e = e;
             this.s = s;
         }
@@ -852,12 +845,12 @@ public class Domains {
         }
     }
 
-    public static class ForKont extends Kont {
-        public List<Str> strs;
-        public IRVar x;
-        public IRStmt s;
+    public static final class ForKont extends Kont {
+        public final List<Str> strs;
+        public final IRVar x;
+        public final IRStmt s;
 
-        public ForKont(List<Str> strs, IRVar x, IRStmt s) {
+        public ForKont(final List<Str> strs, final IRVar x, final IRStmt s) {
             this.strs = strs;
             this.x = x;
             this.s = s;
@@ -874,13 +867,13 @@ public class Domains {
         }
     }
 
-    public static class RetKont extends Kont {
-        public IRVar x;
-        public Env env;
-        public Boolean isctor;
-        public Scratchpad pad;
+    public static final class RetKont extends Kont {
+        public final IRVar x;
+        public final Env env;
+        public final Boolean isctor;
+        public final Scratchpad pad;
 
-        public RetKont(IRVar x, Env env, Boolean isctor, Scratchpad pad) {
+        public RetKont(final IRVar x, final Env env, final Boolean isctor, final Scratchpad pad) {
             this.x = x;
             this.env = env;
             this.isctor = isctor;
@@ -898,12 +891,12 @@ public class Domains {
         }
     }
 
-    public static class TryKont extends Kont {
-        public IRPVar x;
-        public IRStmt sc;
-        public IRStmt sf;
+    public static final class TryKont extends Kont {
+        public final IRPVar x;
+        public final IRStmt sc;
+        public final IRStmt sf;
 
-        public TryKont(IRPVar x, IRStmt sc, IRStmt sf) {
+        public TryKont(final IRPVar x, final IRStmt sc, final IRStmt sf) {
             this.x = x;
             this.sc = sc;
             this.sf = sf;
@@ -920,10 +913,10 @@ public class Domains {
         }
     }
 
-    public static class CatchKont extends Kont {
-        public IRStmt sf;
+    public static final class CatchKont extends Kont {
+        public final IRStmt sf;
 
-        public CatchKont(IRStmt sf) {
+        public CatchKont(final IRStmt sf) {
             this.sf = sf;
         }
 
@@ -938,10 +931,10 @@ public class Domains {
         }
     }
 
-    public static class FinKont extends Kont {
-        public Value v;
+    public static final class FinKont extends Kont {
+        public final Value v;
 
-        public FinKont(Value v) {
+        public FinKont(final Value v) {
             this.v = v;
         }
 
@@ -956,10 +949,10 @@ public class Domains {
         }
     }
 
-    public static class LblKont extends Kont {
-        public String lbl;
+    public static final class LblKont extends Kont {
+        public final String lbl;
 
-        public LblKont(String lbl) {
+        public LblKont(final String lbl) {
             this.lbl = lbl;
         }
 
@@ -974,10 +967,10 @@ public class Domains {
         }
     }
 
-    public static class KontStack {
-        public List<Kont> ks;
+    public static final class KontStack {
+        public final List<Kont> ks;
 
-        public KontStack(List<Kont> ks) {
+        public KontStack(final List<Kont> ks) {
             this.ks = ks;
         }
 
@@ -991,7 +984,7 @@ public class Domains {
             return P.p(ks).hashCode();
         }
 
-        public KontStack push(Kont k) {
+        public KontStack push(final Kont k) {
             return new KontStack(ks.cons(k));
         }
 
@@ -999,7 +992,7 @@ public class Domains {
             return new KontStack(ks.tail());
         }
 
-        public KontStack repl(Kont k) {
+        public KontStack repl(final Kont k) {
             return new KontStack(ks.tail().cons(k));
         }
 
@@ -1007,7 +1000,7 @@ public class Domains {
             return ks.head();
         }
 
-        public KontStack dropWhile(F<Kont, Boolean> f) {
+        public KontStack dropWhile(final F<Kont, Boolean> f) {
             return new KontStack(ks.dropWhile(f));
         }
     }

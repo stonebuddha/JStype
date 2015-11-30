@@ -9,12 +9,12 @@ import ir.*;
  */
 public class Eval {
 
-    public static Domains.BValue eval(IRExp exp, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
-        Utils.Recursive<F2<Domains.Address, Domains.Address, Domains.Bool>> instance = new Utils.Recursive<>();
+    public static Domains.BValue eval(final IRExp exp, final Domains.Env env, final Domains.Store store, final Domains.Scratchpad pad) {
+        final Utils.Recursive<F2<Domains.Address, Domains.Address, Domains.Bool>> instance = new Utils.Recursive<>();
         instance.func = (a1, a2) -> {
-            Domains.BValue proto = store.getObj(a1).getProto();
+            final Domains.BValue proto = store.getObj(a1).getProto();
             if (proto instanceof Domains.Address) {
-                Domains.Address a = (Domains.Address)proto;
+                final Domains.Address a = (Domains.Address)proto;
                 if (a.equals(a2)) {
                     return Domains.Bool.True;
                 } else {
@@ -27,14 +27,14 @@ public class Eval {
             }
         };
 
-        Utils.Recursive<F2<Domains.Str, Domains.Address, Domains.Bool>> find = new Utils.Recursive<>();
+        final Utils.Recursive<F2<Domains.Str, Domains.Address, Domains.Bool>> find = new Utils.Recursive<>();
         find.func = (str, a) -> {
-            Domains.Object obj = store.getObj(a);
-            Option<Domains.BValue> bv = obj.apply(str);
+            final Domains.Object obj = store.getObj(a);
+            final Option<Domains.BValue> bv = obj.apply(str);
             if (bv.isSome()) {
                 return Domains.Bool.True;
             } else {
-                Domains.BValue proto = obj.getProto();
+                final Domains.BValue proto = obj.getProto();
                 if (proto instanceof Domains.Address) {
                     return find.func.f(str, (Domains.Address)proto);
                 } else {
@@ -43,45 +43,45 @@ public class Eval {
             }
         };
 
-        IRExpVisitor<Domains.BValue> innerEval = new IRExpVisitor<Domains.BValue>() {
+        final IRExpVisitor<Domains.BValue> innerEval = new IRExpVisitor<Domains.BValue>() {
             @Override
-            public Domains.BValue forNum(IRNum irNum) {
-                Double n = irNum.v;
+            public Domains.BValue forNum(final IRNum irNum) {
+                final Double n = irNum.v;
                 return new Domains.Num(n);
             }
             @Override
-            public Domains.BValue forBool(IRBool irBool) {
-                Boolean b = irBool.v;
+            public Domains.BValue forBool(final IRBool irBool) {
+                final Boolean b = irBool.v;
                 return Domains.Bool.apply(b);
             }
             @Override
-            public Domains.BValue forStr(IRStr irStr) {
-                String str = irStr.v;
+            public Domains.BValue forStr(final IRStr irStr) {
+                final String str = irStr.v;
                 return new Domains.Str(str);
             }
             @Override
-            public Domains.BValue forUndef(IRUndef irUndef) {
+            public Domains.BValue forUndef(final IRUndef irUndef) {
                 return Domains.Undef;
             }
             @Override
-            public Domains.BValue forNull(IRNull irNull) {
+            public Domains.BValue forNull(final IRNull irNull) {
                 return Domains.Null;
             }
             @Override
-            public Domains.BValue forPVar(IRPVar irPVar) {
+            public Domains.BValue forPVar(final IRPVar irPVar) {
                 return store.apply(env.apply(irPVar));
             }
             @Override
-            public Domains.BValue forScratch(IRScratch irScratch) {
+            public Domains.BValue forScratch(final IRScratch irScratch) {
                 return pad.apply(irScratch);
             }
             @Override
-            public Domains.BValue forBinop(IRBinop irBinop) {
-                Bop op = irBinop.op;
-                IRExp e1 = irBinop.e1;
-                IRExp e2 = irBinop.e2;
-                Domains.BValue bv1 = e1.accept(this);
-                Domains.BValue bv2 = e2.accept(this);
+            public Domains.BValue forBinop(final IRBinop irBinop) {
+                final Bop op = irBinop.op;
+                final IRExp e1 = irBinop.e1;
+                final IRExp e2 = irBinop.e2;
+                final Domains.BValue bv1 = e1.accept(this);
+                final Domains.BValue bv2 = e2.accept(this);
 
                 if (op.equals(Bop.Plus)) {
                     return bv1.plus(bv2);
@@ -146,10 +146,10 @@ public class Eval {
                 }
             }
             @Override
-            public Domains.BValue forUnop(IRUnop irUnop) {
-                Uop op = irUnop.op;
-                IRExp e = irUnop.e;
-                Domains.BValue bv = e.accept(this);
+            public Domains.BValue forUnop(final IRUnop irUnop) {
+                final Uop op = irUnop.op;
+                final IRExp e = irUnop.e;
+                final Domains.BValue bv = e.accept(this);
 
                 if (op.equals(Uop.Negate)) {
                     return bv.negate();
@@ -158,30 +158,30 @@ public class Eval {
                 } else if (op.equals(Uop.LogicalNot)) {
                     return bv.logicalNot();
                 } else if (op.equals(Uop.TypeOf)) {
-                    Domains.BValueVisitor<Domains.BValue> typeOf = new Domains.BValueVisitor<Domains.BValue>() {
+                    final Domains.BValueVisitor<Domains.BValue> typeOf = new Domains.BValueVisitor<Domains.BValue>() {
                         @Override
-                        public Domains.BValue forNum(Domains.Num bNum) {
+                        public Domains.BValue forNum(final Domains.Num bNum) {
                             return new Domains.Str("number");
                         }
                         @Override
-                        public Domains.BValue forBool(Domains.Bool bBool) {
+                        public Domains.BValue forBool(final Domains.Bool bBool) {
                             return new Domains.Str("boolean");
                         }
                         @Override
-                        public Domains.BValue forStr(Domains.Str bStr) {
+                        public Domains.BValue forStr(final Domains.Str bStr) {
                             return new Domains.Str("string");
                         }
                         @Override
-                        public Domains.BValue forNull(Domains.BValue bNull) {
+                        public Domains.BValue forNull(final Domains.BValue bNull) {
                             return new Domains.Str("object");
                         }
                         @Override
-                        public Domains.BValue forUndef(Domains.BValue bUndef) {
+                        public Domains.BValue forUndef(final Domains.BValue bUndef) {
                             return new Domains.Str("undefined");
                         }
                         @Override
-                        public Domains.BValue forAddress(Domains.Address bAddress) {
-                            Domains.Object obj = store.getObj(bAddress);
+                        public Domains.BValue forAddress(final Domains.Address bAddress) {
+                            final Domains.Object obj = store.getObj(bAddress);
                             if (obj.getCode().isSome()) {
                                 return new Domains.Str("function");
                             } else {
