@@ -325,7 +325,7 @@ public class Init {
             P.p(JSClass.CArray, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
             P.p(JSClass.CString, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
             P.p(JSClass.CArguments, Set.set(Ord.hashEqualsOrd(), new Domains.Str("length"))),
-            P.p(JSClass.CRegexp, Set.set(Ord.hashEqualsOrd(), new Domains.Str("sourse"),
+            P.p(JSClass.CRegexp, Set.set(Ord.hashEqualsOrd(), new Domains.Str("source"),
                     new Domains.Str("global"),
                     new Domains.Str("ignoreCase"),
                     new Domains.Str("multiline"),

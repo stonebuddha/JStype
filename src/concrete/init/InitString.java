@@ -18,7 +18,7 @@ public class InitString {
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object argsObj = store.getObj(argArrayAddr);
                 Double arglen;
-                Option<Domains.BValue> tmp = argsObj.apply(new Domains.Str("length"));
+                Option<Domains.BValue> tmp = argsObj.apply(Utils.Fields.length);
                 if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
                     arglen = ((Domains.Num) tmp.some()).n;
                 } else {
@@ -47,8 +47,8 @@ public class InitString {
                     return P.p(pvalue, store);
                 }
             }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
-                    P.p(new Domains.Str("prototype"), Init.String_prototype_Addr),
-                    P.p(new Domains.Str("length"), new Domains.Num(1.0)),
+                    P.p(Utils.Fields.prototype, Init.String_prototype_Addr),
+                    P.p(Utils.Fields.length, new Domains.Num(1.0)),
                     P.p(new Domains.Str("fromCharCode"), Init.String_fromCharCode_Addr)),
             JSClass.CString_Obj
     );
@@ -57,8 +57,8 @@ public class InitString {
             (selfAddr, argArrayAddr, store) -> {
                 final Domains.Object args = store.getObj(argArrayAddr);
                 Double arglen;
-                if (args.apply(new Domains.Str("length")).isSome() && args.apply(new Domains.Str("length")).some() instanceof Domains.Num) {
-                    arglen = ((Domains.Num) args.apply(new Domains.Str("length")).some()).n;
+                if (args.apply(Utils.Fields.length).isSome() && args.apply(Utils.Fields.length).some() instanceof Domains.Num) {
+                    arglen = ((Domains.Num) args.apply(Utils.Fields.length).some()).n;
                 } else {
                     throw new RuntimeException("inconceivable: arguments without numeric length");
                 }
@@ -68,12 +68,12 @@ public class InitString {
                 );
                 return new Domains.Str(result);
             }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
-                    P.p(new Domains.Str("length"), new Domains.Num(1.0)))
+                    P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
     public static Domains.Object String_prototype_Obj = InitUtils.createObj(
             TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
-                    P.p(new Domains.Str("constructor"), Init.String_Addr),
+                    P.p(Utils.Fields.constructor, Init.String_Addr),
                     P.p(new Domains.Str("charAt"), Init.String_prototype_charAt_Addr),
                     P.p(new Domains.Str("charCodeAt"), Init.String_prototype_charCodeAt_Addr),
                     P.p(new Domains.Str("concat"), Init.String_prototype_concat_Addr),
@@ -120,7 +120,7 @@ public class InitString {
 
                 return new Domains.Str(charAt);
             }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
-                    P.p(new Domains.Str("length"), new Domains.Num(1.0)))
+                    P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
     public static Domains.Object String_prototype_charCodeAt_Obj = InitUtils.makeNativeValue(
@@ -146,7 +146,7 @@ public class InitString {
 
                 return charCodeAt;
             }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
-                    P.p(new Domains.Str("length"), new Domains.Num(1.0)))
+                    P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
     public static Domains.Object String_prototype_concat_Obj = InitUtils.makeNativeValue(
@@ -154,8 +154,8 @@ public class InitString {
                 final Domains.Object args = store.getObj(argArrayAddr);
 
                 Double arglen;
-                if (args.apply(new Domains.Str("length")).isSome() && args.apply(new Domains.Str("length")).some() instanceof Domains.Num) {
-                    arglen = ((Domains.Num) args.apply(new Domains.Str("length")).some()).n;
+                if (args.apply(Utils.Fields.length).isSome() && args.apply(Utils.Fields.length).some() instanceof Domains.Num) {
+                    arglen = ((Domains.Num) args.apply(Utils.Fields.length).some()).n;
                 } else {
                     throw new RuntimeException("inconceivable: arguments without numeric length");
                 }
@@ -168,7 +168,7 @@ public class InitString {
                 );
 
             }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
-                    P.p(new Domains.Str("length"), new Domains.Num(1.0)))
+                    P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
     public static Domains.Object String_prototype_indexOf_Obj = InitUtils.approx_num;
@@ -200,7 +200,7 @@ public class InitString {
                     return Utils.Errors.typeError;
                 }
             }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
-                    P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+                    P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
     public static Domains.Object String_prototype_toUpperCase_Obj = InitUtils.unimplemented;
@@ -221,6 +221,6 @@ public class InitString {
                     return Utils.Errors.typeError;
                 }
             }, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
-                    P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+                    P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 }

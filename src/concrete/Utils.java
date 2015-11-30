@@ -8,8 +8,6 @@ import fj.data.Set;
 import fj.data.TreeMap;
 import ir.*;
 
-import java.util.ArrayList;
-
 /**
  * Created by wayne on 15/10/28.
  */
@@ -167,7 +165,6 @@ public class Utils {
         if (bv.equals(Domains.Null) || bv.equals(Domains.Undef)) {
             return P.p(Errors.typeError, store, pad);
         } else if (bv instanceof Domains.Address) {
-            Domains.Address a = (Domains.Address)bv;
             if (x instanceof IRPVar) {
                 IRPVar pv = (IRPVar)x;
                 return P.p(bv, store.extend(P.p(env.apply(pv), bv)), pad);
@@ -194,7 +191,7 @@ public class Utils {
             if (bv instanceof Domains.Str) {
                 Domains.Str s = (Domains.Str)bv;
                 TreeMap<Domains.Str, Domains.BValue> init = TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Fields.length, new Domains.Num((double)s.str.length())));
-                updatedO = new Domains.Object(o.extern.union(List.range(0, s.str.length()).foldLeft((acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(s.str.substring(e.intValue(), e.intValue() + 1))), init)), o.intern);
+                updatedO = new Domains.Object(o.extern.union(List.range(0, s.str.length()).foldLeft((acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(s.str.substring(e, e + 1))), init)), o.intern);
             } else {
                 updatedO = o;
             }
@@ -234,8 +231,7 @@ public class Utils {
                             n1 = ((Domains.Num)bv3num).n.longValue();
                             n2 = ((Domains.Num)o.apply(Fields.length).some()).n.longValue();
                         } else {
-                            //sys.error
-                            return null;
+                            throw new RuntimeException("implementation error: inconceivable");
                         }
                         Domains.Object o2 = List.range(n1.intValue(), n2.intValue()).foldLeft((acc, n) -> (acc.delete(new Domains.Str(n.toString())))._1(), o.update(str, bv3num));
                         return P.p(bv3, store.putObj(a, o2));

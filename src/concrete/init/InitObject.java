@@ -24,7 +24,7 @@ public class InitObject {
                     return InitUtils.ToObject(input, store);
                 }
             }, TreeMap.treeMap(Ord.hashEqualsOrd(),
-                    P.p(new Domains.Str("prototype"), Init.Object_prototype_Addr),
+                    P.p(Utils.Fields.prototype, Init.Object_prototype_Addr),
                     P.p(new Domains.Str("create"), Init.Object_create_Addr),
                     P.p(new Domains.Str("defineProperties"), Init.Object_defineProperties_Addr),
                     P.p(new Domains.Str("defineProperty"), Init.Object_defineProperty_Addr),
@@ -44,7 +44,7 @@ public class InitObject {
 
     public static Domains.Object Object_prototype_Obj = new Domains.Object(
             TreeMap.treeMap(Ord.hashEqualsOrd(),
-                    P.p(new Domains.Str("constructor"), Init.Object_Addr),
+                    P.p(Utils.Fields.constructor, Init.Object_Addr),
                     P.p(new Domains.Str("valueOf"), Init.Object_prototype_valueOf_Addr),
                     P.p(new Domains.Str("toString"), Init.Object_prototype_toString_Addr),
                     P.p(new Domains.Str("isPrototypeOf"), Init.Object_prototype_isPrototypeOf_Addr),
@@ -86,13 +86,13 @@ public class InitObject {
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object selfObj = store.getObj(selfAddr);
                 return InitUtils.Object_toString_helper(selfObj);
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
     public static Domains.Object Object_prototype_valueOf_Obj = InitUtils.makeNativeValue(
             (selfAddr, argArrayAddr, store) -> {
                 return selfAddr;
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
     public static Domains.Object Object_prototype_isPrototypeOf_Obj = InitUtils.unimplemented;
@@ -110,7 +110,7 @@ public class InitObject {
                 } else {
                     return Domains.Bool.False;
                 }
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
     public static Domains.Object Object_prototype_toLocaleString_Obj = InitUtils.unimplemented;

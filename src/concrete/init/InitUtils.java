@@ -1,18 +1,14 @@
 package concrete.init;
 
-import analysis.Interpreter;
-import com.sun.java.browser.plugin2.DOM;
-import com.sun.xml.internal.ws.model.RuntimeModelerException;
 import concrete.Domains;
+import concrete.Utils;
 import fj.*;
 import fj.data.List;
-import fj.data.Tree;
 import fj.data.TreeMap;
 import ir.IRPVar;
 import ir.IRScratch;
 import ir.IRVar;
 import ir.JSClass;
-import javafx.beans.property.ReadOnlyMapProperty;
 
 /**
  * Created by wayne on 15/11/9.
@@ -20,17 +16,17 @@ import javafx.beans.property.ReadOnlyMapProperty;
 public class InitUtils {
     public static Domains.Object unimplemented = createFunctionObject(new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
         throw new RuntimeException("not implemented");
-    }), TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0))));
+    }), TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(0.0))));
 
     public static Domains.Object approx_str = makeNativeValue((selfAddr, argArrayAddr, store) -> {
         System.out.println("warning: use of approximated concrete function");
         return new Domains.Str("UNIMPLEMENTED");
-    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0))));
+    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0))));
 
     public static Domains.Object approx_num = makeNativeValue((selfAddr, argArrayAddr, store) -> {
         System.out.println("warning: use of approximated concrete function");
         return new Domains.Num(0.0);
-    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0))));
+    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0))));
 
     public static Domains.Object approx_array = makeNativeValueStore((selfAddr, argArrayAddr, store) -> {
         System.out.println("warning: use of approximated concrete function");
@@ -39,12 +35,12 @@ public class InitUtils {
         Domains.Address arrayAddr = tmp._2();
         TreeMap<Domains.Str, java.lang.Object> internal = store1.getObj(arrayAddr).intern;
         Domains.Object newObj = createObj(TreeMap.treeMap(Ord.hashEqualsOrd(),
-                P.p(new Domains.Str("length"), new Domains.Num(1.0)),
+                P.p(Utils.Fields.length, new Domains.Num(1.0)),
                 P.p(new Domains.Str("0"), new Domains.Str("UNIMPLEMENTED ARRAY"))),
                 internal);
         Domains.Store newStore = store1.putObj(arrayAddr, newObj);
         return P.p(arrayAddr, newStore);
-    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0))));
+    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0))));
 
     public static String JSClassToString(JSClass j) {
         if (j.equals(JSClass.CObject)) {
@@ -130,7 +126,7 @@ public class InitUtils {
             } else if (toString.equals(Init.Array_prototype_toString_Addr)) {
                 string = ArrayToString(a, store);
             } else {
-                throw new RuntimeModelerException("implementation error");
+                throw new RuntimeException("implementation error");
             }
             return ToString(string, store);
         } else {
@@ -141,7 +137,7 @@ public class InitUtils {
     public static Domains.Str ArrayToString(Domains.Address a, Domains.Store store) {
         Domains.Object arrayObj = store.getObj(a);
         Domains.Str separator = new Domains.Str(",");
-        Domains.BValue tmp = concrete.Utils.lookup(arrayObj, new Domains.Str("length"), store);
+        Domains.BValue tmp = concrete.Utils.lookup(arrayObj, Utils.Fields.length, store);
         Integer len;
         if (tmp instanceof Domains.Num) {
             Double n = ((Domains.Num)tmp).n;
@@ -225,7 +221,7 @@ public class InitUtils {
     public static Domains.Object createFunctionObject(Domains.Native clo, TreeMap<Domains.Str, Domains.BValue> external) {
         TreeMap<Domains.Str, java.lang.Object> internal = TreeMap.empty(Ord.hashEqualsOrd());
         JSClass myclass = JSClass.CFunction;
-        assert(external.contains(new Domains.Str("length"))) : "Native function with no length.";
+        assert(external.contains(Utils.Fields.length)) : "Native function with no length.";
         TreeMap<Domains.Str, java.lang.Object> internalFieldMap = internal.union(TreeMap.treeMap(Ord.hashEqualsOrd(),
                 P.p(concrete.Utils.Fields.proto, Init.Function_prototype_Addr),
                 P.p(concrete.Utils.Fields.code, clo),
@@ -234,7 +230,7 @@ public class InitUtils {
     }
     public static Domains.Object createFunctionObject(Domains.Native clo, TreeMap<Domains.Str, Domains.BValue> external, JSClass myclass) {
         TreeMap<Domains.Str, java.lang.Object> internal = TreeMap.empty(Ord.hashEqualsOrd());
-        assert(external.contains(new Domains.Str("length"))) : "Native function with no length.";
+        assert(external.contains(Utils.Fields.length)) : "Native function with no length.";
         TreeMap<Domains.Str, java.lang.Object> internalFieldMap = internal.union(TreeMap.treeMap(Ord.hashEqualsOrd(),
                 P.p(concrete.Utils.Fields.proto, Init.Function_prototype_Addr),
                 P.p(concrete.Utils.Fields.code, clo),
@@ -242,7 +238,7 @@ public class InitUtils {
         return new Domains.Object(external, internalFieldMap);
     }
     public static Domains.Object createFunctionObject(Domains.Native clo, TreeMap<Domains.Str, Domains.BValue> external, TreeMap<Domains.Str, java.lang.Object> internal, JSClass myclass) {
-        assert(external.contains(new Domains.Str("length"))) : "Native function with no length.";
+        assert(external.contains(Utils.Fields.length)) : "Native function with no length.";
         TreeMap<Domains.Str, java.lang.Object> internalFieldMap = internal.union(TreeMap.treeMap(Ord.hashEqualsOrd(),
                 P.p(concrete.Utils.Fields.proto, Init.Function_prototype_Addr),
                 P.p(concrete.Utils.Fields.code, clo),
@@ -299,6 +295,6 @@ public class InitUtils {
             } else {
                 return new Domains.Num(f.f(inp));
             }
-        }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0))));
+        }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0))));
     }
 }

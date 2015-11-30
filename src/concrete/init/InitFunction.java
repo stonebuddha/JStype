@@ -24,11 +24,11 @@ public class InitFunction {
 
     public static Domains.Object Function_prototype_Obj = new Domains.Object(
             TreeMap.treeMap(Ord.hashEqualsOrd(),
-                    P.p(new Domains.Str("constructor"), Init.Function_Addr),
+                    P.p(Utils.Fields.constructor, Init.Function_Addr),
                     P.p(new Domains.Str("apply"), Init.Function_prototype_apply_Addr),
                     P.p(new Domains.Str("call"), Init.Function_prototype_call_Addr),
                     P.p(new Domains.Str("toString"), Init.Function_prototype_toString_Addr),
-                    P.p(new Domains.Str("length"), new Domains.Num(0.0))),
+                    P.p(Utils.Fields.length, new Domains.Num(0.0))),
             TreeMap.treeMap(Ord.hashEqualsOrd(),
                     P.p(Utils.Fields.proto, Init.Object_prototype_Addr),
                     P.p(Utils.Fields.classname, JSClass.CFunction_prototype_Obj),
@@ -42,13 +42,13 @@ public class InitFunction {
                 Option<TreeMap<Domains.Str, Domains.BValue>> external;
                 Option<Domains.BValue> tmp = argsObj.apply(new Domains.Str("1"));
                 if (tmp.isNone() || tmp.some().equals(Domains.Undef)|| tmp.some().equals(Domains.Null)) {
-                    external = Option.fromNull(TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0))));
+                    external = Option.fromNull(TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(0.0))));
                 } else if (tmp.some() instanceof Domains.Address) {
                     Domains.Address a = (Domains.Address)tmp.some();
                     Domains.Object passedArgsObj = store.getObj(a);
                     if (passedArgsObj.getJSClass().equals(JSClass.CArray) || passedArgsObj.getJSClass().equals(JSClass.CArguments)) {
                         Double arglen;
-                        Option<Domains.BValue> tmp2 = passedArgsObj.apply(new Domains.Str("length"));
+                        Option<Domains.BValue> tmp2 = passedArgsObj.apply(Utils.Fields.length);
                         if (tmp2.isSome() && tmp2.some() instanceof Domains.Num) {
                             arglen = ((Domains.Num)tmp2.some()).n;
                         } else {
@@ -56,7 +56,7 @@ public class InitFunction {
                         }
                         external = Option.fromNull(List.range(0, arglen.intValue()).foldLeft(
                                 (m, i) -> m.set(new Domains.Str(i.toString()), passedArgsObj.apply(new Domains.Str(i.toString())).some()),
-                                TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(arglen)))
+                                TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(arglen)))
                         ));
                     } else {
                         external = Option.none();
@@ -89,14 +89,14 @@ public class InitFunction {
                     Domains.Store store2 = store1.putObj(newArgsAddr, newObj);
                     return Utils.applyClo(selfAddr, (Domains.Address)newThisAddress, newArgsAddr, x, env, store2, pad, ks);
                 }
-            }), TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(2.0)))
+            }), TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(2.0)))
     );
 
     public static Domains.Object Function_prototype_call_Obj = InitUtils.createFunctionObject(
             new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
                 Domains.Object argsObj = store.getObj(argArrayAddr);
                 Double arglen;
-                Option<Domains.BValue> tmp = argsObj.apply(new Domains.Str("length"));
+                Option<Domains.BValue> tmp = argsObj.apply(Utils.Fields.length);
                 if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
                     arglen = ((Domains.Num)tmp.some()).n;
                 } else {
@@ -121,7 +121,7 @@ public class InitFunction {
                             Integer j = i - 1;
                             return m.set(new Domains.Str(j.toString()), argsObj.apply(new Domains.Str(i.toString())).some());
                         },
-                        TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(arglen - 1)))
+                        TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(arglen - 1)))
                 );
                 Domains.Address newArgsAddr = Domains.Address.generate();
                 Domains.Object newObj = InitUtils.createObj(external,
@@ -130,7 +130,7 @@ public class InitFunction {
                                 P.p(Utils.Fields.classname, JSClass.CArguments)));
                 Domains.Store store2 = store1.putObj(newArgsAddr, newObj);
                 return Utils.applyClo(selfAddr, (Domains.Address)newThisAddress, newArgsAddr, x, env, store2, pad, ks);
-            }), TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0)))
+            }), TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
     public static Domains.Object Function_prototype_toString_Obj = InitUtils.unimplemented;

@@ -52,7 +52,7 @@ public class Eval {
             @Override
             public Domains.BValue forBool(IRBool irBool) {
                 Boolean b = irBool.v;
-                return new Domains.Bool(b);
+                return Domains.Bool.apply(b);
             }
             @Override
             public Domains.BValue forStr(IRStr irStr) {

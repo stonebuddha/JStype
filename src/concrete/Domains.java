@@ -224,7 +224,7 @@ public class Domains {
         public BValue strLessEqual(BValue bv) { throw new RuntimeException("translator reneged"); }
 
         public BValue strictEqual(BValue bv) {
-            return new Bool(this.equals(bv));
+            return Bool.apply(this.equals(bv));
         }
 
         public BValue nonStrictEqual(BValue bv) {
@@ -353,7 +353,7 @@ public class Domains {
         @Override
         public BValue lessThan(BValue bv) {
             if (bv instanceof Num) {
-                return new Bool(n < ((Num) bv).n);
+                return Bool.apply(n < ((Num) bv).n);
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -362,7 +362,7 @@ public class Domains {
         @Override
         public BValue lessEqual(BValue bv) {
             if (bv instanceof Num) {
-                return new Bool(n <= ((Num) bv).n);
+                return Bool.apply(n <= ((Num) bv).n);
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -407,7 +407,7 @@ public class Domains {
 
         @Override
         public Bool toBool() {
-            return new Bool(n != 0 && !n.isNaN());
+            return Bool.apply(n != 0 && !n.isNaN());
         }
         @Override
         public Str toStr() {
@@ -472,7 +472,7 @@ public class Domains {
         @Override
         public BValue strLessThan(BValue bv) {
             if (bv instanceof Str) {
-                return new Bool(str.compareTo(((Str) bv).str) < 0);
+                return Bool.apply(str.compareTo(((Str) bv).str) < 0);
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -481,7 +481,7 @@ public class Domains {
         @Override
         public BValue strLessEqual(BValue bv) {
             if (bv instanceof Str) {
-                return new Bool(str.compareTo(((Str) bv).str) <= 0);
+                return Bool.apply(str.compareTo(((Str) bv).str) <= 0);
             } else {
                 throw new RuntimeException("translator reneged");
             }
@@ -489,7 +489,7 @@ public class Domains {
 
         @Override
         public Bool toBool() {
-            return new Bool(!str.isEmpty());
+            return Bool.apply(!str.isEmpty());
         }
         @Override
         public Str toStr() {
@@ -552,7 +552,7 @@ public class Domains {
 
         @Override
         public BValue logicalNot() {
-            return new Bool(!b);
+            return Bool.apply(!b);
         }
 
         @Override
@@ -579,6 +579,14 @@ public class Domains {
 
         public static final Bool True = new Bool(true);
         public static final Bool False = new Bool(false);
+
+        public static Bool apply(Boolean b) {
+            if (b) {
+                return True;
+            } else {
+                return False;
+            }
+        }
     }
 
     public static class Address extends BValue {

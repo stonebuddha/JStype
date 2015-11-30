@@ -4,13 +4,9 @@ import concrete.Utils;
 import concrete.Domains;
 import fj.Ord;
 import fj.P;
-import fj.data.List;
 import fj.data.Option;
 import fj.data.TreeMap;
 import ir.JSClass;
-
-import javax.management.RuntimeErrorException;
-import javax.rmi.CORBA.Util;
 
 /**
  * Created by Hwhitetooth on 15/11/11.
@@ -20,7 +16,7 @@ public class InitNumber {
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object argsObj = store.getObj(argArrayAddr);
                 Double arglen;
-                Option<Domains.BValue> tmp = argsObj.apply(new Domains.Str("length"));
+                Option<Domains.BValue> tmp = argsObj.apply(Utils.Fields.length);
                 if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
                     arglen = ((Domains.Num) tmp.some()).n;
                 } else {
@@ -46,8 +42,8 @@ public class InitNumber {
                     return P.p(pvalue, store);
                 }
             }, TreeMap.treeMap(Ord.hashEqualsOrd(),
-                    P.p(new Domains.Str("prototype"), Init.Number_prototype_Addr),
-                    P.p(new Domains.Str("length"), new Domains.Num(1.0)),
+                    P.p(Utils.Fields.prototype, Init.Number_prototype_Addr),
+                    P.p(Utils.Fields.length, new Domains.Num(1.0)),
                     P.p(new Domains.Str("MAX_VALUE"), new Domains.Num(Double.MAX_VALUE)),
                     P.p(new Domains.Str("MIN_VALUE"), new Domains.Num(Double.MIN_VALUE)),
                     P.p(new Domains.Str("NaN"), new Domains.Num(Double.NaN)),
@@ -57,7 +53,7 @@ public class InitNumber {
     );
 
     public static Domains.Object Number_prototype_Obj = InitUtils.createObj(TreeMap.treeMap(Ord.hashEqualsOrd(),
-            P.p(new Domains.Str("constructor"), Init.Number_Addr),
+            P.p(Utils.Fields.constructor, Init.Number_Addr),
             P.p(new Domains.Str("toString"), Init.Number_prototype_toString_Addr),
             P.p(new Domains.Str("toLocaleString"), Init.Number_prototype_toLocaleString_Addr),
             P.p(new Domains.Str("valueOf"), Init.Number_prototype_valueOf_Addr),
@@ -73,7 +69,7 @@ public class InitNumber {
                 if (self.getJSClass().equals(JSClass.CNumber)) {
                     Domains.Object args = store.getObj(argArrayAddr);
                     int arglen;
-                    Option<Domains.BValue> tmp = args.apply(new Domains.Str("length"));
+                    Option<Domains.BValue> tmp = args.apply(Utils.Fields.length);
                     if (tmp.isSome() && tmp.some() instanceof Domains.Num) {
                         arglen = ((Domains.Num)tmp.some()).n.intValue();
                     } else {
@@ -106,7 +102,7 @@ public class InitNumber {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0)))
+            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0)))
     );
 
     public static Domains.Object Number_prototype_toLocaleString_Obj = InitUtils.unimplemented;
@@ -119,7 +115,7 @@ public class InitNumber {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(0.0)))
+            }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(0.0)))
     );
 
     public static Domains.Object Number_prototype_toFixed_Obj = InitUtils.unimplemented;

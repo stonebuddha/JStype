@@ -1,7 +1,7 @@
 package concrete.init;
 
 import concrete.Domains;
-import concrete.init.*;
+import concrete.Utils;
 import fj.Ord;
 import fj.P;
 import fj.data.TreeMap;
@@ -60,14 +60,14 @@ public class InitGlobal {
     public static Domains.Object isFinite_Obj = InitUtils.makeNativeValue((selfAddr, argArrayAddr, store) -> {
         Domains.Object args = store.getObj(argArrayAddr);
         Domains.Num input = InitUtils.ToNumber(args.apply(new Domains.Str("0")).orSome(Domains.Undef), store);
-        return new Domains.Bool(input.equals(new Domains.Num(Double.POSITIVE_INFINITY)) || input.equals(new Domains.Num(Double.NEGATIVE_INFINITY)) || input.equals(new Domains.Num(Double.NaN)));
-    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0))));
+        return Domains.Bool.apply(input.equals(new Domains.Num(Double.POSITIVE_INFINITY)) || input.equals(new Domains.Num(Double.NEGATIVE_INFINITY)) || input.equals(new Domains.Num(Double.NaN)));
+    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0))));
 
     public static Domains.Object isNaN_Obj = InitUtils.makeNativeValue((selfAddr, argArrayAddr, store) -> {
         Domains.Object args = store.getObj(argArrayAddr);
         Domains.Num input = InitUtils.ToNumber(args.apply(new Domains.Str("0")).orSome(Domains.Undef), store);
-        return new Domains.Bool(input.n.isNaN());
-    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(new Domains.Str("length"), new Domains.Num(1.0))));
+        return Domains.Bool.apply(input.n.isNaN());
+    }, TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(Utils.Fields.length, new Domains.Num(1.0))));
 
     public static Domains.Object parseFloat_Obj = InitUtils.approx_num;
 
