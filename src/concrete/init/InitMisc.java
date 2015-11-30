@@ -45,7 +45,7 @@ public class InitMisc {
     public static Domains.Object Boolean_prototype_Obj = InitUtils.createObj(
             TreeMap.treeMap(Ord.hashEqualsOrd(),
                     P.p(new Domains.Str("toString"), Init.Boolean_prototype_toString_Addr),
-                    P.p(new Domains.Str("valueOd"), Init.Boolean_prototype_valueOf_Addr))
+                    P.p(new Domains.Str("valueOf"), Init.Boolean_prototype_valueOf_Addr))
     );
 
     public static Domains.Object Boolean_prototype_toString_Obj = InitUtils.makeNativeValue(
@@ -54,9 +54,9 @@ public class InitMisc {
                 if (selfObj.getJSClass().equals(JSClass.CBoolean)) {
                     Option<Domains.BValue> tmp = selfObj.getValue();
                     if (tmp.isSome() && tmp.some().equals(Domains.Bool.True)) {
-                        return new Domains.Str("True");
+                        return new Domains.Str("true");
                     } else if (tmp.isSome() && tmp.some().equals(Domains.Bool.False)) {
-                        return new Domains.Str("False");
+                        return new Domains.Str("false");
                     } else {
                         throw new RuntimeException("implementation error: We should not have a non-boolean as a Boolean's internal value");
                     }
