@@ -1,23 +1,23 @@
 package ir;
 
-import fj.Ord;
-import fj.P;
 import fj.P2;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRPVar extends IRVar {
-    public Integer n;
+public final class IRPVar extends IRVar {
+    public final Integer n;
+    final int recordHash;
 
     public IRPVar(Integer n) {
         this.n = n;
+        this.recordHash = n;
     }
 
     @Override
-    public Set<IRPVar> free() {
-        return Set.set(Ord.hashEqualsOrd(), this);
+    public FHashSet<IRPVar> free() {
+        return FHashSet.build(this);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class IRPVar extends IRVar {
 
     @Override
     public int hashCode() {
-        return n;
+        return recordHash;
     }
 
     @Override

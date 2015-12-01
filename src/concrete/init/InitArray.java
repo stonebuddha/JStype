@@ -35,7 +35,7 @@ public class InitArray {
                 FHashMap<Domains.Str, Object> internal = store1.getObj(arrayAddr).intern;
                 if (arglen == 0 || arglen >= 2) {
                     List<Integer> range = List.range(0, (int)arglen);
-                    FHashMap<Domains.Str, Domains.BValue> initial = FHashMap.map(Utils.Fields.length, new Domains.Num(arglen));
+                    FHashMap<Domains.Str, Domains.BValue> initial = FHashMap.build(Utils.Fields.length, new Domains.Num(arglen));
                     FHashMap<Domains.Str, Domains.BValue> external =
                             range.foldLeft((acc, cur) -> {
                                 Option<Domains.BValue> bv = args.apply(new Domains.Str(cur.toString()));
@@ -51,18 +51,18 @@ public class InitArray {
                         if ((int)n != n || n < 0) {
                             return P.p(Utils.Errors.rangeError, store);
                         } else {
-                            Domains.Object newObj = InitUtils.createObj(FHashMap.map(Utils.Fields.length, new Domains.Num(n)), internal);
+                            Domains.Object newObj = InitUtils.createObj(FHashMap.build(Utils.Fields.length, new Domains.Num(n)), internal);
                             Domains.Store newStore = store1.putObj(arrayAddr, newObj);
                             return P.p(arrayAddr, newStore);
                         }
                     } else {
-                        Domains.Object newObj = InitUtils.createObj(FHashMap.map(Utils.Fields.length, new Domains.Num(1.0), new Domains.Str("0"), len), internal);
+                        Domains.Object newObj = InitUtils.createObj(FHashMap.build(Utils.Fields.length, new Domains.Num(1.0), new Domains.Str("0"), len), internal);
                         Domains.Store newStore = store1.putObj(arrayAddr, newObj);
                         return P.p(arrayAddr, newStore);
                     }
                 }
             },
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.prototype, Init.Array_prototype_Addr,
                     new Domains.Str("isArray"), Init.Array_isArray_Addr,
                     Utils.Fields.length, new Domains.Num(1.0)),
@@ -70,7 +70,7 @@ public class InitArray {
     );
 
     public static Domains.Object Array_prototype_Obj = InitUtils.createObj(
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.constructor, Init.Array_Addr,
                     new Domains.Str("concat"), Init.Array_prototype_concat_Addr,
                     new Domains.Str("every"), Init.Array_prototype_every_Addr,
@@ -94,7 +94,7 @@ public class InitArray {
                     new Domains.Str("toString"), Init.Array_prototype_toString_Addr,
                     new Domains.Str("unshift"), Init.Array_prototype_unshift_Addr
             ),
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.classname, JSClass.CArray_prototype_Obj)
     );
 
@@ -108,7 +108,7 @@ public class InitArray {
                     return Domains.Bool.apply(false);
                 }
             },
-            FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
+            FHashMap.build(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Array_prototype_concat_Obj = InitUtils.makeNativeValueStore(
@@ -157,13 +157,13 @@ public class InitArray {
                     }
                 }, selfElems);
                 List<P2<Domains.Str, Domains.BValue>> lst = List.range(0, newElems.length()).map(x -> new Domains.Str(x.toString())).zip(newElems);
-                FHashMap<Domains.Str, Domains.BValue> external = FHashMap.map(lst).set(Utils.Fields.length, new Domains.Num(1.0 * newElems.length()));
-                FHashMap<Domains.Str, Object> internal = FHashMap.map(Utils.Fields.proto, Init.Array_prototype_Addr, Utils.Fields.classname, JSClass.CArray);
+                FHashMap<Domains.Str, Domains.BValue> external = FHashMap.build(lst).set(Utils.Fields.length, new Domains.Num(1.0 * newElems.length()));
+                FHashMap<Domains.Str, Object> internal = FHashMap.build(Utils.Fields.proto, Init.Array_prototype_Addr, Utils.Fields.classname, JSClass.CArray);
                 Domains.Object newArrayObj = InitUtils.createObj(external, internal);
                 Domains.Store store1 = store.putObj(newArrayAddr, newArrayObj);
                 return P.p(newArrayAddr, store1);
             },
-            FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
+            FHashMap.build(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Array_prototype_every_Obj = InitUtils.unimplemented;
@@ -216,7 +216,7 @@ public class InitArray {
                     }, begin);
                 }
             },
-            FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
+            FHashMap.build(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Array_prototype_lastIndexOf_Obj = InitUtils.approx_num;
@@ -241,7 +241,7 @@ public class InitArray {
                     throw new RuntimeException("not implemented: non-numeric array length");
                 }
             },
-            FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Array_prototype_push_Obj = InitUtils.makeNativeValueStore(
@@ -267,7 +267,7 @@ public class InitArray {
                     throw new RuntimeException("not implemented: non-numeric array length");
                 }
             },
-            FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
+            FHashMap.build(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Array_prototype_reduce_Obj = InitUtils.unimplemented;
@@ -290,7 +290,7 @@ public class InitArray {
                     throw new RuntimeException("not implemented: non-numeric array length");
                 }
             },
-            FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Array_prototype_shift_Obj = InitUtils.makeNativeValueStore(
@@ -316,7 +316,7 @@ public class InitArray {
                     throw new RuntimeException("not implemented: non-numeric array length");
                 }
             },
-            FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
     public static Domains.Object Array_prototype_slice_Obj = InitUtils.unimplemented;
     public static Domains.Object Array_prototype_some_Obj = InitUtils.unimplemented;
@@ -359,7 +359,7 @@ public class InitArray {
                     return Utils.Errors.typeError;
                 }
             },
-            FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Array_prototype_unshift_Obj = InitUtils.unimplemented;

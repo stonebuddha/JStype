@@ -26,7 +26,7 @@ public class InitMisc {
                 if (calledAsConstr) {
                     Domains.Address newAddr = Domains.Address.generate();
                     Domains.Object newObj = InitUtils.createObj(FHashMap.empty(),
-                            FHashMap.map(
+                            FHashMap.build(
                                     Utils.Fields.proto, Init.Boolean_prototype_Addr,
                                     Utils.Fields.classname, JSClass.CBoolean,
                                     Utils.Fields.value, boolValue));
@@ -35,14 +35,14 @@ public class InitMisc {
                 } else {
                     return P.p(boolValue, store);
                 }
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.prototype, Init.Boolean_prototype_Addr,
                     Utils.Fields.length, new Domains.Num(1.0)
             )
     );
 
     public static Domains.Object Boolean_prototype_Obj = InitUtils.createObj(
-            FHashMap.map(
+            FHashMap.build(
                     new Domains.Str("toString"), Init.Boolean_prototype_toString_Addr,
                     new Domains.Str("valueOf"), Init.Boolean_prototype_valueOf_Addr)
     );
@@ -62,7 +62,7 @@ public class InitMisc {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            }, FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Boolean_prototype_valueOf_Obj = InitUtils.makeNativeValue(
@@ -78,18 +78,18 @@ public class InitMisc {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            }, FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Error_Obj = InitUtils.createFunctionObject(new Domains.Native(
             (selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
                 throw new RuntimeException("not implemented");
             }),
-            FHashMap.map(Utils.Fields.prototype, Init.Error_prototype_Addr, Utils.Fields.length, new Domains.Num(1.0))
+            FHashMap.build(Utils.Fields.prototype, Init.Error_prototype_Addr, Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Error_prototype_Obj = InitUtils.createObj(
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.constructor, Init.Error_Addr,
                     new Domains.Str("name"), new Domains.Str("Error"),
                     new Domains.Str("message"), new Domains.Str(""),
@@ -98,7 +98,7 @@ public class InitMisc {
     public static Domains.Object Error_prototype_toString_Obj = InitUtils.unimplemented;
 
     public static Domains.Object JSON_Obj = InitUtils.createObj(
-            FHashMap.map(
+            FHashMap.build(
                     new Domains.Str("parse"), Init.JSON_parse_Addr,
                     new Domains.Str("stringify"), Init.JSON_stringify_Addr));
 
@@ -112,7 +112,7 @@ public class InitMisc {
                         throw new RuntimeException("not implemented");
                     }
             ),
-            FHashMap.map(
+            FHashMap.build(
                     new Domains.Str("now"), Init.Date_now_Addr,
                     new Domains.Str("parse"), Init.Date_parse_Addr,
                     Utils.Fields.prototype, Init.Date_prototype_Addr,
@@ -124,7 +124,7 @@ public class InitMisc {
     public static Domains.Object Date_parse_Obj = InitUtils.unimplemented;
 
     public static Domains.Object Date_prototype_Obj = InitUtils.createObj(
-            FHashMap.map(Utils.Fields.constructor, Init.Date_Addr)
+            FHashMap.build(Utils.Fields.constructor, Init.Date_Addr)
     );
 
     public static Domains.Object RegExp_Obj = InitUtils.createFunctionObject(
@@ -133,7 +133,7 @@ public class InitMisc {
                         throw new RuntimeException("not implemented");
                     }
             ),
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.prototype, Init.RegExp_prototype_Addr,
                     Utils.Fields.length, new Domains.Num(0.0))
     );

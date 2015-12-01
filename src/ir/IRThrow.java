@@ -1,18 +1,19 @@
 package ir;
 
-import fj.Ord;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRThrow extends IRStmt {
-    public IRExp e;
+public final class IRThrow extends IRStmt {
+    public final IRExp e;
+    final int recordHash;
 
     public IRThrow(IRExp e) {
         this.e = e;
+        this.recordHash = e.hashCode();
     }
 
     @Override
@@ -22,17 +23,17 @@ public class IRThrow extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(e).hashCode();
+        return recordHash;
     }
 
     @Override
-    public Set<IRPVar> free() {
+    public FHashSet<IRPVar> free() {
         return e.free();
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
-        return P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd));
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
+        return P.p(FHashSet.empty(), FHashSet.empty());
     }
 
     @Override

@@ -1,19 +1,23 @@
 package ir;
 
+import fj.Hash;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRSDecl extends IRStmt {
-    public Integer num;
-    public IRStmt s;
+public final class IRSDecl extends IRStmt {
+    public final Integer num;
+    public final IRStmt s;
+    final int recordHash;
+    static final Hash<P2<Integer, IRStmt>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
     public IRSDecl(Integer num, IRStmt s) {
         this.num = num;
         this.s = s;
+        this.recordHash = hash.hash(P.p(num, s));
     }
 
     @Override
@@ -23,7 +27,7 @@ public class IRSDecl extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(num, s).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -32,12 +36,12 @@ public class IRSDecl extends IRStmt {
     }
 
     @Override
-    public Set<IRPVar> free() {
+    public FHashSet<IRPVar> free() {
         return s.free();
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
         return s.escape(local);
     }
 

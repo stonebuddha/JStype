@@ -1,20 +1,25 @@
 package ir;
 
+import fj.Hash;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import fj.P3;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRBinop extends IRExp {
-    public Bop op;
-    public IRExp e1, e2;
+public final class IRBinop extends IRExp {
+    public final Bop op;
+    public final IRExp e1, e2;
+    final int recordHash;
+    static final Hash<P3<Bop, IRExp, IRExp>> hash = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
     public IRBinop(Bop op, IRExp e1, IRExp e2) {
         this.op = op;
         this.e1 = e1;
         this.e2 = e2;
+        this.recordHash = hash.hash(P.p(op, e1, e2));
     }
 
     @Override
@@ -24,7 +29,7 @@ public class IRBinop extends IRExp {
 
     @Override
     public int hashCode() {
-        return P.p(op, e1, e2).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -33,7 +38,7 @@ public class IRBinop extends IRExp {
     }
 
     @Override
-    public Set<IRPVar> free() {
+    public FHashSet<IRPVar> free() {
         return e1.free().union(e2.free());
     }
 

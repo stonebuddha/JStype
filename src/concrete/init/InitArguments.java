@@ -11,7 +11,7 @@ public class InitArguments {
     public static Domains.Object Arguments_Obj = InitUtils.createFunctionObject(
             new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
                 return InitUtils.makeState(selfAddr, x, env, store, pad, ks);
-            }), FHashMap.map(
+            }), FHashMap.build(
                     Utils.Fields.prototype, Init.Object_prototype_Addr,
                     Utils.Fields.length, new Domains.Num(0.0)));
 }

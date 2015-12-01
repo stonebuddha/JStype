@@ -3,12 +3,11 @@ package analysis.init;
 import analysis.Domains;
 import analysis.Interpreter;
 import analysis.Traces.Trace;
-import fj.Ord;
-import fj.P;
 import fj.data.List;
 import fj.data.Seq;
-import fj.data.Set;
-import fj.data.TreeMap;
+import immutable.FHashMap;
+import immutable.FHashSet;
+import immutable.FVector;
 import ir.IRPVar;
 import ir.IRStmt;
 import ir.JSClass;
@@ -256,29 +255,28 @@ public class Init {
     }
 
     public static Interpreter.State initState(IRStmt s, Trace trace) {
-        Domains.Env initEnv = new Domains.Env(TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(window_Variable, Domains.AddressSpace.Addresses.apply(window_binding_Addr))));
+        Domains.Env initEnv = new Domains.Env(FHashMap.build(window_Variable, Domains.AddressSpace.Addresses.apply(window_binding_Addr)));
 
         Domains.Store initStore = new Domains.Store(
-                TreeMap.treeMap(Ord.hashEqualsOrd(), P.p(window_binding_Addr, Domains.AddressSpace.Address.inject(window_Addr))),
-                TreeMap.treeMap(Ord.hashEqualsOrd(),
-                        P.p(window_Addr, InitGlobal.window_Obj)),
+                FHashMap.build(window_binding_Addr, Domains.AddressSpace.Address.inject(window_Addr)),
+                FHashMap.build(window_Addr, InitGlobal.window_Obj),
                 //TODO
-                TreeMap.empty(Ord.hashEqualsOrd()),
-                Set.empty(Ord.<Domains.AddressSpace.Address>hashEqualsOrd())
+                FHashMap.empty(),
+                FHashSet.empty()
         );
 
-        return new Interpreter.State(new Domains.StmtTerm(s), initEnv, initStore, new Domains.Scratchpad(Seq.<Domains.BValue>empty()), new Domains.KontStack(List.<Domains.Kont>nil()), trace);
+        return new Interpreter.State(new Domains.StmtTerm(s), initEnv, initStore, new Domains.Scratchpad(FVector.empty()), new Domains.KontStack(List.<Domains.Kont>nil()), trace);
     }
 
-    public static final Set<Domains.AddressSpace.Address> keepInStore = Set.set(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), Dummy_Arguments_Addr, Number_Addr);
+    public static final FHashSet<Domains.AddressSpace.Address> keepInStore = FHashSet.build(Dummy_Arguments_Addr, Number_Addr);
 
-    public static final TreeMap<JSClass, Set<Domains.Str>> noenum = TreeMap.treeMap(Ord.<JSClass>hashEqualsOrd(),
-            P.p(JSClass.CFunction, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("length"))),
-            P.p(JSClass.CArray, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("length"))),
-            P.p(JSClass.CString, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("length"))),
-            P.p(JSClass.CArguments, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("length"))),
-            P.p(JSClass.CRegexp, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("source"), Domains.Str.alpha("global"), Domains.Str.alpha("ignoreCase"), Domains.Str.alpha("multiline"), Domains.Str.alpha("lastIndex"))),
-            P.p(JSClass.CObject_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+    public static final FHashMap<JSClass, FHashSet<Domains.Str>> noenum = FHashMap.build(
+            JSClass.CFunction, FHashSet.build(Domains.Str.alpha("length")),
+            JSClass.CArray, FHashSet.build(Domains.Str.alpha("length")),
+            JSClass.CString, FHashSet.build(Domains.Str.alpha("length")),
+            JSClass.CArguments, FHashSet.build(Domains.Str.alpha("length")),
+            JSClass.CRegexp, FHashSet.build(Domains.Str.alpha("source"), Domains.Str.alpha("global"), Domains.Str.alpha("ignoreCase"), Domains.Str.alpha("multiline"), Domains.Str.alpha("lastIndex")),
+            JSClass.CObject_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("create"),
                     Domains.Str.alpha("defineProperties"),
@@ -294,8 +292,8 @@ public class Init {
                     Domains.Str.alpha("length"),
                     Domains.Str.alpha("preventExtensions"),
                     Domains.Str.alpha("seal")
-            )),
-            P.p(JSClass.CObject_prototype_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CObject_prototype_Obj, FHashSet.build(
                     Domains.Str.alpha("constructor"),
                     Domains.Str.alpha("valueOf"),
                     Domains.Str.alpha("toString"),
@@ -303,13 +301,13 @@ public class Init {
                     Domains.Str.alpha("propertyIsEnumerable"),
                     Domains.Str.alpha("hasOwnProperty"),
                     Domains.Str.alpha("toLocaleString")
-            )),
-            P.p(JSClass.CArray_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CArray_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("isArray"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CArray_prototype_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CArray_prototype_Obj, FHashSet.build(
                     Domains.Str.alpha("constructor"),
                     Domains.Str.alpha("concat"),
                     Domains.Str.alpha("every"),
@@ -332,19 +330,19 @@ public class Init {
                     Domains.Str.alpha("toLocaleString"),
                     Domains.Str.alpha("toString"),
                     Domains.Str.alpha("unshift")
-            )),
-            P.p(JSClass.CFunction_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CFunction_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CFunction_prototype_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CFunction_prototype_Obj, FHashSet.build(
                     Domains.Str.alpha("constructor"),
                     Domains.Str.alpha("apply"),
                     Domains.Str.alpha("call"),
                     Domains.Str.alpha("toString"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CMath_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CMath_Obj, FHashSet.build(
                     Domains.Str.alpha("E"),
                     Domains.Str.alpha("LN10"),
                     Domains.Str.alpha("LN2"),
@@ -371,8 +369,8 @@ public class Init {
                     Domains.Str.alpha("sin"),
                     Domains.Str.alpha("sqrt"),
                     Domains.Str.alpha("tan")
-            )),
-            P.p(JSClass.CNumber_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CNumber_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length"),
                     Domains.Str.alpha("MAX_VALUE"),
@@ -380,8 +378,8 @@ public class Init {
                     Domains.Str.alpha("NaN"),
                     Domains.Str.alpha("NEGATIVE_INFINITY"),
                     Domains.Str.alpha("POSITIVE_INFINITY")
-            )),
-            P.p(JSClass.CNumber_prototype_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CNumber_prototype_Obj, FHashSet.build(
                     Domains.Str.alpha("constructor"),
                     Domains.Str.alpha("toString"),
                     Domains.Str.alpha("toLocaleString"),
@@ -389,13 +387,13 @@ public class Init {
                     Domains.Str.alpha("toFixed"),
                     Domains.Str.alpha("toExponential"),
                     Domains.Str.alpha("toPrecision")
-            )),
-            P.p(JSClass.CString_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CString_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length"),
                     Domains.Str.alpha("fromCharCode")
-            )),
-            P.p(JSClass.CString_prototype_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CString_prototype_Obj, FHashSet.build(
                     Domains.Str.alpha("constructor"),
                     Domains.Str.alpha("charAt"),
                     Domains.Str.alpha("charCodeAt"),
@@ -417,27 +415,27 @@ public class Init {
                     Domains.Str.alpha("toUpperCase"),
                     Domains.Str.alpha("trim"),
                     Domains.Str.alpha("valueOf")
-            )));
+            ));
 
-    public static final TreeMap<JSClass, Set<Domains.Str>> nodelete = TreeMap.treeMap(Ord.<JSClass>hashEqualsOrd(),
-            P.p(JSClass.CFunction, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("length"), Domains.Str.alpha("prototype"))),
-            P.p(JSClass.CArray, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("length"))),
-            P.p(JSClass.CString, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("length"))),
-            P.p(JSClass.CRegexp, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("source"), Domains.Str.alpha("global"), Domains.Str.alpha("ignoreCase"), Domains.Str.alpha("multiline"), Domains.Str.alpha("lastIndex"))),
+    public static final FHashMap<JSClass, FHashSet<Domains.Str>> nodelete = FHashMap.build(
+            JSClass.CFunction, FHashSet.build(Domains.Str.alpha("length"), Domains.Str.alpha("prototype")),
+            JSClass.CArray, FHashSet.build(Domains.Str.alpha("length")),
+            JSClass.CString, FHashSet.build(Domains.Str.alpha("length")),
+            JSClass.CRegexp, FHashSet.build(Domains.Str.alpha("source"), Domains.Str.alpha("global"), Domains.Str.alpha("ignoreCase"), Domains.Str.alpha("multiline"), Domains.Str.alpha("lastIndex")),
             // Note that the prototypes do not typically have _any_ non-modifiable properties.
-            P.p(JSClass.CObject_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            JSClass.CObject_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CArray_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CArray_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CFunction_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CFunction_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CMath_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CMath_Obj, FHashSet.build(
                     Domains.Str.alpha("E"),
                     Domains.Str.alpha("LN10"),
                     Domains.Str.alpha("LN2"),
@@ -446,34 +444,34 @@ public class Init {
                     Domains.Str.alpha("PI"),
                     Domains.Str.alpha("SQRT1_2"),
                     Domains.Str.alpha("SQRT2")
-            )),
-            P.p(JSClass.CNumber_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CNumber_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CString_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CString_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )));
+            ));
 
-    public static final TreeMap<JSClass, Set<Domains.Str>> noupdate = TreeMap.treeMap(Ord.<JSClass>hashEqualsOrd(),
-            P.p(JSClass.CFunction, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("length"))),
-            P.p(JSClass.CString, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("length"))),
-            P.p(JSClass.CRegexp, Set.set(Ord.<Domains.Str>hashEqualsOrd(), Domains.Str.alpha("source"), Domains.Str.alpha("global"), Domains.Str.alpha("ignoreCase"), Domains.Str.alpha("multiline"))),
+    public static final FHashMap<JSClass, FHashSet<Domains.Str>> noupdate = FHashMap.build(
+            JSClass.CFunction, FHashSet.build(Domains.Str.alpha("length")),
+            JSClass.CString, FHashSet.build(Domains.Str.alpha("length")),
+            JSClass.CRegexp, FHashSet.build(Domains.Str.alpha("source"), Domains.Str.alpha("global"), Domains.Str.alpha("ignoreCase"), Domains.Str.alpha("multiline")),
             // Note that the prototypes do not typically have _any_ non-modifiable properties.
-            P.p(JSClass.CObject_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            JSClass.CObject_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CArray_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CArray_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CFunction_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CFunction_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CMath_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CMath_Obj, FHashSet.build(
                     Domains.Str.alpha("E"),
                     Domains.Str.alpha("LN10"),
                     Domains.Str.alpha("LN2"),
@@ -482,25 +480,25 @@ public class Init {
                     Domains.Str.alpha("PI"),
                     Domains.Str.alpha("SQRT1_2"),
                     Domains.Str.alpha("SQRT2")
-            )),
-            P.p(JSClass.CNumber_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CNumber_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )),
-            P.p(JSClass.CString_Obj, Set.set(Ord.<Domains.Str>hashEqualsOrd(),
+            ),
+            JSClass.CString_Obj, FHashSet.build(
                     Domains.Str.alpha("prototype"),
                     Domains.Str.alpha("length")
-            )));
+            ));
 
-    public static final TreeMap<Domains.AddressSpace.Address, JSClass> classFromAddress = TreeMap.treeMap(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(),
-            P.p(Function_Addr, JSClass.CFunction),
-            P.p(Array_Addr, JSClass.CArray),
-            P.p(String_Addr, JSClass.CString),
-            P.p(Boolean_Addr, JSClass.CBoolean),
-            P.p(Number_Addr, JSClass.CNumber),
-            P.p(Date_Addr, JSClass.CDate),
-            P.p(Error_Addr, JSClass.CError),
-            P.p(RegExp_Addr, JSClass.CRegexp),
-            P.p(Arguments_Addr, JSClass.CArguments));
+    public static final FHashMap<Domains.AddressSpace.Address, JSClass> classFromAddress = FHashMap.build(
+            Function_Addr, JSClass.CFunction,
+            Array_Addr, JSClass.CArray,
+            String_Addr, JSClass.CString,
+            Boolean_Addr, JSClass.CBoolean,
+            Number_Addr, JSClass.CNumber,
+            Date_Addr, JSClass.CDate,
+            Error_Addr, JSClass.CError,
+            RegExp_Addr, JSClass.CRegexp,
+            Arguments_Addr, JSClass.CArguments);
 
 }

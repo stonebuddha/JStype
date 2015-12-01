@@ -1,21 +1,24 @@
 package ir;
 
-import fj.Ord;
+import fj.Hash;
 import fj.P;
 import fj.P2;
 import fj.data.List;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRDecl extends IRStmt {
-    public List<P2<IRPVar, IRExp>> bind;
-    public IRStmt s;
+public final class IRDecl extends IRStmt {
+    public final List<P2<IRPVar, IRExp>> bind;
+    public final IRStmt s;
+    final int recordHash;
+    static final Hash<P2<List<P2<IRPVar, IRExp>>, IRStmt>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
     public IRDecl(List<P2<IRPVar, IRExp>> bind, IRStmt s) {
         this.bind = bind;
         this.s = s;
+        this.recordHash = hash.hash(P.p(bind, s));
     }
 
     @Override
@@ -25,7 +28,7 @@ public class IRDecl extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(bind, s).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -34,13 +37,13 @@ public class IRDecl extends IRStmt {
     }
 
     @Override
-    public Set<IRPVar> free() {
+    public FHashSet<IRPVar> free() {
         P2<List<IRPVar>, List<IRExp>> tmp = List.unzip(bind);
-        return s.free().minus(Set.set(Ord.hashEqualsOrd(), tmp._1())).union(tmp._2().map(exp -> exp.free()).foldLeft((a, b) -> a.union(b), Set.empty(Ord.hashEqualsOrd())));
+        return s.free().minus(FHashSet.build(tmp._1())).union(tmp._2().map(exp -> exp.free()).foldLeft((a, b) -> a.union(b), FHashSet.empty()));
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
         return s.escape(local);
     }
 

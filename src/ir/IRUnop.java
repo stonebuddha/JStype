@@ -1,19 +1,23 @@
 package ir;
 
+import fj.Hash;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRUnop extends IRExp {
-    public Uop op;
-    public IRExp e;
+public final class IRUnop extends IRExp {
+    public final Uop op;
+    public final IRExp e;
+    final int recordHash;
+    static final Hash<P2<Uop, IRExp>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
     public IRUnop(Uop op, IRExp e) {
         this.op = op;
         this.e = e;
+        this.recordHash = hash.hash(P.p(op, e));
     }
 
     @Override
@@ -23,11 +27,11 @@ public class IRUnop extends IRExp {
 
     @Override
     public int hashCode() {
-        return P.p(op, e).hashCode();
+        return recordHash;
     }
 
     @Override
-    public Set<IRPVar> free() {
+    public FHashSet<IRPVar> free() {
         return e.free();
     }
 

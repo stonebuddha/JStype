@@ -10,7 +10,7 @@ import ir.JSClass;
  */
 public class InitMath {
     public static Domains.Object Math_Obj = InitUtils.createObj(
-            FHashMap.map(
+            FHashMap.build(
                     new Domains.Str("E"), new Domains.Num(2.7182818284590452354),
                     new Domains.Str("LN10"), new Domains.Num(2.302585092994046),
                     new Domains.Str("LN2"), new Domains.Num(0.6931471805599453),
@@ -37,7 +37,7 @@ public class InitMath {
                     new Domains.Str("sin"), Init.Math_sin_Addr,
                     new Domains.Str("sqrt"), Init.Math_sqrt_Addr,
                     new Domains.Str("tan"), Init.Math_tan_Addr),
-            FHashMap.map(Utils.Fields.classname, JSClass.CMath_Obj)
+            FHashMap.build(Utils.Fields.classname, JSClass.CMath_Obj)
     );
 
     public static Domains.Object Math_abs_Obj = InitUtils.makeMath(Math::abs);

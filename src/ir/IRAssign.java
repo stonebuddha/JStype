@@ -1,20 +1,23 @@
 package ir;
 
-import fj.Ord;
+import fj.Hash;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRAssign extends IRStmt {
-    public IRVar x;
-    public IRExp e;
+public final class IRAssign extends IRStmt {
+    public final IRVar x;
+    public final IRExp e;
+    final int recordHash;
+    static final Hash<P2<IRVar, IRExp>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
     public IRAssign(IRVar x, IRExp e) {
         this.x = x;
         this.e = e;
+        this.recordHash = hash.hash(P.p(x, e));
     }
 
     @Override
@@ -24,7 +27,7 @@ public class IRAssign extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(x, e).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -33,8 +36,8 @@ public class IRAssign extends IRStmt {
     }
 
     @Override
-    public Set<IRPVar> free() {
-        Set<IRPVar> _e = e.free();
+    public FHashSet<IRPVar> free() {
+        FHashSet<IRPVar> _e = e.free();
         if (x instanceof IRPVar) {
             return _e.insert((IRPVar)x);
         } else {
@@ -43,8 +46,8 @@ public class IRAssign extends IRStmt {
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
-        return P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd));
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
+        return P.p(FHashSet.empty(), FHashSet.empty());
     }
 
     @Override

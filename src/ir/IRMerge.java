@@ -1,15 +1,19 @@
 package ir;
 
-import fj.Ord;
 import fj.P;
 import fj.P2;
-import fj.Unit;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRMerge extends IRStmt {
+public final class IRMerge extends IRStmt {
+    final int recordHash;
+
+    public IRMerge() {
+        this.recordHash = 0;
+    }
+
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRMerge);
@@ -17,7 +21,7 @@ public class IRMerge extends IRStmt {
 
     @Override
     public int hashCode() {
-        return Unit.unit().hashCode();
+        return recordHash;
     }
 
     @Override
@@ -26,13 +30,13 @@ public class IRMerge extends IRStmt {
     }
 
     @Override
-    public Set<IRPVar> free() {
-        return Set.empty(Ord.hashEqualsOrd());
+    public FHashSet<IRPVar> free() {
+        return FHashSet.empty();
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
-        return P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd));
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
+        return P.p(FHashSet.empty(), FHashSet.empty());
     }
 
     @Override

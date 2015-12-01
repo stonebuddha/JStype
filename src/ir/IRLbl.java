@@ -1,19 +1,24 @@
 package ir;
 
+import fj.Hash;
 import fj.P;
 import fj.P2;
 import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRLbl extends IRStmt {
-    public String lbl;
-    public IRStmt s;
+public final class IRLbl extends IRStmt {
+    public final String lbl;
+    public final IRStmt s;
+    final int recordHash;
+    static final Hash<P2<String, IRStmt>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
     public IRLbl(String lbl, IRStmt s) {
         this.lbl = lbl;
         this.s = s;
+        this.recordHash = hash.hash(P.p(lbl, s));
     }
 
     @Override
@@ -23,7 +28,7 @@ public class IRLbl extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(lbl, s).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -32,12 +37,12 @@ public class IRLbl extends IRStmt {
     }
 
     @Override
-    public Set<IRPVar> free() {
+    public FHashSet<IRPVar> free() {
         return s.free();
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
         return s.escape(local);
     }
 

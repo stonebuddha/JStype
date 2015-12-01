@@ -175,10 +175,10 @@ public class Init {
 
     public static Interpreter.State initState(IRStmt s) {
         Domains.Env env = new Domains.Env(
-                FHashMap.map(window_Variable, window_binding_Addr));
+                FHashMap.build(window_Variable, window_binding_Addr));
         Domains.Store store = new Domains.Store(
-                FHashMap.map(window_binding_Addr, window_Addr),
-                FHashMap.map(
+                FHashMap.build(window_binding_Addr, window_Addr),
+                FHashMap.build(
                         window_Addr, InitGlobal.window_Obj,
                         decodeURI_Addr, InitGlobal.decodeURI_Obj,
                         decodeURIComponent_Addr, InitGlobal.decodeURIComponent_Obj,
@@ -317,17 +317,17 @@ public class Init {
                 new Domains.KontStack(List.list(Domains.HaltKont)));
     }
 
-    public static final FHashMap<JSClass, FHashSet<Domains.Str>> noenum = FHashMap.map(
-            JSClass.CFunction, FHashSet.set(new Domains.Str("length")),
-            JSClass.CArray, FHashSet.set(new Domains.Str("length")),
-            JSClass.CString, FHashSet.set(new Domains.Str("length")),
-            JSClass.CArguments, FHashSet.set(new Domains.Str("length")),
-            JSClass.CRegexp, FHashSet.set(new Domains.Str("source"),
+    public static final FHashMap<JSClass, FHashSet<Domains.Str>> noenum = FHashMap.build(
+            JSClass.CFunction, FHashSet.build(new Domains.Str("length")),
+            JSClass.CArray, FHashSet.build(new Domains.Str("length")),
+            JSClass.CString, FHashSet.build(new Domains.Str("length")),
+            JSClass.CArguments, FHashSet.build(new Domains.Str("length")),
+            JSClass.CRegexp, FHashSet.build(new Domains.Str("source"),
                     new Domains.Str("global"),
                     new Domains.Str("ignoreCase"),
                     new Domains.Str("multiline"),
                     new Domains.Str("lastIndex")),
-            JSClass.CObject_Obj, FHashSet.set(
+            JSClass.CObject_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("create"),
                     new Domains.Str("defineProperties"),
@@ -344,7 +344,7 @@ public class Init {
                     new Domains.Str("preventExtensions"),
                     new Domains.Str("seal")
             ),
-            JSClass.CObject_prototype_Obj, FHashSet.set(
+            JSClass.CObject_prototype_Obj, FHashSet.build(
                     new Domains.Str("constructor"),
                     new Domains.Str("valueOf"),
                     new Domains.Str("toString"),
@@ -353,12 +353,12 @@ public class Init {
                     new Domains.Str("hasOwnProperty"),
                     new Domains.Str("toLocaleString")
             ),
-            JSClass.CArray_Obj, FHashSet.set(
+            JSClass.CArray_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("isArray"),
                     new Domains.Str("length")
             ),
-            JSClass.CArray_prototype_Obj, FHashSet.set(
+            JSClass.CArray_prototype_Obj, FHashSet.build(
                     new Domains.Str("constructor"),
                     new Domains.Str("concat"),
                     new Domains.Str("every"),
@@ -382,18 +382,18 @@ public class Init {
                     new Domains.Str("toString"),
                     new Domains.Str("unshift")
             ),
-            JSClass.CFunction_Obj, FHashSet.set(
+            JSClass.CFunction_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ),
-            JSClass.CFunction_prototype_Obj, FHashSet.set(
+            JSClass.CFunction_prototype_Obj, FHashSet.build(
                     new Domains.Str("constructor"),
                     new Domains.Str("apply"),
                     new Domains.Str("call"),
                     new Domains.Str("toString"),
                     new Domains.Str("length")
             ),
-            JSClass.CMath_Obj, FHashSet.set(
+            JSClass.CMath_Obj, FHashSet.build(
                     new Domains.Str("E"),
                     new Domains.Str("LN10"),
                     new Domains.Str("LN2"),
@@ -421,7 +421,7 @@ public class Init {
                     new Domains.Str("sqrt"),
                     new Domains.Str("tan")
             ),
-            JSClass.CNumber_Obj, FHashSet.set(
+            JSClass.CNumber_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length"),
                     new Domains.Str("MAX_VALUE"),
@@ -430,7 +430,7 @@ public class Init {
                     new Domains.Str("NEGATIVE_INFINITY"),
                     new Domains.Str("POSITIVE_INFINITY")
             ),
-            JSClass.CNumber_prototype_Obj, FHashSet.set(
+            JSClass.CNumber_prototype_Obj, FHashSet.build(
                     new Domains.Str("constructor"),
                     new Domains.Str("toString"),
                     new Domains.Str("toLocaleString"),
@@ -439,12 +439,12 @@ public class Init {
                     new Domains.Str("toExponential"),
                     new Domains.Str("toPrecision")
             ),
-            JSClass.CString_Obj, FHashSet.set(
+            JSClass.CString_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length"),
                     new Domains.Str("fromCharCode")
             ),
-            JSClass.CString_prototype_Obj, FHashSet.set(
+            JSClass.CString_prototype_Obj, FHashSet.build(
                     new Domains.Str("constructor"),
                     new Domains.Str("charAt"),
                     new Domains.Str("charCodeAt"),
@@ -469,29 +469,29 @@ public class Init {
             )
     );
 
-    public static final FHashMap<JSClass, FHashSet<Domains.Str>> nodelete = FHashMap.map(
-            JSClass.CFunction, FHashSet.set(new Domains.Str("length"), new Domains.Str("prototype")),
-            JSClass.CArray, FHashSet.set(new Domains.Str("length")),
-            JSClass.CString, FHashSet.set(new Domains.Str("length")),
-            JSClass.CRegexp, FHashSet.set(
+    public static final FHashMap<JSClass, FHashSet<Domains.Str>> nodelete = FHashMap.build(
+            JSClass.CFunction, FHashSet.build(new Domains.Str("length"), new Domains.Str("prototype")),
+            JSClass.CArray, FHashSet.build(new Domains.Str("length")),
+            JSClass.CString, FHashSet.build(new Domains.Str("length")),
+            JSClass.CRegexp, FHashSet.build(
                     new Domains.Str("source"),
                     new Domains.Str("global"),
                     new Domains.Str("ignoreCase"),
                     new Domains.Str("multiline"),
                     new Domains.Str("lastIndex")),
-            JSClass.CObject_Obj, FHashSet.set(
+            JSClass.CObject_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ),
-            JSClass.CArray_Obj, FHashSet.set(
+            JSClass.CArray_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ),
-            JSClass.CFunction_Obj, FHashSet.set(
+            JSClass.CFunction_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ),
-            JSClass.CMath_Obj, FHashSet.set(
+            JSClass.CMath_Obj, FHashSet.build(
                     new Domains.Str("E"),
                     new Domains.Str("LN10"),
                     new Domains.Str("LN2"),
@@ -501,37 +501,37 @@ public class Init {
                     new Domains.Str("SQRT1_2"),
                     new Domains.Str("SQRT2")
             ),
-            JSClass.CNumber_Obj, FHashSet.set(
+            JSClass.CNumber_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ),
-            JSClass.CString_Obj, FHashSet.set(
+            JSClass.CString_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )
     );
 
-    public static final FHashMap<JSClass, FHashSet<Domains.Str>> noupdate = FHashMap.map(
-            JSClass.CFunction, FHashSet.set(new Domains.Str("length")),
-            JSClass.CString, FHashSet.set(new Domains.Str("length")),
-            JSClass.CRegexp, FHashSet.set(
+    public static final FHashMap<JSClass, FHashSet<Domains.Str>> noupdate = FHashMap.build(
+            JSClass.CFunction, FHashSet.build(new Domains.Str("length")),
+            JSClass.CString, FHashSet.build(new Domains.Str("length")),
+            JSClass.CRegexp, FHashSet.build(
                     new Domains.Str("source"),
                     new Domains.Str("global"),
                     new Domains.Str("ignoreCase"),
                     new Domains.Str("multiline")),
-            JSClass.CObject_Obj, FHashSet.set(
+            JSClass.CObject_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ),
-            JSClass.CArray_Obj, FHashSet.set(
+            JSClass.CArray_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ),
-            JSClass.CFunction_Obj, FHashSet.set(
+            JSClass.CFunction_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ),
-            JSClass.CMath_Obj, FHashSet.set(
+            JSClass.CMath_Obj, FHashSet.build(
                     new Domains.Str("E"),
                     new Domains.Str("LN10"),
                     new Domains.Str("LN2"),
@@ -541,17 +541,17 @@ public class Init {
                     new Domains.Str("SQRT1_2"),
                     new Domains.Str("SQRT2")
             ),
-            JSClass.CNumber_Obj, FHashSet.set(
+            JSClass.CNumber_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             ),
-            JSClass.CString_Obj, FHashSet.set(
+            JSClass.CString_Obj, FHashSet.build(
                     new Domains.Str("prototype"),
                     new Domains.Str("length")
             )
     );
 
-    public static final FHashMap<Domains.Address, JSClass> classFromAddress = FHashMap.map(
+    public static final FHashMap<Domains.Address, JSClass> classFromAddress = FHashMap.build(
             Function_Addr, JSClass.CFunction,
             Array_Addr, JSClass.CArray,
             String_Addr, JSClass.CString,

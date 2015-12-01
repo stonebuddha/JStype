@@ -15,19 +15,19 @@ public class InitFunction {
     public static Domains.Object Function_Obj = InitUtils.createFunctionObject(
             new concrete.Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
                 throw new RuntimeException("Won't implement: Function() is eval()");
-            }), FHashMap.map(
+            }), FHashMap.build(
                     new concrete.Domains.Str("prototype"), Init.Function_prototype_Addr,
                     new concrete.Domains.Str("length"), new concrete.Domains.Num(1.0)),
             JSClass.CFunction_Obj);
 
     public static Domains.Object Function_prototype_Obj = new Domains.Object(
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.constructor, Init.Function_Addr,
                     new Domains.Str("apply"), Init.Function_prototype_apply_Addr,
                     new Domains.Str("call"), Init.Function_prototype_call_Addr,
                     new Domains.Str("toString"), Init.Function_prototype_toString_Addr,
                     Utils.Fields.length, new Domains.Num(0.0)),
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.proto, Init.Object_prototype_Addr,
                     Utils.Fields.classname, JSClass.CFunction_prototype_Obj,
                     Utils.Fields.code, new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
@@ -40,7 +40,7 @@ public class InitFunction {
                 Option<FHashMap<Domains.Str, Domains.BValue>> external;
                 Option<Domains.BValue> tmp = argsObj.apply(new Domains.Str("1"));
                 if (tmp.isNone() || tmp.some().equals(Domains.Undef)|| tmp.some().equals(Domains.Null)) {
-                    external = Option.some(FHashMap.map(Utils.Fields.length, new Domains.Num(0.0)));
+                    external = Option.some(FHashMap.build(Utils.Fields.length, new Domains.Num(0.0)));
                 } else if (tmp.some() instanceof Domains.Address) {
                     Domains.Address a = (Domains.Address)tmp.some();
                     Domains.Object passedArgsObj = store.getObj(a);
@@ -54,7 +54,7 @@ public class InitFunction {
                         }
                         external = Option.some(List.range(0, (int)arglen).foldLeft(
                                 (m, i) -> m.set(new Domains.Str(i.toString()), passedArgsObj.apply(new Domains.Str(i.toString())).some()),
-                                FHashMap.map(Utils.Fields.length, new Domains.Num(arglen))
+                                FHashMap.build(Utils.Fields.length, new Domains.Num(arglen))
                         ));
                     } else {
                         external = Option.none();
@@ -68,7 +68,7 @@ public class InitFunction {
                     FHashMap<Domains.Str, Domains.BValue> extm = external.some();
                     Domains.Address newArgsAddr = Domains.Address.generate();
                     Domains.Object newObj = InitUtils.createObj(extm,
-                            FHashMap.map(
+                            FHashMap.build(
                                     Utils.Fields.proto, Init.Object_prototype_Addr,
                                     Utils.Fields.classname, JSClass.CArguments));
                     Domains.Value newThisAddress;
@@ -87,7 +87,7 @@ public class InitFunction {
                     Domains.Store store2 = store1.putObj(newArgsAddr, newObj);
                     return Utils.applyClo(selfAddr, (Domains.Address)newThisAddress, newArgsAddr, x, env, store2, pad, ks);
                 }
-            }), FHashMap.map(Utils.Fields.length, new Domains.Num(2.0))
+            }), FHashMap.build(Utils.Fields.length, new Domains.Num(2.0))
     );
 
     public static Domains.Object Function_prototype_call_Obj = InitUtils.createFunctionObject(
@@ -119,16 +119,16 @@ public class InitFunction {
                             int j = i - 1;
                             return m.set(new Domains.Str(String.valueOf(j)), argsObj.apply(new Domains.Str(i.toString())).some());
                         },
-                        FHashMap.map(Utils.Fields.length, new Domains.Num(arglen - 1))
+                        FHashMap.build(Utils.Fields.length, new Domains.Num(arglen - 1))
                 );
                 Domains.Address newArgsAddr = Domains.Address.generate();
                 Domains.Object newObj = InitUtils.createObj(external,
-                        FHashMap.map(
+                        FHashMap.build(
                                 Utils.Fields.proto, Init.Object_prototype_Addr,
                                 Utils.Fields.classname, JSClass.CArguments));
                 Domains.Store store2 = store1.putObj(newArgsAddr, newObj);
                 return Utils.applyClo(selfAddr, (Domains.Address)newThisAddress, newArgsAddr, x, env, store2, pad, ks);
-            }), FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
+            }), FHashMap.build(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Function_prototype_toString_Obj = InitUtils.unimplemented;

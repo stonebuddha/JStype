@@ -1,21 +1,26 @@
 package ir;
 
+import fj.Hash;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import fj.P3;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRFor extends IRStmt {
-    public IRVar x;
-    public IRExp e;
-    public IRStmt s;
+public final class IRFor extends IRStmt {
+    public final IRVar x;
+    public final IRExp e;
+    public final IRStmt s;
+    final int recordHash;
+    static final Hash<P3<IRVar, IRExp, IRStmt>> hash = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
     public IRFor(IRVar x, IRExp e, IRStmt s) {
         this.x = x;
         this.e = e;
         this.s = s;
+        this.recordHash = hash.hash(P.p(x, e, s));
     }
 
     @Override
@@ -25,7 +30,7 @@ public class IRFor extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(x, e, s).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -34,8 +39,8 @@ public class IRFor extends IRStmt {
     }
 
     @Override
-    public Set<IRPVar> free() {
-        Set<IRPVar> tmp = e.free().union(s.free());
+    public FHashSet<IRPVar> free() {
+        FHashSet<IRPVar> tmp = e.free().union(s.free());
         if (x instanceof IRPVar) {
             return tmp.insert((IRPVar)x);
         } else {
@@ -44,7 +49,7 @@ public class IRFor extends IRStmt {
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
         return s.escape(local);
     }
 

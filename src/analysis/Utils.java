@@ -2,14 +2,12 @@ package analysis;
 
 import fj.*;
 import fj.data.Option;
-import fj.data.Set;
-import fj.data.*;
+import fj.data.List;
+import immutable.FHashMap;
+import immutable.FHashSet;
 import ir.*;
 import analysis.init.Init;
 import analysis.Traces.Trace;
-import sun.text.resources.cldr.en.FormatData_en_IE;
-
-import java.util.Map;
 
 /**
  * Created by wayne on 15/11/2.
@@ -53,28 +51,28 @@ public class Utils {
     }
 
     public static Domains.Store allocFun(Domains.Closure clo, Domains.BValue n, Domains.AddressSpace.Address a, Domains.Store store) {
-        TreeMap<Domains.Str, java.lang.Object> intern = TreeMap.treeMap(Ord.hashEqualsOrd(),
-                P.p(Fields.proto, Domains.AddressSpace.Address.inject(Init.Function_prototype_Addr)),
-                P.p(Fields.classname, JSClass.CFunction),
-                P.p(Fields.code, Set.single(Ord.hashEqualsOrd(), clo))
+        FHashMap<Domains.Str, Object> intern = FHashMap.build(
+                Fields.proto, Domains.AddressSpace.Address.inject(Init.Function_prototype_Addr),
+                Fields.classname, JSClass.CFunction,
+                Fields.code, FHashSet.build(clo)
         );
         Domains.ExternMap extern = new Domains.ExternMap().strongUpdate(Fields.length, n);
-        return store.alloc(a, new Domains.Object(extern, intern, Set.single(Ord.<Domains.Str>hashEqualsOrd(), Fields.length)));
+        return store.alloc(a, new Domains.Object(extern, intern, FHashSet.build(Fields.length)));
     }
 
     public static P2<Domains.Store, Domains.BValue> allocObj(Domains.BValue bv, Domains.AddressSpace.Address a, Domains.Store store, Trace trace) {
-        TreeMap<JSClass, Set<Domains.AddressSpace.Address>> class1 = TreeMap.empty(Ord.<JSClass>hashEqualsOrd());
+        FHashMap<JSClass, FHashSet<Domains.AddressSpace.Address>> class1 = FHashMap.empty();
         for (Domains.AddressSpace.Address add : bv.as) {
             JSClass addClass = Init.classFromAddress.get(add).orSome(JSClass.CObject);
             if (class1.contains(addClass)) {
                 class1 = class1.set(addClass, class1.get(addClass).some().insert(add));
             }
             else {
-                class1 = class1.set(addClass, Set.single(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), add));
+                class1 = class1.set(addClass, FHashSet.build(add));
             }
         }
 
-        TreeMap<JSClass, Set<Domains.AddressSpace.Address>> classes;
+        FHashMap<JSClass, FHashSet<Domains.AddressSpace.Address>> classes;
         if (bv.defAddr()) {
             classes = class1;
         }
@@ -84,18 +82,18 @@ public class Utils {
                 classes = classes.set(JSClass.CObject, classes.get(JSClass.CObject).some().insert(Init.Object_prototype_Addr));
             }
             else {
-                classes = classes.set(JSClass.CObject, Set.single(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), Init.Object_prototype_Addr));
+                classes = classes.set(JSClass.CObject, FHashSet.build(Init.Object_prototype_Addr));
             }
         }
 
-        TreeMap<JSClass, Domains.AddressSpace.Address> addrs = TreeMap.empty(Ord.<JSClass>hashEqualsOrd());
+        FHashMap<JSClass, Domains.AddressSpace.Address> addrs = FHashMap.empty();
         for (JSClass key : classes.keys()) {
             addrs = addrs.set(key, trace.modAddr(a, key));
         }
 
-        TreeMap<JSClass, Domains.BValue> pas = classes.map(
+        FHashMap<JSClass, Domains.BValue> pas = classes.map(
                 as -> {
-                    Set<Domains.AddressSpace.Address> acc = Domains.AddressSpace.Addresses.apply();
+                    FHashSet<Domains.AddressSpace.Address> acc = Domains.AddressSpace.Addresses.apply();
                     for (Domains.AddressSpace.Address add : as) {
                         Option<Domains.BValue> proto = store.getObj(add).apply(Fields.prototype);
                         if (proto.isSome()) {
@@ -115,25 +113,25 @@ public class Utils {
                 }
         );
 
-        TreeMap<JSClass, TreeMap<Domains.Str, java.lang.Object>> intern = TreeMap.empty(Ord.<JSClass>hashEqualsOrd());
+        FHashMap<JSClass, FHashMap<Domains.Str, Object>> intern = FHashMap.empty();
         for (JSClass key : classes.keys()) {
-            intern = intern.set(key, TreeMap.treeMap(Ord.<Domains.Str>hashEqualsOrd(),
-                    P.p(Fields.proto, pas.get(key).some()),
-                    P.p(Fields.classname, key)));
+            intern = intern.set(key, FHashMap.build(
+                    Fields.proto, pas.get(key).some(),
+                    Fields.classname, key));
         }
 
         Domains.Store store1 = store;
         for (JSClass key : classes.keys()) {
-            Domains.Object o = new Domains.Object(new Domains.ExternMap(), intern.get(key).some(), Set.empty(Ord.<Domains.Str>hashEqualsOrd()));
+            Domains.Object o = new Domains.Object(new Domains.ExternMap(), intern.get(key).some(), FHashSet.empty());
             store1 = store1.alloc(addrs.get(key).some(), o);
         }
 
-        Domains.BValue bv1 = Domains.AddressSpace.Addresses.inject(Set.set(Ord.<Domains.AddressSpace.Address>hashEqualsOrd(), addrs.values()));
+        Domains.BValue bv1 = Domains.AddressSpace.Addresses.inject(FHashSet.build(addrs.values()));
 
         return P.p(store1, bv1);
     }
 
-    public static Set<Interpreter.State> applyClo(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
+    public static FHashSet<Interpreter.State> applyClo(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
         if (Interpreter.Mutable.splitStates) {
             return applyCloWithSplits(bv1, bv2, bv3, x, env, store, pad, ks, trace);
         }
@@ -141,7 +139,7 @@ public class Utils {
         assert bv2as.defAddr() && bv3.defAddr() && bv3.as.size() == 1;
         Boolean isctor = store.getObj(bv3.as.iterator().next()).calledAsCtor();
 
-        Set<Domains.AddressSpace.Address> oas;
+        FHashSet<Domains.AddressSpace.Address> oas;
         if (Interpreter.Mutable.pruneStore) {
             oas = bv2.as.union(bv3.as).union(Init.keepInStore);
         }
@@ -149,13 +147,13 @@ public class Utils {
             oas = Domains.AddressSpace.Addresses.apply();
         }
 
-        TreeMap<Set<Domains.AddressSpace.Address>, Domains.Store> memo = TreeMap.empty(Ord.<Set<Domains.AddressSpace.Address>>hashEqualsOrd());
+        FHashMap<FHashSet<Domains.AddressSpace.Address>, Domains.Store> memo = FHashMap.empty();
 
-        Set<Interpreter.State> sigmas = Set.empty(Ord.<Interpreter.State>hashEqualsOrd());
+        FHashSet<Interpreter.State> sigmas = FHashSet.empty();
         Boolean nonfun = false;
 
         for (Domains.AddressSpace.Address a : bv1.as) {
-            Set<Domains.Closure> clos = store.getObj(a).getCode();
+            FHashSet<Domains.Closure> clos = store.getObj(a).getCode();
             if (clos.size() > 0) {
                 for (Domains.Closure clo : clos) {
                     if (clo instanceof Domains.Clo) {
@@ -166,7 +164,7 @@ public class Utils {
                         IRStmt s = ((Domains.Clo) clo).m.s;
 
                         if (Interpreter.Mutable.pruneStore) {
-                            Set<Domains.AddressSpace.Address> vas = envc.addrs();
+                            FHashSet<Domains.AddressSpace.Address> vas = envc.addrs();
                             Domains.Store reach_store;
                             Option<Domains.Store> storeOption = memo.get(vas);
                             if (storeOption.isNone()) {
@@ -220,7 +218,7 @@ public class Utils {
                 throw new RuntimeException("translator reneged");
             }
 
-            Set<Domains.AddressSpace.Address> as;
+            FHashSet<Domains.AddressSpace.Address> as;
             if (x instanceof IRPVar) {
                 as = env.apply((IRPVar) x).some();
             }
@@ -238,12 +236,12 @@ public class Utils {
         return sigmas;
     }
 
-    public static Set<Interpreter.State> applyCloWithSplits(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
+    public static FHashSet<Interpreter.State> applyCloWithSplits(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
         Domains.BValue bv2as = Domains.AddressSpace.Addresses.inject(bv2.as);
         assert bv2as.defAddr() && bv3.defAddr() && bv3.as.size() == 1;
         boolean isctor = store.getObj(bv3.as.iterator().next()).calledAsCtor();
 
-        Set<Domains.AddressSpace.Address> oas;
+        FHashSet<Domains.AddressSpace.Address> oas;
         if (Interpreter.Mutable.pruneStore) {
             oas = bv2.as.union(bv3.as).union(Init.keepInStore);
         }
@@ -251,13 +249,13 @@ public class Utils {
             oas = Domains.AddressSpace.Addresses.apply();
         }
 
-        TreeMap<Set<Domains.AddressSpace.Address>, Domains.Store> memo = TreeMap.empty(Ord.<Set<Domains.AddressSpace.Address>>hashEqualsOrd());
+        FHashMap<FHashSet<Domains.AddressSpace.Address>, Domains.Store> memo = FHashMap.empty();
 
-        Set<Interpreter.State> sigmas = Set.empty(Ord.<Interpreter.State>hashEqualsOrd());
+        FHashSet<Interpreter.State> sigmas = FHashSet.empty();
         boolean nonfun = false;
 
         for (Domains.AddressSpace.Address a : bv1.as) {
-            Set<Domains.Closure> clos = store.getObj(a).getCode();
+            FHashSet<Domains.Closure> clos = store.getObj(a).getCode();
             if (clos.size() > 0) {
                 for (Domains.Closure clo : clos) {
                     if (clo instanceof Domains.Clo) {
@@ -267,7 +265,7 @@ public class Utils {
                         IRPVar args = ((Domains.Clo) clo).m.args;
                         IRStmt s = ((Domains.Clo) clo).m.s;
                         if (Interpreter.Mutable.pruneStore) {
-                            Set<Domains.AddressSpace.Address> vas = envc.addrs();
+                            FHashSet<Domains.AddressSpace.Address> vas = envc.addrs();
                             Domains.Store reach_store;
                             Option<Domains.Store> storeOption = memo.get(vas);
                             if (storeOption.isNone()) {
@@ -279,7 +277,7 @@ public class Utils {
                             else {
                                 reach_store = storeOption.some();
                             }
-                            sigmas = bv2.as.map(Ord.<Interpreter.State>hashEqualsOrd(),
+                            sigmas = FHashSet.build(bv2.as.map(
                                     selfAddr -> {
                                         Domains.BValue selfBV = Domains.AddressSpace.Address.inject(selfAddr);
                                         Trace trace1 = trace.update(envc, store, selfBV, bv3, s);
@@ -290,10 +288,10 @@ public class Utils {
                                         Domains.Env envc1 = envc.extendAll(List.list(self, args).zip(as));
                                         Integer exc = ks.exc.head() != 0 ? 1 : 0;
                                         return new Interpreter.State(new Domains.StmtTerm(s), envc1, rstore2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1);
-                                    });
+                                    }));
                         }
                         else {
-                            sigmas = bv2.as.map(Ord.<Interpreter.State>hashEqualsOrd(),
+                            sigmas = FHashSet.build(bv2.as.map(
                                     selfAddr -> {
                                         Domains.BValue selfBV = Domains.AddressSpace.Address.inject(selfAddr);
                                         Trace trace1 = trace.update(envc, store, selfBV, bv3, s);
@@ -305,11 +303,11 @@ public class Utils {
                                         Integer exc = ks.exc.head() != 0 ? 1 : 0;
                                         Interpreter.PruneScratch.update(trace, pad);
                                         return new Interpreter.State(new Domains.StmtTerm(s), envc1, store2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1);
-                                    });
+                                    }));
                         }
                     }
                     else if (clo instanceof Domains.Native) {
-                        sigmas = bv2.as.bind(Ord.<Interpreter.State>hashEqualsOrd(),
+                        sigmas = bv2.as.bind(
                                 selfAddr -> ((Domains.Native) clo).f.f(Domains.AddressSpace.Address.inject(selfAddr), bv3, x, env, store, pad, ks, trace)
                                 );
                     }
@@ -329,7 +327,7 @@ public class Utils {
                 throw new RuntimeException("translator reneged");
             }
 
-            Set<Domains.AddressSpace.Address> as;
+            FHashSet<Domains.AddressSpace.Address> as;
             if (x instanceof IRPVar) {
                 as = env.apply((IRPVar) x).some();
             }
@@ -356,13 +354,13 @@ public class Utils {
             Domains.Object o = store.getObj(a);
             Boolean dp, da;
             if (defPresent) {
-                dp = o.defField(bv2.str) && !(Init.nodelete.get(o.getJSClass()).orSome(Set.empty(Ord.<Domains.Str>hashEqualsOrd())).member(bv2.str));
+                dp = o.defField(bv2.str) && !(Init.nodelete.get(o.getJSClass()).orSome(FHashSet.empty()).member(bv2.str));
             }
             else {
                 dp = false;
             }
             if (defAbsent && !dp) {
-                da = o.defNotField(bv2.str) || (Init.nodelete.get(o.getJSClass()).orSome(Set.empty(Ord.<Domains.Str>hashEqualsOrd())).member(bv2.str));
+                da = o.defNotField(bv2.str) || (Init.nodelete.get(o.getJSClass()).orSome(FHashSet.empty()).member(bv2.str));
             }
             else {
                 da = false;
@@ -412,7 +410,7 @@ public class Utils {
         return P.p(noexc, exc);
     }
 
-    public static Domains.BValue lookup(Set<Domains.AddressSpace.Address> as, Domains.Str str, Domains.Store store) {
+    public static Domains.BValue lookup(FHashSet<Domains.AddressSpace.Address> as, Domains.Str str, Domains.Store store) {
         Domains.BValue bv = Domains.BValue.Bot;
         for (Domains.AddressSpace.Address a : as) {
             bv = bv.merge(look(store.getObj(a), str, store));
@@ -422,26 +420,26 @@ public class Utils {
 
     private static Domains.BValue look(Domains.Object o, Domains.Str str, Domains.Store store) {
         Option<Domains.BValue> localBV = o.apply(str);
-        Set<Domains.BValue> local, chain, fin;
+        FHashSet<Domains.BValue> local, chain, fin;
         if (localBV.isSome()) {
-            local = Set.single(Ord.<Domains.BValue>hashEqualsOrd(), localBV.some());
+            local = FHashSet.build(localBV.some());
         }
         else {
-            local = Set.empty(Ord.<Domains.BValue>hashEqualsOrd());
+            local = FHashSet.empty();
         }
 
         if (!o.defField(str)) {
-            chain = o.getProto().as.map(Ord.<Domains.BValue>hashEqualsOrd(), a -> look(store.getObj(a), str, store));
+            chain = o.getProto().as.map(a -> look(store.getObj(a), str, store));
         }
         else {
-            chain = Set.empty(Ord.<Domains.BValue>hashEqualsOrd());
+            chain = FHashSet.empty();
         }
 
         if (!o.defField(str) && o.getProto().nil.equals(Domains.Null.Top)) {
-            fin = Set.single(Ord.<Domains.BValue>hashEqualsOrd(), Domains.Undef.BV);
+            fin = FHashSet.build(Domains.Undef.BV);
         }
         else {
-            fin = Set.empty(Ord.<Domains.BValue>hashEqualsOrd());
+            fin = FHashSet.empty();
         }
         Domains.BValue bv = Domains.BValue.Bot;
         for (Domains.BValue v : local.union(chain).union(fin)) {
@@ -450,19 +448,19 @@ public class Utils {
         return bv;
     }
 
-    public static Set<Domains.Str> objAllKeys(Domains.BValue bv, Domains.Store store) {
-        Set<Domains.Str> keys = Set.empty(Ord.<Domains.Str>hashEqualsOrd());
+    public static FHashSet<Domains.Str> objAllKeys(Domains.BValue bv, Domains.Store store) {
+        FHashSet<Domains.Str> keys = FHashSet.empty();
         for (Domains.AddressSpace.Address a : bv.as) {
-            keys.union(recur(a, store));
+            keys = keys.union(recur(a, store));
         }
         return keys;
     }
 
-    private static Set<Domains.Str> recur(Domains.AddressSpace.Address addr, Domains.Store store) {
+    private static FHashSet<Domains.Str> recur(Domains.AddressSpace.Address addr, Domains.Store store) {
         Domains.Object o = store.getObj(addr);
-        Set<Domains.Str> ret = Set.empty(Ord.<Domains.Str>hashEqualsOrd());
+        FHashSet<Domains.Str> ret = FHashSet.empty();
         for (Domains.AddressSpace.Address a : o.getProto().as) {
-            ret.union(recur(a, store));
+            ret = ret.union(recur(a, store));
         }
         return ret;
     }
@@ -474,8 +472,8 @@ public class Utils {
         return store.putObjStrong(bv.as.iterator().next(), o1);
     }
 
-    public static P3<Domains.BValue, Domains.Store, Set<Domains.Domain>> toObjBody(Domains.BValue bv, Domains.Store store, Trace trace, Domains.AddressSpace.Address a) {
-        Set<Domains.Domain> sorts = bv.sorts.intersect(Set.set(Ord.<Domains.Domain>hashEqualsOrd(), Domains.DAddr, Domains.DNum, Domains.DBool, Domains.DStr));
+    public static P3<Domains.BValue, Domains.Store, FHashSet<Domains.Domain>> toObjBody(Domains.BValue bv, Domains.Store store, Trace trace, Domains.AddressSpace.Address a) {
+        FHashSet<Domains.Domain> sorts = bv.sorts.intersect(FHashSet.build(Domains.DAddr, Domains.DNum, Domains.DBool, Domains.DStr));
 
         Domains.BValue bv1 = Domains.BValue.Bot;
         Domains.Store store1 = store;
@@ -522,7 +520,7 @@ public class Utils {
                     extern = o.extern.weakUpdate(Fields.length, Domains.Num.inject(Domains.NReal)).
                             weakUpdate(Domains.SNum, Domains.Str.inject(Domains.Str.SingleChar));
                 }
-                TreeMap<Domains.Str, Object> intern1 = o.intern.set(Fields.value, bv.onlyStr());
+                FHashMap<Domains.Str, Object> intern1 = o.intern.set(Fields.value, bv.onlyStr());
                 Domains.Object o1 = new Domains.Object(extern, intern1, o.present.insert(Fields.length));
                 bv1 = bv1.merge(bv2);
                 store1 = store2.putObj(bv2.as.iterator().next(), o1);
@@ -536,10 +534,10 @@ public class Utils {
     }
 
     public static P2<Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> toObj(Domains.BValue bv, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Trace trace) {
-        P3<Domains.BValue, Domains.Store, Set<Domains.Domain>> objBody = toObjBody(bv, store, trace, trace.makeAddr(x));
+        P3<Domains.BValue, Domains.Store, FHashSet<Domains.Domain>> objBody = toObjBody(bv, store, trace, trace.makeAddr(x));
         Domains.BValue bv1 = objBody._1();
         Domains.Store store1 = objBody._2();
-        Set<Domains.Domain> sorts = objBody._3();
+        FHashSet<Domains.Domain> sorts = objBody._3();
 
         Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>> noexc;
         if (sorts.size() > 0) {
@@ -644,7 +642,7 @@ public class Utils {
     public static P4<Domains.Store, Domains.Scratchpad, Domains.Store, Domains.Scratchpad> refine(Filters.BVFilter bvf, IRExp e, Domains.Store store, Domains.Env env, Domains.Scratchpad pad) {
         if (e instanceof IRPVar) {
             IRPVar x = ((IRPVar) e);
-            Set<Domains.AddressSpace.Address> as = env.apply(x).orSome(Set.empty(Ord.<Domains.AddressSpace.Address>hashEqualsOrd()));
+            FHashSet<Domains.AddressSpace.Address> as = env.apply(x).orSome(FHashSet.empty());
             if (as.size() == 1) {
                 P2<Domains.BValue, Domains.BValue> newBVP = store.applyAll(as).filterBy(bvf, store);
                 Domains.BValue newBVT = newBVP._1(), newBVF = newBVP._2();

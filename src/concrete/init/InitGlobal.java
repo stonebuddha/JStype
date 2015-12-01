@@ -8,7 +8,7 @@ import immutable.FHashMap;
  * Created by Hwhitetooth on 15/11/11.
  */
 public class InitGlobal {
-    public static Domains.Object window_Obj = InitUtils.createObj(FHashMap.map(
+    public static Domains.Object window_Obj = InitUtils.createObj(FHashMap.build(
             new Domains.Str("window"), Init.window_Addr,
             new Domains.Str("Infinity"), new Domains.Num(Double.POSITIVE_INFINITY),
             new Domains.Str("NaN"), new Domains.Num(Double.NaN),
@@ -59,13 +59,13 @@ public class InitGlobal {
         Domains.Object args = store.getObj(argArrayAddr);
         Domains.Num input = InitUtils.ToNumber(args.apply(new Domains.Str("0")).orSome(Domains.Undef), store);
         return Domains.Bool.apply(input.equals(new Domains.Num(Double.POSITIVE_INFINITY)) || input.equals(new Domains.Num(Double.NEGATIVE_INFINITY)) || input.equals(new Domains.Num(Double.NaN)));
-    }, FHashMap.map(Utils.Fields.length, new Domains.Num(1.0)));
+    }, FHashMap.build(Utils.Fields.length, new Domains.Num(1.0)));
 
     public static Domains.Object isNaN_Obj = InitUtils.makeNativeValue((selfAddr, argArrayAddr, store) -> {
         Domains.Object args = store.getObj(argArrayAddr);
         Domains.Num input = InitUtils.ToNumber(args.apply(new Domains.Str("0")).orSome(Domains.Undef), store);
         return Domains.Bool.apply(Double.isNaN(input.n));
-    }, FHashMap.map(Utils.Fields.length, new Domains.Num(1.0)));
+    }, FHashMap.build(Utils.Fields.length, new Domains.Num(1.0)));
 
     public static Domains.Object parseFloat_Obj = InitUtils.approx_num;
 

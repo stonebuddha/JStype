@@ -22,7 +22,7 @@ public class InitObject {
                 } else {
                     return InitUtils.ToObject(input, store);
                 }
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.prototype, Init.Object_prototype_Addr,
                     new Domains.Str("create"), Init.Object_create_Addr,
                     new Domains.Str("defineProperties"), Init.Object_defineProperties_Addr,
@@ -42,7 +42,7 @@ public class InitObject {
     );
 
     public static Domains.Object Object_prototype_Obj = new Domains.Object(
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.constructor, Init.Object_Addr,
                     new Domains.Str("valueOf"), Init.Object_prototype_valueOf_Addr,
                     new Domains.Str("toString"), Init.Object_prototype_toString_Addr,
@@ -50,7 +50,7 @@ public class InitObject {
                     new Domains.Str("propertyIsEnumerable"), Init.Object_prototype_propertyIsEnumerable_Addr,
                     new Domains.Str("hasOwnProperty"), Init.Object_prototype_hasOwnProperty_Addr,
                     new Domains.Str("toLocaleString"), Init.Object_prototype_toLocaleString_Addr),
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.proto, Domains.Null,
                     Utils.Fields.classname, JSClass.CObject_prototype_Obj)
     );
@@ -85,13 +85,13 @@ public class InitObject {
             (selfAddr, argArrayAddr, store) -> {
                 Domains.Object selfObj = store.getObj(selfAddr);
                 return InitUtils.Object_toString_helper(selfObj);
-            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            }, FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Object_prototype_valueOf_Obj = InitUtils.makeNativeValue(
             (selfAddr, argArrayAddr, store) -> {
                 return selfAddr;
-            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            }, FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Object_prototype_isPrototypeOf_Obj = InitUtils.unimplemented;
@@ -109,7 +109,7 @@ public class InitObject {
                 } else {
                     return Domains.Bool.False;
                 }
-            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            }, FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Object_prototype_toLocaleString_Obj = InitUtils.unimplemented;

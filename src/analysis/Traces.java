@@ -1,9 +1,7 @@
 package analysis;
 
-import fj.Ord;
-import fj.P;
 import fj.data.List;
-import fj.data.TreeMap;
+import immutable.FHashMap;
 import ir.IRStmt;
 import ir.IRVar;
 import ir.JSClass;
@@ -37,16 +35,16 @@ public class Traces {
             }
         }
 
-        public static final TreeMap<JSClass, Integer> c2off = TreeMap.treeMap(Ord.<JSClass>hashEqualsOrd(),
-                P.p(JSClass.CObject, 0),
-                P.p(JSClass.CArguments, 1),
-                P.p(JSClass.CArray, 2),
-                P.p(JSClass.CString, 3),
-                P.p(JSClass.CBoolean, 4),
-                P.p(JSClass.CNumber, 5),
-                P.p(JSClass.CDate, 6),
-                P.p(JSClass.CError, 7),
-                P.p(JSClass.CRegexp, 8));
+        public static FHashMap<JSClass, Integer> c2off = FHashMap.build(
+                JSClass.CObject, 0,
+                JSClass.CArguments, 1,
+                JSClass.CArray, 2,
+                JSClass.CString, 3,
+                JSClass.CBoolean, 4,
+                JSClass.CNumber, 5,
+                JSClass.CDate, 6,
+                JSClass.CError, 7,
+                JSClass.CRegexp, 8);
 
         public static Integer getBase(Domains.AddressSpace.Address a) {
             return a.loc.intValue();
@@ -55,7 +53,18 @@ public class Traces {
 
     public static class FSCI extends Trace {
         public Integer pp;
-        public FSCI(Integer pp) { this.pp = pp; }
+        final int recordHash;
+        public FSCI(Integer pp) { this.pp = pp; this.recordHash = pp; }
+
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof FSCI && pp.equals(((FSCI) obj).pp));
+        }
+
+        @Override
+        public int hashCode() {
+            return recordHash;
+        }
 
         public FSCI update(IRStmt s) {
             return new FSCI(s.id);

@@ -22,7 +22,7 @@ public class Domains {
             this.s = s;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof StmtTerm && s.equals(((StmtTerm) obj).s));
         }
@@ -30,7 +30,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(s).hashCode();
-        }
+        }*/
     }
 
     public static final class ValueTerm extends Term {
@@ -40,7 +40,7 @@ public class Domains {
             this.v = v;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof ValueTerm && v.equals(((ValueTerm) obj).v));
         }
@@ -48,7 +48,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(v).hashCode();
-        }
+        }*/
     }
 
     public static class Env {
@@ -58,7 +58,7 @@ public class Domains {
             this.env = env;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Env && env.equals(((Env) obj).env));
         }
@@ -66,7 +66,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(env).hashCode();
-        }
+        }*/
 
         public Address apply(final IRPVar x) {
             return env.get(x).some();
@@ -90,7 +90,7 @@ public class Domains {
             this.toObject = toObject;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Store && toValue.equals(((Store) obj).toValue) && toObject.equals(((Store) obj).toObject));
         }
@@ -98,7 +98,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(toValue, toObject).hashCode();
-        }
+        }*/
 
         public BValue apply(final Address a) {
             return toValue.get(a).some();
@@ -128,7 +128,7 @@ public class Domains {
             this.mem = mem;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Scratchpad && mem.equals(((Scratchpad) obj).mem));
         }
@@ -136,7 +136,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(mem).hashCode();
-        }
+        }*/
 
         public BValue apply(final IRScratch x) {
             return mem.index(x.n);
@@ -147,7 +147,7 @@ public class Domains {
         }
 
         public static Scratchpad apply(final int len) {
-            return new Scratchpad(FVector.vector(len, Undef));
+            return new Scratchpad(FVector.build(len, Undef));
         }
     }
 
@@ -160,7 +160,7 @@ public class Domains {
             this.bv = bv;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof EValue && bv.equals(((EValue) obj).bv));
         }
@@ -168,7 +168,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(bv).hashCode();
-        }
+        }*/
     }
 
     public static final class JValue extends Value {
@@ -180,7 +180,7 @@ public class Domains {
             this.bv = bv;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof JValue && lbl.equals(((JValue) obj).lbl) && bv.equals(((JValue) obj).bv));
         }
@@ -188,7 +188,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(lbl, bv).hashCode();
-        }
+        }*/
     }
 
     public interface BValueVisitor<T> {
@@ -265,7 +265,7 @@ public class Domains {
             return String.valueOf(n);
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Num && n == ((Num) obj).n);
         }
@@ -273,7 +273,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(n).hashCode();
-        }
+        }*/
 
         @Override
         public BValue plus(final BValue bv) {
@@ -694,7 +694,7 @@ public class Domains {
             this.m = m;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Clo && env.equals(((Clo) obj).env) && m.equals(((Clo) obj).m));
         }
@@ -702,7 +702,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(env, m).hashCode();
-        }
+        }*/
     }
 
     public static final class Native extends Closure {
@@ -712,7 +712,7 @@ public class Domains {
             this.f = f;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Native && f.equals(((Native) obj).f));
         }
@@ -720,7 +720,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(f).hashCode();
-        }
+        }*/
     }
 
     public static final class Object {
@@ -737,7 +737,7 @@ public class Domains {
             myProto = (BValue)intern.get(Utils.Fields.proto).some();
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Object && extern.equals(((Object) obj).extern) && intern.equals(((Object) obj).intern));
         }
@@ -745,7 +745,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(extern, intern).hashCode();
-        }
+        }*/
 
         public Option<BValue> apply(final Str str) {
             return extern.get(str);
@@ -768,7 +768,7 @@ public class Domains {
         }
 
         public FHashSet<Str> fields() {
-            return FHashSet.set(extern.keys()).minus(Init.noenum.get(myClass).orSome(FHashSet.empty()));
+            return FHashSet.build(extern.keys()).minus(Init.noenum.get(myClass).orSome(FHashSet.empty()));
         }
 
         public JSClass getJSClass() {
@@ -813,7 +813,7 @@ public class Domains {
             this.ss = ss;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof SeqKont && ss.equals(((SeqKont) obj).ss));
         }
@@ -821,7 +821,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(ss).hashCode();
-        }
+        }*/
     }
 
     public static final class WhileKont extends Kont {
@@ -833,7 +833,7 @@ public class Domains {
             this.s = s;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof WhileKont && e.equals(((WhileKont) obj).e) && s.equals(((WhileKont) obj).s));
         }
@@ -841,7 +841,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(e, s).hashCode();
-        }
+        }*/
     }
 
     public static final class ForKont extends Kont {
@@ -855,7 +855,7 @@ public class Domains {
             this.s = s;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof ForKont && strs.equals(((ForKont) obj).strs) && x.equals(((ForKont) obj).x) && s.equals(((ForKont) obj).s));
         }
@@ -863,7 +863,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(strs, x, s).hashCode();
-        }
+        }*/
     }
 
     public static final class RetKont extends Kont {
@@ -879,7 +879,7 @@ public class Domains {
             this.pad = pad;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof RetKont && x.equals(((RetKont) obj).x) && env.equals(((RetKont) obj).env) && isctor == ((RetKont) obj).isctor && pad.equals(((RetKont) obj).pad));
         }
@@ -887,7 +887,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(x, env, isctor, pad).hashCode();
-        }
+        }*/
     }
 
     public static final class TryKont extends Kont {
@@ -901,7 +901,7 @@ public class Domains {
             this.sf = sf;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof TryKont && x.equals(((TryKont) obj).x) && sc.equals(((TryKont) obj).sc) && sf.equals(((TryKont) obj).sf));
         }
@@ -909,7 +909,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(x, sc, sf).hashCode();
-        }
+        }*/
     }
 
     public static final class CatchKont extends Kont {
@@ -919,7 +919,7 @@ public class Domains {
             this.sf = sf;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof CatchKont && sf.equals(((CatchKont) obj).sf));
         }
@@ -927,7 +927,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(sf).hashCode();
-        }
+        }*/
     }
 
     public static final class FinKont extends Kont {
@@ -937,7 +937,7 @@ public class Domains {
             this.v = v;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof FinKont && v.equals(((FinKont) obj).v));
         }
@@ -945,7 +945,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(v).hashCode();
-        }
+        }*/
     }
 
     public static final class LblKont extends Kont {
@@ -955,7 +955,7 @@ public class Domains {
             this.lbl = lbl;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof LblKont && lbl.equals(((LblKont) obj).lbl));
         }
@@ -963,7 +963,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(lbl).hashCode();
-        }
+        }*/
     }
 
     public static final class KontStack {
@@ -973,7 +973,7 @@ public class Domains {
             this.ks = ks;
         }
 
-        @Override
+        /*@Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof KontStack && ks.equals(((KontStack) obj).ks));
         }
@@ -981,7 +981,7 @@ public class Domains {
         @Override
         public int hashCode() {
             return P.p(ks).hashCode();
-        }
+        }*/
 
         public KontStack push(final Kont k) {
             return new KontStack(ks.cons(k));

@@ -2,6 +2,7 @@ package analysis;
 
 import fj.*;
 import fj.data.*;
+import immutable.FHashSet;
 import ir.*;
 import analysis.init.*;
 import analysis.Traces.Trace;
@@ -26,8 +27,8 @@ public class Interpreter {
         public static Boolean catchExc = false;
         public static Boolean inPostFixpoint = false;
         public static Boolean splitStates = false;
-        public static HashMap<Trace, P3<Trace, IRVar, Set<Domains.AddressSpace.Address>>> prunedInfo = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
-        public static HashMap<Integer, Set<Domains.BValue>> outputMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
+        public static HashMap<Trace, P3<Trace, IRVar, FHashSet<Domains.AddressSpace.Address>>> prunedInfo = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
+        public static HashMap<Integer, FHashSet<Domains.BValue>> outputMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
 
 
         public static void clear() {
@@ -45,7 +46,7 @@ public class Interpreter {
         }
     }
 
-    public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) throws IOException {
+    public static HashMap<Integer, FHashSet<Domains.BValue>> runner(String[] args) throws IOException {
         Mutable.clear();
         PruneScratch.clear();
         PruneStoreToo.clear();
@@ -101,7 +102,7 @@ public class Interpreter {
                 for (Trace mtrace : Mutable.prunedInfo) {
                     Trace ptrace = Mutable.prunedInfo.get(mtrace).some()._1();
                     IRVar x = Mutable.prunedInfo.get(mtrace).some()._2();
-                    Set<Domains.AddressSpace.Address> as = Mutable.prunedInfo.get(mtrace).some()._3();
+                    FHashSet<Domains.AddressSpace.Address> as = Mutable.prunedInfo.get(mtrace).some()._3();
                     P2<Domains.Store, Domains.Scratchpad> valuePruned = PruneStoreToo.apply(ptrace);
                     Domains.Store pstore = valuePruned._1();
                     Domains.Scratchpad ppad = valuePruned._2();
@@ -158,19 +159,19 @@ public class Interpreter {
         return null;
     }
 
-    public static Set<State> process(State initSigma) {
+    public static FHashSet<State> process(State initSigma) {
         List<State> todo = List.list(initSigma);
-        Set<State> done = Set.empty(Ord.<State>hashEqualsOrd());
-        Set<State> sigmas = Set.empty(Ord.<State>hashEqualsOrd());
+        FHashSet<State> done = FHashSet.empty();
+        FHashSet<State> sigmas = FHashSet.empty();
 
         while (todo.isNotEmpty()) {
             sigmas = todo.head().next();
             todo = todo.tail();
 
             while (sigmas.size() == 1) {
-                if (sigmas.iterator().next().merge()) {
+                if (sigmas.iterator().next().isMerge()) {
                     done = done.insert(sigmas.iterator().next());
-                    sigmas = Set.empty(Ord.<State>hashEqualsOrd());
+                    sigmas = FHashSet.empty();
                 }
                 else {
                     sigmas = sigmas.iterator().next().next();
@@ -179,7 +180,7 @@ public class Interpreter {
         }
 
         for (State sigma : sigmas) {
-            if (sigma.merge()) {
+            if (sigma.isMerge()) {
                 done = done.insert(sigma);
             }
             else {
@@ -254,6 +255,9 @@ public class Interpreter {
         public Domains.Scratchpad pad;
         public Domains.KontStack ks;
         public Trace trace;
+        int recordHash;
+        boolean calced;
+        static final Hash<P6<Domains.Term, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Trace>> hash = Hash.p6Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
         public State(Domains.Term t, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
             this.t = t;
@@ -262,6 +266,23 @@ public class Interpreter {
             this.pad = pad;
             this.ks = ks;
             this.trace = trace;
+            this.calced = false;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof State && t.equals(((State) obj).t) && env.equals(((State) obj).env) && store.equals(((State) obj).store) && pad.equals(((State) obj).pad) && ks.equals(((State) obj).ks) && trace.equals(((State) obj).trace));
+        }
+
+        @Override
+        public int hashCode() {
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(t, env, store, pad, ks, trace));
+                calced = true;
+                return recordHash;
+            }
         }
 
         public State merge(State sigma) {
@@ -269,7 +290,7 @@ public class Interpreter {
             return new State(t, env.merge(sigma.env), store.merge(sigma.store), pad.merge(sigma.pad), ks.merge(sigma.ks), trace);
         }
 
-        public Boolean merge() {
+        public Boolean isMerge() {
             if (t instanceof Domains.StmtTerm && ((Domains.StmtTerm) t).s instanceof IRMerge) {
                 return true;
             }
@@ -289,8 +310,8 @@ public class Interpreter {
             return Eval.eval(e, env, store, pad);
         }
 
-        public Set<State> next() {
-            Set<State> ret = Set.empty(Ord.<State>hashEqualsOrd());
+        public FHashSet<State> next() {
+            FHashSet<State> ret = FHashSet.empty();
 
             if (t instanceof Domains.StmtTerm) {
                 IRStmt stmt = ((Domains.StmtTerm) t).s;
@@ -533,7 +554,7 @@ public class Interpreter {
                     IRExp e = irFor.e;
                     IRVar x = irFor.x;
                     IRStmt s = irFor.s;
-                    Set<Domains.Str> keys = Utils.objAllKeys(eval(e), store);
+                    FHashSet<Domains.Str> keys = Utils.objAllKeys(eval(e), store);
                     if (keys.size() > 0) {
                         Domains.Str acc = Domains.Str.Bot;
                         for (Domains.Str key : keys) {
@@ -575,8 +596,8 @@ public class Interpreter {
             return ret;
         }
 
-        public Set<State> advanceBV(Domains.BValue bv, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1){
-            Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
+        public FHashSet<State> advanceBV(Domains.BValue bv, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1){
+            FHashSet<State> ret = FHashSet.empty();
             if (ks1.top() instanceof Domains.SeqKont) {
                 Domains.SeqKont sk = (Domains.SeqKont) ks1.top();
                 if (sk.ss.isNotEmpty()) {
@@ -629,7 +650,7 @@ public class Interpreter {
                     store2 = store1;
                 }
                 Domains.Store store3 = store2.weaken(m.canEscapeVar, m.canEscapeObj);
-                Set<Domains.KontStack> konts = store3.getKont(a);
+                FHashSet<Domains.KontStack> konts = store3.getKont(a);
                 for (Domains.KontStack tmpKS : konts) {
                     ret = ret.union(advanceBV(bv, store3, pad1, tmpKS));
                 }
@@ -655,9 +676,9 @@ public class Interpreter {
 
                 Domains.Store store3;
                 if (Mutable.fullGC) {
-                    Set<Domains.AddressSpace.Address> vroots = envc.addrs();
-                    Set<Domains.AddressSpace.Address> oroots = bv.as.union(pad2.addrs()).union(Init.keepInStore);
-                    Set<Domains.AddressSpace.Address> kroots;
+                    FHashSet<Domains.AddressSpace.Address> vroots = envc.addrs();
+                    FHashSet<Domains.AddressSpace.Address> oroots = bv.as.union(pad2.addrs()).union(Init.keepInStore);
+                    FHashSet<Domains.AddressSpace.Address> kroots;
                     if (ks1.last() instanceof Domains.AddrKont) {
                         kroots = Domains.AddressSpace.Addresses.apply(((Domains.AddrKont) ks1.last()).a);
                     }
@@ -670,7 +691,7 @@ public class Interpreter {
                     store3 = store2;
                 }
 
-                Set<State> call = Set.<State>empty(Ord.<State>hashEqualsOrd());
+                FHashSet<State> call = FHashSet.empty();
                 if (!isctor || (bv.as.size() > 0)) {
                     Domains.BValue bv1;
                     if (!isctor) {
@@ -697,7 +718,7 @@ public class Interpreter {
                     }
                 }
 
-                Set<State> ctor = Set.<State>empty(Ord.<State>hashEqualsOrd());
+                FHashSet<State> ctor = FHashSet.empty();
                 if (!isctor && !bv.defAddr()) {
                     if (x instanceof IRPVar) {
                         Domains.BValue t1 = Eval.eval(x, envc, store3, pad2);
@@ -714,16 +735,16 @@ public class Interpreter {
             else if (ks1.top() instanceof Domains.TryKont) {
                 Domains.TryKont tk = (Domains.TryKont) ks1.top();
                 IRStmt s3 = tk.sf;
-                ret = ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), Domains.Undef.BV))), trace.update(s3)));
+                ret = ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(FHashSet.build(Domains.Undef.BV))), trace.update(s3)));
             }
             else if (ks1.top() instanceof Domains.CatchKont) {
                 Domains.CatchKont ck = (Domains.CatchKont) ks1.top();
                 IRStmt s3 = ck.sf;
-                ret = ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), Domains.Undef.BV))), trace.update(s3)));
+                ret = ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(FHashSet.build(Domains.Undef.BV))), trace.update(s3)));
             }
             else if (ks1.top() instanceof Domains.FinKont) {
                 Domains.FinKont fk = (Domains.FinKont) ks1.top();
-                Set<Domains.Value> vs = fk.vs;
+                FHashSet<Domains.Value> vs = fk.vs;
                 for (Domains.Value value : vs) {
                     if (value instanceof Domains.BValue) {
                         ret = ret.union(advanceBV(bv, store1, pad1, ks1.pop()));
@@ -742,8 +763,8 @@ public class Interpreter {
             return ret;
         }
 
-        public Set<State> advanceEV(Domains.EValue ev, Domains.Env env1, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1, Trace trace1) {
-            Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
+        public FHashSet<State> advanceEV(Domains.EValue ev, Domains.Env env1, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1, Trace trace1) {
+            FHashSet<State> ret = FHashSet.empty();
             HashSet<Domains.AddressSpace.Address> addrsSeen = new HashSet<Domains.AddressSpace.Address>(Equal.<Domains.AddressSpace.Address>anyEqual(), Hash.<Domains.AddressSpace.Address>anyHash());
             if (ks1.exc.isNotEmpty()) {
                 ret = ret.union(innerAdvance(ev, env1, store1, pad1, ks1, trace1, addrsSeen));
@@ -751,8 +772,8 @@ public class Interpreter {
             return ret;
         }
 
-        private Set<State> innerAdvance(Domains.EValue ev, Domains.Env env1, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1, Trace trace1, HashSet<Domains.AddressSpace.Address> addrsSeen) {
-            Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
+        private FHashSet<State> innerAdvance(Domains.EValue ev, Domains.Env env1, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1, Trace trace1, HashSet<Domains.AddressSpace.Address> addrsSeen) {
+            FHashSet<State> ret = FHashSet.empty();
             if (ks1.exc.head() == 1) {
                 Domains.AddressSpace.Address a = ((Domains.AddrKont)ks1.last()).a;
                 IRMethod m = ((Domains.AddrKont)ks1.last()).m;
@@ -769,7 +790,7 @@ public class Interpreter {
 
                     Domains.Store store3 = store2.weaken(m.canEscapeVar, m.canEscapeObj);
 
-                    Set<Domains.KontStack> konts = store3.getKont(a);
+                    FHashSet<Domains.KontStack> konts = store3.getKont(a);
                     for (Domains.KontStack ks2 : konts) {
                         Domains.Env envc = ((Domains.RetKont)ks.top()).env;
                         Trace tracec = ((Domains.RetKont)ks.top()).trace;
@@ -787,9 +808,9 @@ public class Interpreter {
 
                         Domains.Store store5;
                         if (Mutable.fullGC) {
-                            Set<Domains.AddressSpace.Address> vroots = envc.addrs();
-                            Set<Domains.AddressSpace.Address> oroots = ev.bv.as.union(pad2.addrs()).union(Init.keepInStore);
-                            Set<Domains.AddressSpace.Address> kroots;
+                            FHashSet<Domains.AddressSpace.Address> vroots = envc.addrs();
+                            FHashSet<Domains.AddressSpace.Address> oroots = ev.bv.as.union(pad2.addrs()).union(Init.keepInStore);
+                            FHashSet<Domains.AddressSpace.Address> kroots;
                             if (ks2.last() instanceof Domains.AddrKont) {
                                 kroots = Domains.AddressSpace.Addresses.apply(((Domains.AddrKont) ks2.last()).a);
                             }
@@ -816,7 +837,7 @@ public class Interpreter {
                 }
                 else if (ks2.top() instanceof Domains.CatchKont) {
                     IRStmt s3 = ((Domains.CatchKont) ks2.top()).sf;
-                    ret = ret.insert(new State(new Domains.StmtTerm(s3), env1, store1, pad1, ks2.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), ev))), trace1));
+                    ret = ret.insert(new State(new Domains.StmtTerm(s3), env1, store1, pad1, ks2.repl(new Domains.FinKont(FHashSet.build(ev))), trace1));
                 }
                 else {
                     throw new RuntimeException("inconceivable");
@@ -826,17 +847,17 @@ public class Interpreter {
         }
 
 
-        public Set<State> advanceJV(Domains.JValue jv, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1) {
-            Set<State> ret = Set.<State>empty(Ord.<State>hashEqualsOrd());
+        public FHashSet<State> advanceJV(Domains.JValue jv, Domains.Store store1, Domains.Scratchpad pad1, Domains.KontStack ks1) {
+            FHashSet<State> ret = FHashSet.empty();
             if (ks1.top() instanceof Domains.TryKont) {
                 Domains.TryKont tk = (Domains.TryKont) ks1.top();
                 IRStmt s3 = tk.sf;
-                ret = ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), jv))), trace));
+                ret = ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(FHashSet.build(jv))), trace));
             }
             else if (ks1.top() instanceof Domains.CatchKont) {
                 Domains.CatchKont ck = (Domains.CatchKont) ks1.top();
                 IRStmt s3 = ck.sf;
-                ret = ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(Set.set(Ord.<Domains.Value>hashEqualsOrd(), jv))), trace));
+                ret = ret.insert(new State(new Domains.StmtTerm(s3), env, store1, pad1, ks1.repl(new Domains.FinKont(FHashSet.build(jv))), trace));
             }
             else if (ks1.top() instanceof Domains.LblKont && ((Domains.LblKont)ks1.top()).lbl.equals(jv.lbl)) {
                 ret = ret.union(advanceBV(jv.bv, store1, pad1, ks1.pop()));

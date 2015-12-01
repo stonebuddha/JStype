@@ -4,10 +4,14 @@ import analysis.init.Init;
 import analysis.Traces.Trace;
 import fj.*;
 import fj.data.*;
+import fj.data.List;
+import immutable.FHashMap;
+import immutable.FHashSet;
+import immutable.FVector;
 import ir.*;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Created by wayne on 15/10/29.
@@ -18,9 +22,12 @@ public class Domains {
 
     public static class StmtTerm extends Term {
         public IRStmt s;
+        int recordHash;
+        boolean calced;
 
         public StmtTerm(IRStmt s) {
             this.s = s;
+            this.calced = false;
         }
 
         @Override
@@ -30,15 +37,24 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(s).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = s.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class ValueTerm extends Term {
         public Value v;
+        int recordHash;
+        boolean calced;
 
         public ValueTerm(Value v) {
             this.v = v;
+            this.calced = false;
         }
 
         @Override
@@ -48,15 +64,24 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(v).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = v.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class Env {
-        public TreeMap<IRPVar, Set<AddressSpace.Address>> env;
+        public FHashMap<IRPVar, FHashSet<AddressSpace.Address>> env;
+        int recordHash;
+        boolean calced;
 
-        public Env(TreeMap<IRPVar, Set<AddressSpace.Address>> env) {
+        public Env(FHashMap<IRPVar, FHashSet<AddressSpace.Address>> env) {
             this.env = env;
+            this.calced = false;
         }
 
         @Override
@@ -66,51 +91,61 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(env).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = env.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
 
         public Env merge(Env rho) {
             if (this.equals(rho)) {
                 return this;
             } else {
-                ArrayList<P2<IRPVar, Set<AddressSpace.Address>>> list = new ArrayList<>();
+                ArrayList<P2<IRPVar, FHashSet<AddressSpace.Address>>> list = new ArrayList<>();
                 assert env.keys().equals(rho.env.keys());
-                for (P2<IRPVar, Set<AddressSpace.Address>> p2 : env) {
-                    list.add(P.p(p2._1(), p2._2().union(rho.env.get(p2._1()).some())));
+                for (Map.Entry<IRPVar, FHashSet<AddressSpace.Address>> entry : env) {
+                    list.add(P.p(entry.getKey(), entry.getValue().union(rho.env.get(entry.getKey()).some())));
                 }
-                return new Env(TreeMap.treeMap(Ord.hashEqualsOrd(), List.list(list)));
+                return new Env(FHashMap.build(list));
             }
         }
 
-        public Option<Set<AddressSpace.Address>> apply(IRPVar x) {
+        public Option<FHashSet<AddressSpace.Address>> apply(IRPVar x) {
             return env.get(x);
         }
 
         public Env extendAll(List<P2<IRPVar, AddressSpace.Address>> bind) {
-            List<P2<IRPVar, Set<AddressSpace.Address>>> list = bind.map(p -> P.p(p._1(), AddressSpace.Addresses.apply(p._2())));
+            List<P2<IRPVar, FHashSet<AddressSpace.Address>>> list = bind.map(p -> P.p(p._1(), AddressSpace.Addresses.apply(p._2())));
             return new Env(env.union(list));
         }
 
         public Env filter(F<IRPVar, Boolean> f) {
-            return new Env(TreeMap.treeMap(Ord.hashEqualsOrd(), env.keys().filter(f).map(k -> P.p(k, env.get(k).some()))));
+            return new Env(FHashMap.build(env.keys().filter(f).map(k -> P.p(k, env.get(k).some()))));
         }
 
-        public Set<AddressSpace.Address> addrs() {
-            return env.values().foldLeft(Set.union(), Set.empty(Ord.hashEqualsOrd()));
+        public FHashSet<AddressSpace.Address> addrs() {
+            return env.values().foldLeft((acc, cur) -> acc.union(cur), FHashSet.empty());
         }
     }
 
     public static class Store {
-        public TreeMap<AddressSpace.Address, BValue> toValue;
-        public TreeMap<AddressSpace.Address, Object> toObject;
-        public TreeMap<AddressSpace.Address, Set<KontStack>> toKonts;
-        public Set<AddressSpace.Address> weak;
+        public FHashMap<AddressSpace.Address, BValue> toValue;
+        public FHashMap<AddressSpace.Address, Object> toObject;
+        public FHashMap<AddressSpace.Address, FHashSet<KontStack>> toKonts;
+        public FHashSet<AddressSpace.Address> weak;
+        int recordHash;
+        boolean calced;
+        static final Hash<P4<FHashMap<AddressSpace.Address, BValue>, FHashMap<AddressSpace.Address, Object>, FHashMap<AddressSpace.Address, FHashSet<KontStack>>, FHashSet<AddressSpace.Address>>> hash = Hash.p4Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
-        public Store(TreeMap<AddressSpace.Address, BValue> toValue, TreeMap<AddressSpace.Address, Object> toObject, TreeMap<AddressSpace.Address, Set<KontStack>> toKonts, Set<AddressSpace.Address> weak) {
+        public Store(FHashMap<AddressSpace.Address, BValue> toValue, FHashMap<AddressSpace.Address, Object> toObject, FHashMap<AddressSpace.Address, FHashSet<KontStack>> toKonts, FHashSet<AddressSpace.Address> weak) {
             this.toValue = toValue;
             this.toObject = toObject;
             this.toKonts = toKonts;
             this.weak = weak;
+            this.calced = false;
         }
 
         @Override
@@ -124,11 +159,17 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(toValue, toObject, toKonts, weak).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(toValue, toObject, toKonts, weak));
+                calced = true;
+                return recordHash;
+            }
         }
 
         public Store merge(Store sigma) {
-            TreeMap<AddressSpace.Address, BValue> _toValue;
+            FHashMap<AddressSpace.Address, BValue> _toValue;
             if (toValue.equals(sigma.toValue)) {
                 _toValue = toValue;
             } else {
@@ -143,7 +184,7 @@ public class Domains {
                         })
                 );
             }
-            TreeMap<AddressSpace.Address, Object> _toObject;
+            FHashMap<AddressSpace.Address, Object> _toObject;
             if (toObject.equals(sigma.toObject)) {
                 _toObject = toObject;
             } else {
@@ -158,13 +199,13 @@ public class Domains {
                         })
                 );
             }
-            TreeMap<AddressSpace.Address, Set<KontStack>> _toKonts;
+            FHashMap<AddressSpace.Address, FHashSet<KontStack>> _toKonts;
             if (toKonts.equals(sigma.toKonts)) {
                 _toKonts = toKonts;
             } else {
                 _toKonts = sigma.toKonts.union(
                         toKonts.keys().map(a -> {
-                            Option<Set<KontStack>> ks = sigma.toKonts.get(a);
+                            Option<FHashSet<KontStack>> ks = sigma.toKonts.get(a);
                             if (ks.isSome()) {
                                 return P.p(a, toKonts.get(a).some().union(ks.some()));
                             } else {
@@ -182,13 +223,13 @@ public class Domains {
             List<P2<AddressSpace.Address, BValue>> bindw = par._1();
             List<P2<AddressSpace.Address, BValue>> bindn = par._2();
             List<P2<AddressSpace.Address, BValue>> wToValue = bindw.map(p -> P.p(p._1(), toValue.get(p._1()).some().merge(p._2())));
-            return new Store(toValue.union(bindn).union(wToValue), toObject, toKonts, weak.union(Set.set(Ord.hashEqualsOrd(), List.unzip(bindw)._1())));
+            return new Store(toValue.union(bindn).union(wToValue), toObject, toKonts, weak.union(FHashSet.build(List.unzip(bindw)._1())));
         }
 
         public Store alloc(AddressSpace.Address a, Object o) {
             Option<Object> oo = toObject.get(a);
             Object cod;
-            Set<AddressSpace.Address> wk;
+            FHashSet<AddressSpace.Address> wk;
             if (oo.isSome()) {
                 cod = oo.some().merge(o);
                 wk = weak.insert(a);
@@ -200,17 +241,17 @@ public class Domains {
         }
 
         public Store alloc(AddressSpace.Address a, KontStack ks) {
-            Option<Set<KontStack>> kss = toKonts.get(a);
-            Set<KontStack> cod;
+            Option<FHashSet<KontStack>> kss = toKonts.get(a);
+            FHashSet<KontStack> cod;
             if (kss.isSome()) {
                 cod = kss.some().insert(ks);
             } else {
-                cod = Set.set(Ord.hashEqualsOrd(), ks);
+                cod = FHashSet.build(ks);
             }
             return new Store(toValue, toObject, toKonts.set(a, cod), weak);
         }
 
-        public BValue applyAll(Set<AddressSpace.Address> as) {
+        public BValue applyAll(FHashSet<AddressSpace.Address> as) {
             assert !as.isEmpty();
             if (as.size() == 1) {
                 return apply(as.toList().head());
@@ -237,12 +278,12 @@ public class Domains {
             }
         }
 
-        public Set<KontStack> getKont(AddressSpace.Address a) {
+        public FHashSet<KontStack> getKont(AddressSpace.Address a) {
             return toKonts.get(a).some();
         }
 
-        public Store extend(Set<AddressSpace.Address> as, BValue bv) {
-            TreeMap<AddressSpace.Address, BValue> _toValue;
+        public Store extend(FHashSet<AddressSpace.Address> as, BValue bv) {
+            FHashMap<AddressSpace.Address, BValue> _toValue;
             if (as.size() == 1 && !weak.member(as.toList().head())) {
                 _toValue = toValue.set(as.toList().head(), bv);
             } else {
@@ -271,37 +312,40 @@ public class Domains {
             return !(weak.member(a));
         }
 
-        public Boolean toValueContains(Set<AddressSpace.Address> as) {
+        public Boolean toValueContains(FHashSet<AddressSpace.Address> as) {
             return !as.filter(a -> toValue.contains(a)).isEmpty();
         }
 
-        public Store weaken(Set<Integer> valIDs, Set<Integer> objIDs) {
-            Set<AddressSpace.Address> wkn = Set.set(Ord.hashEqualsOrd(),
+        public Store weaken(FHashSet<Integer> valIDs, FHashSet<Integer> objIDs) {
+            FHashSet<AddressSpace.Address> wkn = FHashSet.build(
                     toValue.keys().filter(a -> valIDs.member(Trace.getBase(a))).append(
                     toObject.keys().filter(a -> objIDs.member(Trace.getBase(a)))));
             return new Store(toValue, toObject, toKonts, weak.union(wkn));
         }
 
-        public Store lightGC(Set<Integer> ids) {
-            TreeMap<AddressSpace.Address, BValue> toKeep = TreeMap.treeMap(Ord.hashEqualsOrd(),
+        public Store lightGC(FHashSet<Integer> ids) {
+            FHashMap<AddressSpace.Address, BValue> toKeep = FHashMap.build(
                     toValue.keys().filter(a -> !ids.member(Trace.getBase(a)) || weak.member(a)).map(a -> P.p(a, toValue.get(a).some())));
             return new Store(toKeep, toObject, toKonts, weak);
         }
 
-        public Store fullGC(Set<AddressSpace.Address> vRoots, Set<AddressSpace.Address> oRoots, Set<AddressSpace.Address> kRoots) {
+        public Store fullGC(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots, FHashSet<AddressSpace.Address> kRoots) {
             return null; // TODO
         }
 
-        public P2<Store, Store> prune(Set<AddressSpace.Address> vRoots, Set<AddressSpace.Address> oRoots) {
+        public P2<Store, Store> prune(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots) {
             return null; // TODO
         }
     }
 
     public static class Scratchpad {
-        public Seq<BValue> mem;
+        public FVector<BValue> mem;
+        int recordHash;
+        boolean calced;
 
-        public Scratchpad(Seq<BValue> mem) {
+        public Scratchpad(FVector<BValue> mem) {
             this.mem = mem;
+            this.calced = false;
         }
 
         @Override
@@ -311,7 +355,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(mem).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = mem.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
 
         public Scratchpad merge(Scratchpad pad) {
@@ -323,7 +373,7 @@ public class Domains {
                 for (int i = 0; i < mem.length(); i += 1) {
                     bvs.add(mem.index(i).merge(pad.mem.index(i)));
                 }
-                return new Scratchpad(Seq.seq(List.list(bvs)));
+                return new Scratchpad(FVector.build(bvs));
             }
         }
 
@@ -335,16 +385,12 @@ public class Domains {
             return new Scratchpad(mem.update(x.n, bv));
         }
 
-        public Set<AddressSpace.Address> addrs() {
-            return mem.foldLeft((sa, bv) -> sa.union(bv.as), Set.empty(Ord.hashEqualsOrd()));
+        public FHashSet<AddressSpace.Address> addrs() {
+            return mem.foldLeft((sa, bv) -> sa.union(bv.as), FHashSet.empty());
         }
 
         public static Scratchpad apply(Integer len) {
-            ArrayList<BValue> bvs = new ArrayList<>(len);
-            for (int i = 0; i < len; i += 1) {
-                bvs.add(i, Undef.BV);
-            }
-            return new Scratchpad(Seq.seq(List.list(bvs)));
+            return new Scratchpad(FVector.build(len, Undef.BV));
         }
     }
 
@@ -360,9 +406,12 @@ public class Domains {
 
     public static class EValue extends Value {
         public BValue bv;
+        int recordHash;
+        boolean calced;
 
         public EValue(BValue bv) {
             this.bv = bv;
+            this.calced = false;
         }
 
         @Override
@@ -372,17 +421,27 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(bv).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = bv.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class JValue extends Value {
         public String lbl;
         public BValue bv;
+        int recordHash;
+        boolean calced;
+        static final Hash<P2<String, BValue>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
         public JValue(String lbl, BValue bv) {
             this.lbl = lbl;
             this.bv = bv;
+            this.calced = false;
         }
 
         @Override
@@ -392,7 +451,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(lbl, bv).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(lbl, bv));
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
@@ -400,19 +465,23 @@ public class Domains {
         public Num n;
         public Bool b;
         public Str str;
-        public Set<AddressSpace.Address> as;
+        public FHashSet<AddressSpace.Address> as;
         public Null nil;
         public Undef undef;
+        int recordHash;
+        boolean calced;
+        static final Hash<P6<Num, Bool, Str, FHashSet<AddressSpace.Address>, Null, Undef>> hash = Hash.p6Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
-        Set<Domain> types;
+        FHashSet<Domain> types;
 
-        public BValue(Num n, Bool b, Str str, Set<AddressSpace.Address> as, Null nil, Undef undef) {
+        public BValue(Num n, Bool b, Str str, FHashSet<AddressSpace.Address> as, Null nil, Undef undef) {
             this.n = n;
             this.b = b;
             this.str = str;
             this.as = as;
             this.nil = nil;
             this.undef = undef;
+            this.calced = false;
 
             ArrayList<Domain> doms = new ArrayList<>();
             if (!n.equals(Num.Bot)) doms.add(DNum);
@@ -421,7 +490,7 @@ public class Domains {
             if (!as.isEmpty()) doms.add(DAddr);
             if (!nil.equals(Null.Bot)) doms.add(DNull);
             if (!undef.equals(Undef.Bot)) doms.add(DUndef);
-            this.types = Set.set(Ord.hashEqualsOrd(), List.list(doms));
+            this.types = FHashSet.build(doms);
         }
 
         @Override
@@ -436,7 +505,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(n, b, str, as, nil, undef).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(n, b, str, as, nil, undef));
+                calced = true;
+                return recordHash;
+            }
         }
 
         public BValue merge(BValue bv) {
@@ -621,13 +696,13 @@ public class Domains {
             return Num.inject(res);
         }
 
-        public final Set<Domain> sorts = Set.empty(Ord.<Domain>hashEqualsOrd()).
-                union(n == Num.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DNum)).
-                union(b == Bool.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DBool)).
-                union(str == Str.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DStr)).
-                union(as.isEmpty() ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DAddr)).
-                union(nil == Null.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DNull)).
-                union(undef == Undef.Bot ? Set.empty(Ord.<Domain>hashEqualsOrd()) : Set.single(Ord.<Domain>hashEqualsOrd(), DUndef));
+        public final FHashSet<Domain> sorts = FHashSet.<Domain>empty().
+                union(n.equals(Num.Bot) ? FHashSet.empty() : FHashSet.build(DNum)).
+                union(b.equals(Bool.Bot) ? FHashSet.empty() : FHashSet.build(DBool)).
+                union(str.equals(Str.Bot) ? FHashSet.empty() : FHashSet.build(DStr)).
+                union(as.isEmpty() ? FHashSet.empty() : FHashSet.build(DAddr)).
+                union(nil.equals(Null.Bot) ? FHashSet.empty() : FHashSet.build(DNull)).
+                union(undef.equals(Undef.Bot) ? FHashSet.empty() : FHashSet.build(DUndef));
 
         public Boolean isBot() {
             return types.isEmpty();
@@ -678,16 +753,16 @@ public class Domains {
         }
 
         public P2<BValue, BValue> filterBy(Utils.Filters.BVFilter bvf, Store store) {
-            if (bvf == Utils.Filters.IsFunc) {
+            if (bvf.equals(Utils.Filters.IsFunc)) {
                 return P.p(onlyAddr(), this);
             }
-            else if (bvf == Utils.Filters.IsUndefNull) {
+            else if (bvf.equals(Utils.Filters.IsUndefNull)) {
                 return P.p(removeNullAndUndef(), this);
             }
             return null;
         }
 
-        public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Undef.Bot);
+        public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, FHashSet.empty(), Null.Bot, Undef.Bot);
     }
 
     public static abstract class Num {
@@ -1013,7 +1088,7 @@ public class Domains {
         }
 
         public static BValue inject(Num n) {
-            return new BValue(n, Bool.Bot, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Undef.Bot);
+            return new BValue(n, Bool.Bot, Str.Bot, FHashSet.empty(), Null.Bot, Undef.Bot);
         }
     }
 
@@ -1025,9 +1100,12 @@ public class Domains {
 
     public static class NConst extends Num {
         public Double d;
+        int recordHash;
+        boolean calced;
 
         public NConst(Double d) {
             this.d = d;
+            this.calced = false;
         }
 
         @Override
@@ -1041,7 +1119,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(d).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = d.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
@@ -1150,7 +1234,7 @@ public class Domains {
         }
 
         public static BValue inject(Bool b) {
-            return new BValue(Num.Bot, b, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Undef.Bot);
+            return new BValue(Num.Bot, b, Str.Bot, FHashSet.empty(), Null.Bot, Undef.Bot);
         }
     }
 
@@ -1518,7 +1602,7 @@ public class Domains {
         public static final Str SingleChar = SNotSpl;
         public static final Str DateStr = SNotSplNorNum;
         public static final Str FunctionStr = SNotSplNorNum;
-        public static final Set<String> SplStrings = Set.set(Ord.stringOrd,
+        public static final FHashSet<String> SplStrings = FHashSet.build(
                 "valueOf",
                 "toString",
                 "length",
@@ -1550,7 +1634,7 @@ public class Domains {
         }
 
         public static BValue inject(Str str) {
-            return new BValue(Num.Bot, Bool.Bot, str, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Undef.Bot);
+            return new BValue(Num.Bot, Bool.Bot, str, FHashSet.empty(), Null.Bot, Undef.Bot);
         }
 
         public static Boolean isExact(Str str) {
@@ -1590,10 +1674,10 @@ public class Domains {
             return (str instanceof SConstSpl || str instanceof SConstNotSplNorNum);
         }
 
-        public static Set<Str> minimize(Set<Str> strs) {
+        public static FHashSet<Str> minimize(FHashSet<Str> strs) {
             assert !strs.member(Bot);
             if (strs.member(Top)) {
-                return Set.set(Ord.hashEqualsOrd(), Top);
+                return FHashSet.build(Top);
             } else {
                 boolean hasSNum = strs.member(SNum);
                 boolean hasSNotSpl = strs.member(SNotSpl);
@@ -1619,7 +1703,7 @@ public class Domains {
                     } else {
                         return acc.insert(str);
                     }
-                }, Set.empty(Ord.hashEqualsOrd()));
+                }, FHashSet.empty());
             }
         }
     }
@@ -1640,9 +1724,12 @@ public class Domains {
 
     public static class SConstNum extends Str {
         public String str;
+        int recordHash;
+        boolean calced;
 
         public SConstNum(String str) {
             this.str = str;
+            this.calced = false;
         }
 
         @Override
@@ -1652,15 +1739,24 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(str).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = str.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class SConstNotSplNorNum extends Str {
         public String str;
+        int recordHash;
+        boolean calced;
 
         public SConstNotSplNorNum(String str) {
             this.str = str;
+            this.calced = false;
         }
 
         @Override
@@ -1670,15 +1766,24 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(str).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = str.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class SConstSpl extends Str {
         public String str;
+        int recordHash;
+        boolean calced;
 
         public SConstSpl(String str) {
             this.str = str;
+            this.calced = false;
         }
 
         @Override
@@ -1688,7 +1793,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(str).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = str.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
@@ -1696,9 +1807,12 @@ public class Domains {
 
         public static class Address {
             public BigInteger loc;
+            int recordHash;
+            boolean calced;
 
             public Address(BigInteger loc) {
                 this.loc = loc;
+                this.calced = false;
             }
 
             @Override
@@ -1708,7 +1822,13 @@ public class Domains {
 
             @Override
             public int hashCode() {
-                return P.p(loc).hashCode();
+                if (calced) {
+                    return recordHash;
+                } else {
+                    recordHash = loc.hashCode();
+                    calced = true;
+                    return recordHash;
+                }
             }
 
             public static Address apply(Integer x) {
@@ -1716,20 +1836,20 @@ public class Domains {
             }
 
             public static BValue inject(Address a) {
-                return new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.set(Ord.hashEqualsOrd(), a), Null.Bot, Undef.Bot);
+                return new BValue(Num.Bot, Bool.Bot, Str.Bot, FHashSet.build(a), Null.Bot, Undef.Bot);
             }
         }
 
         public static class Addresses {
 
-            public static Set<Address> apply() {
-                return Set.empty(Ord.hashEqualsOrd());
+            public static FHashSet<Address> apply() {
+                return FHashSet.empty();
             }
-            public static Set<Address> apply(Address a) {
-                return Set.set(Ord.hashEqualsOrd(), a);
+            public static FHashSet<Address> apply(Address a) {
+                return FHashSet.build(a);
             }
 
-            public static BValue inject(Set<Address> as) {
+            public static BValue inject(FHashSet<Address> as) {
                 return new BValue(Num.Bot, Bool.Bot, Str.Bot, as, Null.Bot, Undef.Bot);
             }
         }
@@ -1747,7 +1867,7 @@ public class Domains {
         public static final Null Top = MaybeNull;
         public static final Null Bot = NotNull;
 
-        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Top, Undef.Bot);
+        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, FHashSet.empty(), Top, Undef.Bot);
     }
 
     public static final Null MaybeNull = new Null() {};
@@ -1766,7 +1886,7 @@ public class Domains {
         public static final Undef Top = MaybeUndef;
         public static final Undef Bot = NotUndef;
 
-        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, Set.empty(Ord.hashEqualsOrd()), Null.Bot, Top);
+        public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, FHashSet.empty(), Null.Bot, Top);
     }
 
     public static final Undef MaybeUndef = new Undef() {};
@@ -1778,10 +1898,15 @@ public class Domains {
     public static class Clo extends Closure {
         public Env env;
         public IRMethod m;
+        int recordHash;
+        boolean calced;
+        static final Hash<P2<Env, IRMethod>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
         public Clo(Env env, IRMethod m) {
             this.env = env;
             this.m = m;
+            this.calced = false;
+            this.recordHash = hash.hash(P.p(env, m));
         }
 
         @Override
@@ -1791,16 +1916,22 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(env, m).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(env, m));
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class Native extends Closure {
-        public F8<BValue, BValue, IRVar, Env, Store, Scratchpad, KontStack, Trace, Set<Interpreter.State>> f;
+        public F8<BValue, BValue, IRVar, Env, Store, Scratchpad, KontStack, Trace, FHashSet<Interpreter.State>> f;
 
-        Integer hash;
+        int hash;
 
-        public Native(F8<BValue, BValue, IRVar, Env, Store, Scratchpad, KontStack, Trace, Set<Interpreter.State>> f) {
+        public Native(F8<BValue, BValue, IRVar, Env, Store, Scratchpad, KontStack, Trace, FHashSet<Interpreter.State>> f) {
             this.f = f;
             this.hash = Native.freshHash();
         }
@@ -1815,9 +1946,9 @@ public class Domains {
             return hash;
         }
 
-        private static Integer hashCounter = 0;
-        public static Integer freshHash() {
-            Integer retval = hashCounter;
+        private static int hashCounter = 0;
+        public static int freshHash() {
+            int retval = hashCounter;
             hashCounter += 1;
             return retval;
         }
@@ -1825,8 +1956,11 @@ public class Domains {
 
     public static class Object {
         public ExternMap extern;
-        public TreeMap<Str, java.lang.Object> intern;
-        public Set<Str> present;
+        public FHashMap<Str, java.lang.Object> intern;
+        public FHashSet<Str> present;
+        int recordHash;
+        boolean calced;
+        static final Hash<P3<ExternMap, FHashMap<Str, java.lang.Object>, FHashSet<Str>>> hash = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
         JSClass myClass;
         BValue myProto;
@@ -1838,13 +1972,20 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(extern, intern, present).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(extern, intern, present));
+                calced = true;
+                return recordHash;
+            }
         }
 
-        public Object(ExternMap extern, TreeMap<Str, java.lang.Object> intern, Set<Str> present) {
+        public Object(ExternMap extern, FHashMap<Str, java.lang.Object> intern, FHashSet<Str> present) {
             this.extern = extern;
             this.intern = intern;
             this.present = present;
+            this.calced = false;
             myClass = (JSClass)intern.get(Utils.Fields.classname).some();
             myProto = (BValue)intern.get(Utils.Fields.proto).some();
         }
@@ -1856,12 +1997,12 @@ public class Domains {
                 assert myClass.equals(o.myClass);
 
                 ExternMap extern1 = extern.merge(o.extern);
-                Set<Str> present1 = present.intersect(o.present);
+                FHashSet<Str> present1 = present.intersect(o.present);
 
-                TreeMap<Str, java.lang.Object> intern1 = TreeMap.treeMap(Ord.hashEqualsOrd(), o.intern.keys().map(k -> {
+                FHashMap<Str, java.lang.Object> intern1 = FHashMap.build(o.intern.keys().map(k -> {
                     if (k.equals(Utils.Fields.code)) {
-                        Set<Closure> me = (Set<Closure>)intern.get(Utils.Fields.code).some();
-                        Set<Closure> that = (Set<Closure>)o.intern.get(k).some();
+                        FHashSet<Closure> me = (FHashSet<Closure>)intern.get(Utils.Fields.code).some();
+                        FHashSet<Closure> that = (FHashSet<Closure>)o.intern.get(k).some();
                         return P.p(k, me.union(that));
                     } else if (k.equals(Utils.Fields.classname)) {
                         assert o.intern.get(k).some().equals(myClass);
@@ -1880,7 +2021,7 @@ public class Domains {
                     }
                 }));
 
-                TreeMap<Str, java.lang.Object> intern2;
+                FHashMap<Str, java.lang.Object> intern2;
                 if (intern.contains(Utils.Fields.constructor)) {
                     intern2 = intern1.set(Utils.Fields.constructor, true);
                 } else {
@@ -1897,7 +2038,7 @@ public class Domains {
 
         public Object strongUpdate(Str str, BValue bv) {
             if (Str.isExact(str)) {
-                if (Init.noupdate.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str)) {
+                if (Init.noupdate.get(myClass).orSome(FHashSet.empty()).member(str)) {
                     return this;
                 } else {
                     return new Object(extern.strongUpdate(str, bv), intern, present.insert(str));
@@ -1909,7 +2050,7 @@ public class Domains {
 
         public Object weakUpdate(Str str, BValue bv) {
             if (Str.isExact(str)) {
-                if (Init.noupdate.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str)) {
+                if (Init.noupdate.get(myClass).orSome(FHashSet.empty()).member(str)) {
                     return this;
                 } else {
                     return new Object(extern.weakUpdate(str, bv), intern, present);
@@ -1920,25 +2061,25 @@ public class Domains {
         }
 
         public Object strongDelete(Str str) {
-            assert present.member(str) && !(Init.nodelete.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str));
+            assert present.member(str) && !(Init.nodelete.get(myClass).orSome(FHashSet.empty()).member(str));
             return new Object(extern.delete(str), intern, present.delete(str));
         }
 
         public Object weakDelete(Str str) {
             if (Str.isExact(str)) {
-                if (!(Init.nodelete.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())).member(str))) {
+                if (!(Init.nodelete.get(myClass).orSome(FHashSet.empty()).member(str))) {
                     return new Object(extern, intern, present.delete(str));
                 } else {
                     return this;
                 }
             } else {
-                Set<Str> le = extern.exactLE(str).minus(Init.nodelete.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())));
+                FHashSet<Str> le = extern.exactLE(str).minus(Init.nodelete.get(myClass).orSome(FHashSet.empty()));
                 return new Object(extern, intern, present.minus(le));
             }
         }
 
-        public Set<Str> fields() {
-            return extern.reducedKeys().minus(Init.noenum.get(myClass).orSome(Set.empty(Ord.hashEqualsOrd())));
+        public FHashSet<Str> fields() {
+            return extern.reducedKeys().minus(Init.noenum.get(myClass).orSome(FHashSet.empty()));
         }
 
         public JSClass getJSClass() {
@@ -1953,12 +2094,12 @@ public class Domains {
             return (BValue)intern.get(Utils.Fields.value).some();
         }
 
-        public Set<Closure> getCode() {
+        public FHashSet<Closure> getCode() {
             Option<java.lang.Object> o = intern.get(Utils.Fields.code);
             if (o.isSome()) {
-                return (Set<Closure>)o.some();
+                return (FHashSet<Closure>)o.some();
             } else {
-                return Set.empty(Ord.hashEqualsOrd());
+                return FHashSet.empty();
             }
         }
 
@@ -1974,8 +2115,8 @@ public class Domains {
             return extern.notContains(str);
         }
 
-        public Set<BValue> getAllValues() {
-            return extern.getAllValues().union(Set.set(Ord.hashEqualsOrd(), intern.values().filter(x -> x instanceof BValue).map(x -> (BValue)x)));
+        public FHashSet<BValue> getAllValues() {
+            return extern.getAllValues().union(FHashSet.build(intern.values().filter(x -> x instanceof BValue).map(x -> (BValue)x)));
         }
     }
 
@@ -1983,23 +2124,28 @@ public class Domains {
         public Option<BValue> top;
         public Option<BValue> notnum;
         public Option<BValue> num;
-        public TreeMap<Str, BValue> exactnotnum;
-        public TreeMap<Str, BValue> exactnum;
+        public FHashMap<Str, BValue> exactnotnum;
+        public FHashMap<Str, BValue> exactnum;
+        int recordHash;
+        boolean calced;
+        static final Hash<P5<Option<BValue>, Option<BValue>, Option<BValue>, FHashMap<Str, BValue>, FHashMap<Str, BValue>>> hash = Hash.p5Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
         public ExternMap() {
             this.top = Option.none();
             this.notnum = Option.none();
             this.num = Option.none();
-            this.exactnotnum = TreeMap.empty(Ord.hashEqualsOrd());
-            this.exactnum = TreeMap.empty(Ord.hashEqualsOrd());
+            this.exactnotnum = FHashMap.empty();
+            this.exactnum = FHashMap.empty();
+            this.calced = false;
         }
 
-        public ExternMap(Option<BValue> top, Option<BValue> notnum, Option<BValue> num, TreeMap<Str, BValue> exactnotnum, TreeMap<Str, BValue> exactnum) {
+        public ExternMap(Option<BValue> top, Option<BValue> notnum, Option<BValue> num, FHashMap<Str, BValue> exactnotnum, FHashMap<Str, BValue> exactnum) {
             this.top = top;
             this.notnum = notnum;
             this.num = num;
             this.exactnotnum = exactnotnum;
             this.exactnum = exactnum;
+            this.calced = false;
         }
 
         @Override
@@ -2014,7 +2160,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(top, notnum, num, exactnotnum, exactnum).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(top, notnum, num, exactnotnum, exactnum));
+                calced = true;
+                return recordHash;
+            }
         }
 
         public ExternMap merge(ExternMap ext) {
@@ -2051,7 +2203,7 @@ public class Domains {
                 num1 = Option.none();
             }
 
-            TreeMap<Str, BValue> _exactnotnum;
+            FHashMap<Str, BValue> _exactnotnum;
             if (exactnotnum.equals(ext.exactnotnum)) {
                 _exactnotnum = exactnotnum;
             } else {
@@ -2068,7 +2220,7 @@ public class Domains {
                 );
             }
 
-            TreeMap<Str, BValue> _exactnum;
+            FHashMap<Str, BValue> _exactnum;
             if (exactnum.equals(ext.exactnum)) {
                 _exactnum = exactnum;
             } else {
@@ -2142,10 +2294,10 @@ public class Domains {
 
         public ExternMap strongUpdate(Str str, BValue bv) {
             if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
-                TreeMap<Str, BValue> exactnotnum1 = exactnotnum.set(str, bv);
+                FHashMap<Str, BValue> exactnotnum1 = exactnotnum.set(str, bv);
                 return new ExternMap(top, notnum, num, exactnotnum1, exactnum);
             } else if (str instanceof SConstNum) {
-                TreeMap<Str, BValue> exactnum1 = exactnum.set(str, bv);
+                FHashMap<Str, BValue> exactnum1 = exactnum.set(str, bv);
                 return new ExternMap(top, notnum, num, exactnotnum, exactnum1);
             } else {
                 throw new RuntimeException("strong updated with inexact string");
@@ -2235,55 +2387,55 @@ public class Domains {
             }
         }
 
-        public Set<Str> exactLE(Str str) {
+        public FHashSet<Str> exactLE(Str str) {
             List<Str> nonSplKeys = exactnotnum.keys().filter(k -> !(Str.SplStrings.member(Str.getExact(k).some())));
             if (str instanceof SConstNotSplNorNum || str instanceof SConstSpl) {
                 if (exactnotnum.contains(str)) {
-                    return Set.set(Ord.hashEqualsOrd(), str);
+                    return FHashSet.build(str);
                 } else {
-                    return Set.empty(Ord.hashEqualsOrd());
+                    return FHashSet.empty();
                 }
             } else if (str instanceof SConstNum) {
                 if (exactnum.contains(str)) {
-                    return Set.set(Ord.hashEqualsOrd(), str);
+                    return FHashSet.build(str);
                 } else {
-                    return Set.empty(Ord.hashEqualsOrd());
+                    return FHashSet.empty();
                 }
             } else if (str.equals(SNum)) {
-                return Set.set(Ord.hashEqualsOrd(), exactnum.keys());
+                return FHashSet.build(exactnum.keys());
             } else if (str.equals(SNotSplNorNum)) {
-                return Set.set(Ord.hashEqualsOrd(), nonSplKeys);
+                return FHashSet.build(nonSplKeys);
             } else if (str.equals(SSpl)) {
-                return Set.set(Ord.hashEqualsOrd(), exactnotnum.keys().filter(k -> Str.SplStrings.member(Str.getExact(k).some())));
+                return FHashSet.build(exactnotnum.keys().filter(k -> Str.SplStrings.member(Str.getExact(k).some())));
             } else if (str.equals(SNotSpl)) {
-                return Set.set(Ord.hashEqualsOrd(), exactnum.keys().append(nonSplKeys));
+                return FHashSet.build(exactnum.keys().append(nonSplKeys));
             } else if (str.equals(SNotNum)) {
-                return Set.set(Ord.hashEqualsOrd(), exactnotnum.keys());
+                return FHashSet.build(exactnotnum.keys());
             } else if (str.equals(STop)) {
-                return Set.set(Ord.hashEqualsOrd(), exactnotnum.keys().append(exactnum.keys()));
+                return FHashSet.build(exactnotnum.keys().append(exactnum.keys()));
             } else {
                 throw new RuntimeException("used SBot with an object");
             }
         }
 
-        public Set<Str> reducedKeys() {
+        public FHashSet<Str> reducedKeys() {
             if (top.isSome()) {
-                return Set.set(Ord.hashEqualsOrd(), STop);
+                return FHashSet.build(STop);
             } else {
                 List<Str> l1 = notnum.isSome() ? List.list(SNotNum) : exactnotnum.keys();
                 List<Str> l2 = num.isSome() ? List.list(SNum) : exactnum.keys();
-                return Set.set(Ord.hashEqualsOrd(), l1.append(l2));
+                return FHashSet.build(l1.append(l2));
             }
         }
 
-        public Set<BValue> getAllValues() {
+        public FHashSet<BValue> getAllValues() {
             List<BValue> list = List.list();
             if (top.isSome()) list = list.snoc(top.some());
             if (notnum.isSome()) list = list.snoc(notnum.some());
             if (num.isSome()) list = list.snoc(num.some());
             list = list.append(exactnotnum.values());
             list = list.append(exactnum.values());
-            return Set.set(Ord.hashEqualsOrd(), list);
+            return FHashSet.build(list);
         }
     }
 
@@ -2293,9 +2445,12 @@ public class Domains {
 
     public static class SeqKont extends Kont {
         public List<IRStmt> ss;
+        int recordHash;
+        boolean calced;
 
         public SeqKont(List<IRStmt> ss) {
             this.ss = ss;
+            this.calced = false;
         }
 
         @Override
@@ -2305,17 +2460,27 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(ss).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = ss.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class WhileKont extends Kont {
         public IRExp e;
         public IRStmt s;
+        int recordHash;
+        boolean calced;
+        static final Hash<P2<IRExp, IRStmt>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
         public WhileKont(IRExp e, IRStmt s) {
             this.e = e;
             this.s = s;
+            this.calced = false;
         }
 
         @Override
@@ -2325,7 +2490,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(e, s).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(e, s));
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
@@ -2333,11 +2504,15 @@ public class Domains {
         public BValue bv;
         public IRVar x;
         public IRStmt s;
+        int recordHash;
+        boolean calced;
+        static final Hash<P3<BValue, IRVar, IRStmt>> hash = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
         public ForKont(BValue bv, IRVar x, IRStmt s) {
             this.bv = bv;
             this.x = x;
             this.s = s;
+            this.calced = false;
         }
 
         @Override
@@ -2347,7 +2522,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(bv, x, s).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(bv, x, s));
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
@@ -2356,12 +2537,16 @@ public class Domains {
         public Env env;
         public Boolean isctor;
         public Trace trace;
+        int recordHash;
+        boolean calced;
+        static final Hash<P4<IRVar, Env, Boolean, Trace>> hash = Hash.p4Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
         public RetKont(IRVar x, Env env, Boolean isctor, Trace trace) {
             this.x = x;
             this.env = env;
             this.isctor = isctor;
             this.trace = trace;
+            this.calced = false;
         }
 
         @Override
@@ -2371,7 +2556,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(x, env, isctor, trace).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(x, env, isctor, trace));
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
@@ -2379,11 +2570,15 @@ public class Domains {
         public IRPVar x;
         public IRStmt sc;
         public IRStmt sf;
+        int recordHash;
+        boolean calced;
+        static final Hash<P3<IRPVar, IRStmt, IRStmt>> hash = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
         public TryKont(IRPVar x, IRStmt sc, IRStmt sf) {
             this.x = x;
             this.sc = sc;
             this.sf = sf;
+            this.calced = false;
         }
 
         @Override
@@ -2393,15 +2588,24 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(x, sc, sf).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(x, sc, sf));
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class CatchKont extends Kont {
         public IRStmt sf;
+        int recordHash;
+        boolean calced;
 
         public CatchKont(IRStmt sf) {
             this.sf = sf;
+            this.calced = false;
         }
 
         @Override
@@ -2411,15 +2615,24 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(sf).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = sf.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class FinKont extends Kont {
-        public Set<Value> vs;
+        public FHashSet<Value> vs;
+        int recordHash;
+        boolean calced;
 
-        public FinKont(Set<Value> vs) {
+        public FinKont(FHashSet<Value> vs) {
             this.vs = vs;
+            this.calced = false;
         }
 
         @Override
@@ -2429,15 +2642,24 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(vs).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = vs.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class LblKont extends Kont {
         public String lbl;
+        int recordHash;
+        boolean calced;
 
         public LblKont(String lbl) {
             this.lbl = lbl;
+            this.calced = false;
         }
 
         @Override
@@ -2447,17 +2669,27 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(lbl).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = lbl.hashCode();
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class AddrKont extends Kont {
         public AddressSpace.Address a;
         public IRMethod m;
+        int recordHash;
+        boolean calced;
+        static final Hash<P2<AddressSpace.Address, IRMethod>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
         public AddrKont(AddressSpace.Address a, IRMethod m) {
             this.a = a;
             this.m = m;
+            this.calced = false;
         }
 
         @Override
@@ -2467,22 +2699,33 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(a, m).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(a, m));
+                calced = true;
+                return recordHash;
+            }
         }
     }
 
     public static class KontStack {
         public List<Kont> ks;
         public List<Integer> exc;
+        int recordHash;
+        boolean calced;
+        static final Hash<P2<List<Kont>, List<Integer>>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
         public KontStack(List<Kont> ks, List<Integer> exc) {
             this.ks = ks;
             this.exc = exc;
+            this.calced = false;
         }
 
         public KontStack(List<Kont> ks) {
             this.ks = ks;
             this.exc = List.list(0);
+            this.calced = false;
         }
 
         @Override
@@ -2492,7 +2735,13 @@ public class Domains {
 
         @Override
         public int hashCode() {
-            return P.p(ks, exc).hashCode();
+            if (calced) {
+                return recordHash;
+            } else {
+                recordHash = hash.hash(P.p(ks, exc));
+                calced = true;
+                return recordHash;
+            }
         }
 
         public KontStack merge(KontStack rhs) {
@@ -2503,42 +2752,42 @@ public class Domains {
                 Kont k2 = rhs.ks.index(i);
                 if (k1 instanceof FinKont && k2 instanceof FinKont) {
                     FinKont fk1 = (FinKont)k1, fk2 = (FinKont)k2;
-                    Set<Value> bv;
-                    Set<Value> bvs1 = fk1.vs.filter(v -> v instanceof BValue);
-                    Set<Value> bvs2 = fk2.vs.filter(v -> v instanceof BValue);
+                    FHashSet<Value> bv;
+                    FHashSet<Value> bvs1 = fk1.vs.filter(v -> v instanceof BValue);
+                    FHashSet<Value> bvs2 = fk2.vs.filter(v -> v instanceof BValue);
                     if (bvs1.isEmpty() && bvs2.isEmpty()) {
-                        bv = Set.empty(Ord.hashEqualsOrd());
+                        bv = FHashSet.empty();
                     } else if (!bvs1.isEmpty() && !bvs2.isEmpty()) {
-                        bv = Set.set(Ord.hashEqualsOrd(), ((BValue)bvs1.toList().index(0)).merge((BValue)bvs2.toList().index(0)));
+                        bv = FHashSet.build(((BValue)bvs1.toList().index(0)).merge((BValue)bvs2.toList().index(0)));
                     } else if (!bvs1.isEmpty()) {
                         bv = bvs1;
                     } else {
                         bv = bvs2;
                     }
-                    Set<Value> ev;
-                    Set<Value> evs1 = fk1.vs.filter(v -> v instanceof EValue);
-                    Set<Value> evs2 = fk2.vs.filter(v -> v instanceof EValue);
+                    FHashSet<Value> ev;
+                    FHashSet<Value> evs1 = fk1.vs.filter(v -> v instanceof EValue);
+                    FHashSet<Value> evs2 = fk2.vs.filter(v -> v instanceof EValue);
                     if (evs1.isEmpty() && evs2.isEmpty()) {
-                        ev = Set.empty(Ord.hashEqualsOrd());
+                        ev = FHashSet.empty();
                     } else if (!evs1.isEmpty() && !evs2.isEmpty()) {
-                        ev = Set.set(Ord.hashEqualsOrd(), new EValue(((EValue)evs1.toList().index(0)).bv.merge(((EValue)evs2.toList().index(0)).bv)));
+                        ev = FHashSet.build(new EValue(((EValue)evs1.toList().index(0)).bv.merge(((EValue)evs2.toList().index(0)).bv)));
                     } else if (!evs1.isEmpty()) {
                         ev = evs1;
                     } else {
                         ev = evs2;
                     }
-                    Set<Value> jv;
-                    Set<Value> jvs1 = fk1.vs.filter(v -> v instanceof JValue);
-                    Set<Value> jvs2 = fk2.vs.filter(v -> v instanceof JValue);
+                    FHashSet<Value> jv;
+                    FHashSet<Value> jvs1 = fk1.vs.filter(v -> v instanceof JValue);
+                    FHashSet<Value> jvs2 = fk2.vs.filter(v -> v instanceof JValue);
                     if (jvs1.isEmpty() && jvs2.isEmpty()) {
-                        jv = Set.empty(Ord.hashEqualsOrd());
+                        jv = FHashSet.empty();
                     } else if (!jvs1.isEmpty() && !jvs2.isEmpty()) {
                         JValue jv1 = (JValue)jvs1.toList().index(0);
                         JValue jv2 = (JValue)jvs2.toList().index(0);
                         if (jv1.lbl.equals(jv2.lbl)) {
-                            jv = Set.set(Ord.hashEqualsOrd(), new JValue(jv1.lbl, jv1.bv.merge(jv2.bv)));
+                            jv = FHashSet.build(new JValue(jv1.lbl, jv1.bv.merge(jv2.bv)));
                         } else {
-                            jv = Set.set(Ord.hashEqualsOrd(), jv1, jv2);
+                            jv = FHashSet.build(jv1, jv2);
                         }
                     } else if (!jvs1.isEmpty()) {
                         jv = jvs1;

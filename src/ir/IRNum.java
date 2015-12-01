@@ -1,23 +1,24 @@
 package ir;
 
-import fj.Ord;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRNum extends IRExp {
-    public Double v;
+public final class IRNum extends IRExp {
+    public final Double v;
+    final int recordHash;
 
     public IRNum(Double v) {
         this.v = v;
+        this.recordHash = v.hashCode();
     }
 
     @Override
-    public Set<IRPVar> free() {
-        return Set.empty(Ord.hashEqualsOrd());
+    public FHashSet<IRPVar> free() {
+        return FHashSet.empty();
     }
 
     @Override
@@ -27,7 +28,7 @@ public class IRNum extends IRExp {
 
     @Override
     public int hashCode() {
-        return P.p(v).hashCode();
+        return recordHash;
     }
 
     @Override

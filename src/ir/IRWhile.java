@@ -1,19 +1,23 @@
 package ir;
 
+import fj.Hash;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRWhile extends IRStmt {
-    public IRExp e;
-    public IRStmt s;
+public final class IRWhile extends IRStmt {
+    public final IRExp e;
+    public final IRStmt s;
+    final int recordHash;
+    static final Hash<P2<IRExp, IRStmt>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
     public IRWhile(IRExp e, IRStmt s) {
         this.e = e;
         this.s = s;
+        this.recordHash = hash.hash(P.p(e, s));
     }
 
     @Override
@@ -28,16 +32,16 @@ public class IRWhile extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(e, s).hashCode();
+        return recordHash;
     }
 
     @Override
-    public Set<IRPVar> free() {
+    public FHashSet<IRPVar> free() {
         return e.free().union(s.free());
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
         return s.escape(local);
     }
 

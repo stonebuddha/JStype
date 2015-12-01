@@ -1,7 +1,7 @@
 package analysis;
 
 import fj.*;
-import fj.data.Set;
+import immutable.FHashSet;
 import ir.*;
 
 /**
@@ -10,14 +10,14 @@ import ir.*;
 public class Eval {
 
     public static Domains.BValue eval(IRExp exp, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
-        Utils.Recursive<F3<Set<Domains.AddressSpace.Address>, Set<Domains.AddressSpace.Address>, Set<Domains.AddressSpace.Address>, Domains.Bool>> instance = new Utils.Recursive<>();
+        Utils.Recursive<F3<FHashSet<Domains.AddressSpace.Address>, FHashSet<Domains.AddressSpace.Address>, FHashSet<Domains.AddressSpace.Address>, Domains.Bool>> instance = new Utils.Recursive<>();
         instance.func = (as1, as2, seen) -> {
-            Set<Domains.AddressSpace.Address> as1Unseen = as1.minus(seen);
+            FHashSet<Domains.AddressSpace.Address> as1Unseen = as1.minus(seen);
             if (as1Unseen.isEmpty() || as2.isEmpty()) {
                 return Domains.Bool.Bot;
             } else {
                 Domains.BValue bv = as1Unseen.toList().foldLeft((acc, a) -> acc.merge(store.getObj(a).getProto()), Domains.BValue.Bot);
-                Set<Domains.AddressSpace.Address> protos = bv.as;
+                FHashSet<Domains.AddressSpace.Address> protos = bv.as;
                 Boolean isNull = (bv.nil.equals(Domains.Null.Top));
 
                 if (!isNull && protos.size() == 1 && protos.equals(as2) && store.isStrong(protos.toList().head())) {
@@ -106,7 +106,7 @@ public class Eval {
             if (bv1.isBot() || bv2.isBot()) {
                 return Domains.BValue.Bot;
             } else {
-                Set<Domains.Domain> bothDom = bv1.types.intersect(bv2.types);
+                FHashSet<Domains.Domain> bothDom = bv1.types.intersect(bv2.types);
                 if (bothDom.isEmpty()) {
                     return Domains.Bool.FalseBV;
                 } else {
@@ -260,7 +260,7 @@ public class Eval {
                     } else {
                         return Domains.Bool.inject(
                                 (!bv1.defAddr() ? Domains.Bool.False : Domains.Bool.Bot).merge(
-                                        instance.func.f(bv1.as, bv2.as, Set.empty(Ord.hashOrd()))
+                                        instance.func.f(bv1.as, bv2.as, FHashSet.empty())
                                 )
                         );
                     }

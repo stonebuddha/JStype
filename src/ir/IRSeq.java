@@ -1,32 +1,33 @@
 package ir;
 
-import fj.Ord;
 import fj.P;
 import fj.P2;
 import fj.data.List;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRSeq extends IRStmt {
-    public List<IRStmt> ss;
+public final class IRSeq extends IRStmt {
+    public final List<IRStmt> ss;
+    final int recordHash;
 
     public IRSeq(List<IRStmt> ss) {
         this.ss = ss;
+        this.recordHash = ss.hashCode();
     }
 
     @Override
-    public Set<IRPVar> free() {
-        return ss.foldLeft((acc, cur) -> acc.union(cur.free()), Set.empty(Ord.hashEqualsOrd()));
+    public FHashSet<IRPVar> free() {
+        return ss.foldLeft((acc, cur) -> acc.union(cur.free()), FHashSet.empty());
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
         return ss.foldLeft((acc, s) -> {
-            P2<Set<Integer>, Set<Integer>> v = s.escape(local);
+            P2<FHashSet<Integer>, FHashSet<Integer>> v = s.escape(local);
             return P.p(acc._1().union(v._1()), acc._2().union(v._2()));
-        }, P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd)));
+        }, P.p(FHashSet.empty(), FHashSet.empty()));
     }
 
     @Override
@@ -36,7 +37,7 @@ public class IRSeq extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(ss).hashCode();
+        return recordHash;
     }
 
     @Override

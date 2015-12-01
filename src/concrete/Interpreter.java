@@ -5,7 +5,7 @@ import concrete.init.Init;
 import fj.*;
 import fj.data.HashMap;
 import fj.data.List;
-import fj.data.Set;
+import immutable.FHashSet;
 import ir.*;
 import translator.*;
 
@@ -26,14 +26,14 @@ public class Interpreter {
 
     public static class Mutable {
 
-        public static HashMap<Integer, Set<Domains.BValue>> outputMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
+        public static HashMap<Integer, FHashSet<Domains.BValue>> outputMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
 
         public static void clear() {
             outputMap.clear();
         }
     }
 
-    public static HashMap<Integer, Set<Domains.BValue>> runner(String[] args) throws IOException {
+    public static HashMap<Integer, FHashSet<Domains.BValue>> runner(String[] args) throws IOException {
         Mutable.clear();
         IRStmt ir = readIR(args[0]);
         try {

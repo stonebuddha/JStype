@@ -33,10 +33,10 @@ public class InitString {
                 if (calledAsConstr) {
                     FHashMap<Domains.Str, Domains.BValue> strmap = List.range(0, pvalue.str.length()).foldLeft(
                             (acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(pvalue.str.substring(e, e + 1))),
-                            FHashMap.map(Utils.Fields.length, new Domains.Num((double) pvalue.str.length()))
+                            FHashMap.build(Utils.Fields.length, new Domains.Num((double) pvalue.str.length()))
                     );
                     Domains.Object newObj = InitUtils.createObj(strmap,
-                            FHashMap.map(
+                            FHashMap.build(
                                     Utils.Fields.proto, Init.String_prototype_Addr,
                                     Utils.Fields.classname, JSClass.CString,
                                     Utils.Fields.value, pvalue));
@@ -45,7 +45,7 @@ public class InitString {
                 } else {
                     return P.p(pvalue, store);
                 }
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.prototype, Init.String_prototype_Addr,
                     Utils.Fields.length, new Domains.Num(1.0),
                     new Domains.Str("fromCharCode"), Init.String_fromCharCode_Addr),
@@ -66,12 +66,12 @@ public class InitString {
                         ""
                 );
                 return new Domains.Str(result);
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object String_prototype_Obj = InitUtils.createObj(
-            FHashMap.map(
+            FHashMap.build(
                     Utils.Fields.constructor, Init.String_Addr,
                     new Domains.Str("charAt"), Init.String_prototype_charAt_Addr,
                     new Domains.Str("charCodeAt"), Init.String_prototype_charCodeAt_Addr,
@@ -93,7 +93,7 @@ public class InitString {
                     new Domains.Str("toUpperCase"), Init.String_prototype_toUpperCase_Addr,
                     new Domains.Str("trim"), Init.String_prototype_trim_Addr,
                     new Domains.Str("valueOf"), Init.String_prototype_valueOf_Addr),
-            FHashMap.map(Utils.Fields.classname, JSClass.CString_Obj)
+            FHashMap.build(Utils.Fields.classname, JSClass.CString_Obj)
     );
 
     public static Domains.Object String_prototype_charAt_Obj = InitUtils.makeNativeValue(
@@ -118,7 +118,7 @@ public class InitString {
                 }
 
                 return new Domains.Str(charAt);
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.length, new Domains.Num(1.0))
     );
 
@@ -144,7 +144,7 @@ public class InitString {
                 }
 
                 return charCodeAt;
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.length, new Domains.Num(1.0))
     );
 
@@ -166,7 +166,7 @@ public class InitString {
                         InitUtils.ToString(selfAddr, store)
                 );
 
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.length, new Domains.Num(1.0))
     );
 
@@ -198,7 +198,7 @@ public class InitString {
                 else {
                     return Utils.Errors.typeError;
                 }
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.length, new Domains.Num(0.0))
     );
 
@@ -219,7 +219,7 @@ public class InitString {
                 else {
                     return Utils.Errors.typeError;
                 }
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.length, new Domains.Num(0.0))
     );
 }

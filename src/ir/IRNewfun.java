@@ -1,23 +1,27 @@
 package ir;
 
-import fj.Ord;
+import fj.Hash;
 import fj.P;
 import fj.P2;
+import fj.P3;
 import fj.data.List;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRNewfun extends IRStmt {
-    public IRVar x;
-    public IRMethod m;
-    public IRNum n;
+public final class IRNewfun extends IRStmt {
+    public final IRVar x;
+    public final IRMethod m;
+    public final IRNum n;
+    final int recordHash;
+    static final Hash<P3<IRVar, IRMethod, IRNum>> hash = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
     public IRNewfun(IRVar x, IRMethod m, IRNum n) {
         this.x = x;
         this.m = m;
         this.n = n;
+        this.recordHash = hash.hash(P.p(x, m, n));
     }
 
     @Override
@@ -27,7 +31,7 @@ public class IRNewfun extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(x, m, n).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -36,8 +40,8 @@ public class IRNewfun extends IRStmt {
     }
 
     @Override
-    public Set<IRPVar> free() {
-        Set<IRPVar> _m = m.free();
+    public FHashSet<IRPVar> free() {
+        FHashSet<IRPVar> _m = m.free();
         if (x instanceof IRPVar) {
             return _m.insert((IRPVar)x);
         } else {
@@ -46,9 +50,9 @@ public class IRNewfun extends IRStmt {
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
-        Set<Integer> ois = Set.set(Ord.intOrd, List.range(x.id, x.id + numClasses));
-        Set<Integer> vis = local.intersect(m.freeVars).map(Ord.intOrd, v -> v.id);
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
+        FHashSet<Integer> ois = FHashSet.build(List.range(x.id, x.id + numClasses));
+        FHashSet<Integer> vis = local.intersect(m.freeVars).map(v -> v.id);
         return P.p(vis, ois);
     }
 

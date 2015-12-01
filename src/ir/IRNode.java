@@ -2,6 +2,7 @@ package ir;
 
 import fj.data.Set;
 import fj.P2;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
@@ -25,10 +26,5 @@ public abstract class IRNode {
         genId = 0;
     }
 
-    public abstract Set<IRPVar> free();
-
-    public static P2<Set<Integer>, Set<Integer>> escape(IRMethod m) {
-        // TODO
-        return null;
-    }
+    public abstract FHashSet<IRPVar> free();
 }

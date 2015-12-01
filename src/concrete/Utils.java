@@ -41,11 +41,11 @@ public class Utils {
 
     public static P2<Domains.Store, Domains.Address> allocFun(final Domains.Closure clo, final Domains.BValue n, final Domains.Store store) {
         final Domains.Address a1 = Domains.Address.generate();
-        final FHashMap<Domains.Str, Object> intern = FHashMap.map(
+        final FHashMap<Domains.Str, Object> intern = FHashMap.build(
                 Fields.proto, Init.Function_prototype_Addr,
                 Fields.classname, JSClass.CFunction,
                 Fields.code, clo);
-        final FHashMap<Domains.Str, Domains.BValue> extern = FHashMap.map(Fields.length, n);
+        final FHashMap<Domains.Str, Domains.BValue> extern = FHashMap.build(Fields.length, n);
         return P.p(store.putObj(a1, new Domains.Object(extern, intern)), a1);
     }
 
@@ -59,7 +59,7 @@ public class Utils {
         } else {
             a2 = Init.Object_prototype_Addr;
         }
-        final FHashMap<Domains.Str, Object> intern = FHashMap.map(
+        final FHashMap<Domains.Str, Object> intern = FHashMap.build(
                 Fields.proto, a2,
                 Fields.classname, c);
         final Domains.Store store1 = store.putObj(a1, new Domains.Object(FHashMap.empty(), intern));
@@ -190,7 +190,7 @@ public class Utils {
             final Domains.Object updatedO;
             if (bv instanceof Domains.Str) {
                 final Domains.Str s = (Domains.Str)bv;
-                final FHashMap<Domains.Str, Domains.BValue> init = FHashMap.map(Fields.length, new Domains.Num((double)s.str.length()));
+                final FHashMap<Domains.Str, Domains.BValue> init = FHashMap.build(Fields.length, new Domains.Num((double)s.str.length()));
                 updatedO = new Domains.Object(o.extern.union(List.range(0, s.str.length()).foldLeft((acc, e) -> acc.set(new Domains.Str(e.toString()), new Domains.Str(s.str.substring(e, e + 1))), init)), o.intern);
             } else {
                 updatedO = o;

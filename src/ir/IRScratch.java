@@ -1,18 +1,18 @@
 package ir;
 
-import fj.Ord;
-import fj.P;
 import fj.P2;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRScratch extends IRVar {
-    public Integer n;
+public final class IRScratch extends IRVar {
+    public final Integer n;
+    final int recordHash;
 
     public IRScratch(Integer n) {
         this.n = n;
+        this.recordHash = n;
     }
 
     @Override
@@ -22,7 +22,7 @@ public class IRScratch extends IRVar {
 
     @Override
     public int hashCode() {
-        return P.p(n).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -31,8 +31,8 @@ public class IRScratch extends IRVar {
     }
 
     @Override
-    public Set<IRPVar> free() {
-        return Set.empty(Ord.hashEqualsOrd());
+    public FHashSet<IRPVar> free() {
+        return FHashSet.empty();
     }
 
     @Override

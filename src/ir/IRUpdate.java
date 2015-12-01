@@ -1,20 +1,24 @@
 package ir;
 
-import fj.Ord;
+import fj.Hash;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import fj.P3;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRUpdate extends IRStmt {
-    public IRExp e1, e2, e3;
+public final class IRUpdate extends IRStmt {
+    public final IRExp e1, e2, e3;
+    final int recordHash;
+    static final Hash<P3<IRExp, IRExp, IRExp>> hash = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
     public IRUpdate(IRExp e1, IRExp e2, IRExp e3) {
         this.e1 = e1;
         this.e2 = e2;
         this.e3 = e3;
+        this.recordHash = hash.hash(P.p(e1, e2, e3));
     }
 
     @Override
@@ -24,17 +28,17 @@ public class IRUpdate extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(e1, e2, e3).hashCode();
+        return recordHash;
     }
 
     @Override
-    public Set<IRPVar> free() {
+    public FHashSet<IRPVar> free() {
         return e1.free().union(e2.free()).union(e3.free());
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
-        return P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd));
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
+        return P.p(FHashSet.empty(), FHashSet.empty());
     }
 
     @Override

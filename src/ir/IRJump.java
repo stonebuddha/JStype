@@ -1,20 +1,23 @@
 package ir;
 
-import fj.Ord;
+import fj.Hash;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRJump extends IRStmt {
-    public String lbl;
-    public IRExp e;
+public final class IRJump extends IRStmt {
+    public final String lbl;
+    public final IRExp e;
+    final int recordHash;
+    static final Hash<P2<String, IRExp>> hash = Hash.p2Hash(Hash.anyHash(), Hash.anyHash());
 
     public IRJump(String lbl, IRExp e) {
         this.lbl = lbl;
         this.e = e;
+        this.recordHash = hash.hash(P.p(lbl, e));
     }
 
     @Override
@@ -24,7 +27,7 @@ public class IRJump extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(lbl, e).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -33,13 +36,13 @@ public class IRJump extends IRStmt {
     }
 
     @Override
-    public Set<IRPVar> free() {
+    public FHashSet<IRPVar> free() {
         return e.free();
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
-        return P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd));
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
+        return P.p(FHashSet.empty(), FHashSet.empty());
     }
 
     @Override

@@ -31,7 +31,7 @@ public class InitNumber {
                 if (calledAsConstr) {
                     Domains.Address newAddr = Domains.Address.generate();
                     Domains.Object newObj = InitUtils.createObj(FHashMap.empty(),
-                            FHashMap.map(
+                            FHashMap.build(
                                     Utils.Fields.proto, Init.Number_prototype_Addr,
                                     Utils.Fields.classname, JSClass.CNumber,
                                     Utils.Fields.value, pvalue));
@@ -40,7 +40,7 @@ public class InitNumber {
                 } else {
                     return P.p(pvalue, store);
                 }
-            }, FHashMap.map(
+            }, FHashMap.build(
                     Utils.Fields.prototype, Init.Number_prototype_Addr,
                     Utils.Fields.length, new Domains.Num(1.0),
                     new Domains.Str("MAX_VALUE"), new Domains.Num(Double.MAX_VALUE),
@@ -51,7 +51,7 @@ public class InitNumber {
             JSClass.CNumber_Obj
     );
 
-    public static Domains.Object Number_prototype_Obj = InitUtils.createObj(FHashMap.map(
+    public static Domains.Object Number_prototype_Obj = InitUtils.createObj(FHashMap.build(
             Utils.Fields.constructor, Init.Number_Addr,
             new Domains.Str("toString"), Init.Number_prototype_toString_Addr,
             new Domains.Str("toLocaleString"), Init.Number_prototype_toLocaleString_Addr,
@@ -59,7 +59,7 @@ public class InitNumber {
             new Domains.Str("toFixed"), Init.Number_prototype_toFixed_Addr,
             new Domains.Str("toExponential"), Init.Number_prototype_toExponential_Addr,
             new Domains.Str("toPrecision"), Init.Number_prototype_toPrecision_Addr),
-        FHashMap.map(Utils.Fields.classname, JSClass.CNumber_prototype_Obj)
+        FHashMap.build(Utils.Fields.classname, JSClass.CNumber_prototype_Obj)
     );
 
     public static Domains.Object Number_prototype_toString_Obj = InitUtils.makeNativeValue(
@@ -101,7 +101,7 @@ public class InitNumber {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, FHashMap.map(Utils.Fields.length, new Domains.Num(1.0))
+            }, FHashMap.build(Utils.Fields.length, new Domains.Num(1.0))
     );
 
     public static Domains.Object Number_prototype_toLocaleString_Obj = InitUtils.unimplemented;
@@ -114,7 +114,7 @@ public class InitNumber {
                 } else {
                     return Utils.Errors.typeError;
                 }
-            }, FHashMap.map(Utils.Fields.length, new Domains.Num(0.0))
+            }, FHashMap.build(Utils.Fields.length, new Domains.Num(0.0))
     );
 
     public static Domains.Object Number_prototype_toFixed_Obj = InitUtils.unimplemented;

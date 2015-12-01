@@ -1,14 +1,19 @@
 package ir;
 
-import fj.Ord;
 import fj.P2;
 import fj.Unit;
-import fj.data.Set;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRUndef extends IRExp {
+public final class IRUndef extends IRExp {
+    final int recordHash;
+
+    public IRUndef() {
+        this.recordHash = 0;
+    }
+
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRUndef);
@@ -16,12 +21,12 @@ public class IRUndef extends IRExp {
 
     @Override
     public int hashCode() {
-        return Unit.unit().hashCode();
+        return recordHash;
     }
 
     @Override
-    public Set<IRPVar> free() {
-        return Set.empty(Ord.hashEqualsOrd());
+    public FHashSet<IRPVar> free() {
+        return FHashSet.empty();
     }
 
     @Override

@@ -1,22 +1,26 @@
 package ir;
 
-import fj.Ord;
+import fj.Hash;
 import fj.P;
 import fj.P2;
-import fj.data.Set;
+import fj.P4;
+import immutable.FHashSet;
 
 /**
  * Created by wayne on 15/10/27.
  */
-public class IRCall extends IRStmt {
-    public IRVar x;
-    public IRExp e1, e2, e3;
+public final class IRCall extends IRStmt {
+    public final IRVar x;
+    public final IRExp e1, e2, e3;
+    final int recordHash;
+    static final Hash<P4<IRVar, IRExp, IRExp, IRExp>> hash = Hash.p4Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
     public IRCall(IRVar x, IRExp e1, IRExp e2, IRExp e3) {
         this.x = x;
         this.e1 = e1;
         this.e2 = e2;
         this.e3 = e3;
+        this.recordHash = hash.hash(P.p(x, e1, e2, e3));
     }
 
     @Override
@@ -26,7 +30,7 @@ public class IRCall extends IRStmt {
 
     @Override
     public int hashCode() {
-        return P.p(x, e1, e2, e3).hashCode();
+        return recordHash;
     }
 
     @Override
@@ -35,8 +39,8 @@ public class IRCall extends IRStmt {
     }
 
     @Override
-    public Set<IRPVar> free() {
-        Set<IRPVar> _e = e1.free().union(e2.free()).union(e3.free());
+    public FHashSet<IRPVar> free() {
+        FHashSet<IRPVar> _e = e1.free().union(e2.free()).union(e3.free());
         if (x instanceof IRPVar) {
             return _e.insert((IRPVar)x);
         } else {
@@ -45,8 +49,8 @@ public class IRCall extends IRStmt {
     }
 
     @Override
-    public P2<Set<Integer>, Set<Integer>> escape(Set<IRPVar> local) {
-        return P.p(Set.empty(Ord.intOrd), Set.empty(Ord.intOrd));
+    public P2<FHashSet<Integer>, FHashSet<Integer>> escape(FHashSet<IRPVar> local) {
+        return P.p(FHashSet.empty(), FHashSet.empty());
     }
 
     @Override

@@ -16,17 +16,17 @@ import ir.JSClass;
 public class InitUtils {
     public static Domains.Object unimplemented = createFunctionObject(new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks) -> {
         throw new RuntimeException("not implemented");
-    }), FHashMap.map(Utils.Fields.length, new Domains.Num(0.0)));
+    }), FHashMap.build(Utils.Fields.length, new Domains.Num(0.0)));
 
     public static Domains.Object approx_str = makeNativeValue((selfAddr, argArrayAddr, store) -> {
         System.out.println("warning: use of approximated concrete function");
         return new Domains.Str("UNIMPLEMENTED");
-    }, FHashMap.map(Utils.Fields.length, new Domains.Num(1.0)));
+    }, FHashMap.build(Utils.Fields.length, new Domains.Num(1.0)));
 
     public static Domains.Object approx_num = makeNativeValue((selfAddr, argArrayAddr, store) -> {
         System.out.println("warning: use of approximated concrete function");
         return new Domains.Num(0.0);
-    }, FHashMap.map(Utils.Fields.length, new Domains.Num(1.0)));
+    }, FHashMap.build(Utils.Fields.length, new Domains.Num(1.0)));
 
     public static Domains.Object approx_array = makeNativeValueStore((selfAddr, argArrayAddr, store) -> {
         System.out.println("warning: use of approximated concrete function");
@@ -34,13 +34,13 @@ public class InitUtils {
         Domains.Store store1 = tmp._1();
         Domains.Address arrayAddr = tmp._2();
         FHashMap<Domains.Str, Object> internal = store1.getObj(arrayAddr).intern;
-        Domains.Object newObj = createObj(FHashMap.map(
+        Domains.Object newObj = createObj(FHashMap.build(
                 Utils.Fields.length, new Domains.Num(1.0),
                 new Domains.Str("0"), new Domains.Str("UNIMPLEMENTED ARRAY")),
                 internal);
         Domains.Store newStore = store1.putObj(arrayAddr, newObj);
         return P.p(arrayAddr, newStore);
-    }, FHashMap.map(Utils.Fields.length, new Domains.Num(1.0)));
+    }, FHashMap.build(Utils.Fields.length, new Domains.Num(1.0)));
 
     public static String JSClassToString(JSClass j) {
         if (j.equals(JSClass.CObject)) {
@@ -189,7 +189,7 @@ public class InitUtils {
             }
             Domains.Address newAddr = Domains.Address.generate();
             Domains.Object newObj = createObj(FHashMap.empty(),
-                    FHashMap.map(
+                    FHashMap.build(
                             concrete.Utils.Fields.proto, proto,
                             concrete.Utils.Fields.classname, classname,
                             concrete.Utils.Fields.value, v));
@@ -222,7 +222,7 @@ public class InitUtils {
         FHashMap<Domains.Str, Object> internal = FHashMap.empty();
         JSClass myclass = JSClass.CFunction;
         assert(external.contains(Utils.Fields.length)) : "Native function with no length.";
-        FHashMap<Domains.Str, Object> internalFieldMap = internal.union(FHashMap.map(
+        FHashMap<Domains.Str, Object> internalFieldMap = internal.union(FHashMap.build(
                 concrete.Utils.Fields.proto, Init.Function_prototype_Addr,
                 concrete.Utils.Fields.code, clo,
                 concrete.Utils.Fields.classname, myclass));
@@ -231,7 +231,7 @@ public class InitUtils {
     public static Domains.Object createFunctionObject(Domains.Native clo, FHashMap<Domains.Str, Domains.BValue> external, JSClass myclass) {
         FHashMap<Domains.Str, Object> internal = FHashMap.empty();
         assert(external.contains(Utils.Fields.length)) : "Native function with no length.";
-        FHashMap<Domains.Str, Object> internalFieldMap = internal.union(FHashMap.map(
+        FHashMap<Domains.Str, Object> internalFieldMap = internal.union(FHashMap.build(
                 concrete.Utils.Fields.proto, Init.Function_prototype_Addr,
                 concrete.Utils.Fields.code, clo,
                 concrete.Utils.Fields.classname, myclass));
@@ -239,7 +239,7 @@ public class InitUtils {
     }
     public static Domains.Object createFunctionObject(Domains.Native clo, FHashMap<Domains.Str, Domains.BValue> external, FHashMap<Domains.Str, Object> internal, JSClass myclass) {
         assert(external.contains(Utils.Fields.length)) : "Native function with no length.";
-        FHashMap<Domains.Str, Object> internalFieldMap = internal.union(FHashMap.map(
+        FHashMap<Domains.Str, Object> internalFieldMap = internal.union(FHashMap.build(
                 concrete.Utils.Fields.proto, Init.Function_prototype_Addr,
                 concrete.Utils.Fields.code, clo,
                 concrete.Utils.Fields.classname, myclass));
@@ -295,6 +295,6 @@ public class InitUtils {
             } else {
                 return new Domains.Num(f.f(inp));
             }
-        }, FHashMap.map(Utils.Fields.length, new Domains.Num(1.0)));
+        }, FHashMap.build(Utils.Fields.length, new Domains.Num(1.0)));
     }
 }
