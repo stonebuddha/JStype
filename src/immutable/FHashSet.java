@@ -136,4 +136,8 @@ public class FHashSet<E> implements Iterable<E> {
         }
         return FHashSet.build(list);
     }
+
+    public E head() {
+        return set.iterator().next();
+    }
 }
