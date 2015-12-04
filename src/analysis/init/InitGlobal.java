@@ -1,7 +1,12 @@
 package analysis.init;
 
 import analysis.Domains;
+import analysis.Utils;
+import fj.data.List;
 import immutable.FHashMap;
+import immutable.FHashSet;
+
+import java.util.DoubleSummaryStatistics;
 
 /**
  * Created by BenZ on 15/11/24.
@@ -10,7 +15,7 @@ public class InitGlobal {
 
     // TODO
     public static final Domains.Object window_Obj = InitUtils.createInitObj(
-            FHashMap.build(
+            FHashMap.<String, Domains.BValue>build(
                     "window", Domains.AddressSpace.Address.inject(Init.window_Addr),
                     "Arguments", Domains.AddressSpace.Address.inject(Init.Arguments_Addr),
                     "undefined", Domains.Undef.BV,
@@ -45,19 +50,76 @@ public class InitGlobal {
                     "dummyAddress", Domains.AddressSpace.Address.inject(Init.Dummy_Addr),
                     "Infinity", Domains.Num.inject(Domains.Num.alpha(Double.POSITIVE_INFINITY)),
                     "NaN", Domains.Num.inject(Domains.Num.alpha(Double.NaN))
-                    )
+                    ).union(InitUtils.dangleMap(FHashMap.build(
+                    "Error", Domains.AddressSpace.Address.inject(Init.Error_Addr),
+                    "EvalError", Domains.AddressSpace.Address.inject(Init.EvalError_Addr),
+                    "RangeError", Domains.AddressSpace.Address.inject(Init.RangeError_Addr),
+                    "ReferenceError", Domains.AddressSpace.Address.inject(Init.ReferenceError_Addr),
+                    "TypeError", Domains.AddressSpace.Address.inject(Init.TypeError_Addr),
+                    "URIError", Domains.AddressSpace.Address.inject(Init.URIError_Addr),
+                    "Function", Domains.AddressSpace.Address.inject(Init.Function_Addr)
+            )))
     );
 
-    public static final Domains.Object uriMethodObj = null;
+    public static final Domains.Object uriMethodObj = InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)),
+            any-> FHashSet.build(Domains.Str.inject(Domains.STop), Utils.Errors.uriError));
     public static final Domains.Object decodeURI_Obj = uriMethodObj;
     public static final Domains.Object decodeURIComponent_Obj = uriMethodObj;
     public static final Domains.Object encodeURI_Obj = uriMethodObj;
     public static final Domains.Object encodeURIComponent_Obj = uriMethodObj;
-    public static final Domains.Object compatabilityURIMethodObj = null;
+    public static final Domains.Object compatabilityURIMethodObj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),  Domains.Str.inject(Domains.STop));
     public static final Domains.Object escape_Obj = compatabilityURIMethodObj;
     public static final Domains.Object unescape_Obj = compatabilityURIMethodObj;
-    public static final Domains.Object isFinite_Obj = null;
-    public static final Domains.Object isNaN_Obj = null;
-    public static final Domains.Object parseFloat_Obj = null;
-    public static final Domains.Object parseInt_Obj = null;
+    public static final Domains.Object isFinite_Obj = InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
+            (list)-> {
+                if (list.length() == 2) {
+                    Domains.BValue bv = list.index(1);
+                    assert bv.defNum() : "isFinite: conversion should guarante argument must be a number";
+                    Domains.Bool tmp;
+                    if (bv.n.equals(Domains.NBot)) {
+                        tmp = Domains.BBot;
+                    } else if (bv.n.equals(Domains.NTop)) {
+                        tmp = Domains.BTop;
+                    } else if (bv.n.equals(Domains.NReal)) {
+                        tmp = Domains.BTrue;
+                    } else {
+                        Double d = ((Domains.NConst)bv.n).d;
+                        if (d.equals(Double.POSITIVE_INFINITY) || d.equals(Double.NEGATIVE_INFINITY) || d.isNaN()) {
+                            tmp = Domains.BFalse;
+                        } else {
+                            tmp = Domains.BTrue;
+                        }
+                    }
+                    return FHashSet.build(Domains.Bool.inject(tmp));
+                } else {
+                    throw new RuntimeException("isFinite: signature conformance error");
+                }
+            });
+    public static final Domains.Object isNaN_Obj = InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
+            (list)-> {
+                if (list.length() == 2) {
+                    Domains.BValue bv = list.index(1);
+                    assert bv.defNum() : "isNaN: conversion should guarantee argument must be a number";
+                    Domains.Bool tmp;
+                    if (bv.n.equals(Domains.NBot)) {
+                        tmp = Domains.BBot;
+                    } else if (bv.n.equals(Domains.NTop)) {
+                        tmp = Domains.BTop;
+                    } else if (bv.n.equals(Domains.NReal)) {
+                        tmp = Domains.BFalse;
+                    } else {
+                        Double d = ((Domains.NConst)bv.n).d;
+                        if (d.isNaN()) {
+                            tmp = Domains.BTrue;
+                        } else {
+                            tmp = Domains.BFalse;
+                        }
+                    }
+                    return FHashSet.build(Domains.Bool.inject(tmp));
+                } else {
+                    throw new RuntimeException("isNaN: signature conformance error");
+                }
+            });
+    public static final Domains.Object parseFloat_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)), Domains.Num.inject(Domains.NTop));
+    public static final Domains.Object parseInt_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint, InitUtils.NumberHint)), Domains.Num.inject(Domains.NTop));
 }

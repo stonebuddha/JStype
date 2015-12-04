@@ -20,13 +20,11 @@ import ir.JSClass;
 public class InitUtils {
     //Might be unsuitable
     public static abstract class ConversionHint {};
-    public static class NoConversion extends ConversionHint {};
+    public static final ConversionHint NoConversion = new ConversionHint() {};
 
     public static abstract class PrimHint extends ConversionHint{};
-    public static class ClassStringHint extends PrimHint {};
-    public static ClassStringHint  StringHint = new ClassStringHint();
-    public static class ClassNumberHint extends PrimHint {};
-    public static ClassNumberHint  NumberHint = new ClassNumberHint();
+    public static final PrimHint StringHint = new PrimHint() {};
+    public static final PrimHint NumberHint = new PrimHint() {};
 
     //TODO
     public static FHashSet<Interpreter.State> Convert(
@@ -249,7 +247,7 @@ public class InitUtils {
     }
 
     public static <A> Domains.Object usualToPrim(F<JSClass, Boolean> goodClass, F<Domains.BValue, A> conv, A bottom, F<A, Domains.Value> inject, F<P2<A, A>, A> join) {
-        return usualFunctionObj(ezSig(new NoConversion(), List.list()),
+        return usualFunctionObj(ezSig(NoConversion, List.list()),
                 (list, store, trace)-> {
                     if (list.length() == 1) {
                         Domains.BValue selfAddr = list.head();
