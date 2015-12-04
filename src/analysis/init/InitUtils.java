@@ -22,9 +22,11 @@ public class InitUtils {
     public static abstract class ConversionHint {};
     public static class NoConversion extends ConversionHint {};
 
-    public static abstract class PrimHint {};
-    public static class StringHint extends PrimHint {};
-    public static class NumberHint extends PrimHint {};
+    public static abstract class PrimHint extends ConversionHint{};
+    public static class ClassStringHint extends PrimHint {};
+    public static ClassStringHint  StringHint = new ClassStringHint();
+    public static class ClassNumberHint extends PrimHint {};
+    public static ClassNumberHint  NumberHint = new ClassNumberHint();
 
     //TODO
     public static FHashSet<Interpreter.State> Convert(
@@ -32,6 +34,14 @@ public class InitUtils {
             F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, FHashSet<Interpreter.State>> f,
             IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Traces.Trace trace) {
         return null;
+    }
+
+    public static FHashSet<Interpreter.State> ToNumber(List<Domains.BValue> l, F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, FHashSet<Interpreter.State>> f, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Traces.Trace trace) {
+        return Convert(l.map(e-> P.p(e, NumberHint)), f, x, env, store, pad, ks, trace);
+    }
+
+    public static FHashSet<Interpreter.State> ToString(List<Domains.BValue> l, F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, FHashSet<Interpreter.State>> f, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Traces.Trace trace) {
+        return Convert(l.map(e-> P.p(e, StringHint)), f, x, env, store, pad, ks, trace);
     }
 
     public static Domains.Object createInitObj(final FHashMap<String, Domains.BValue> fields, final FHashMap<Domains.Str, Object> internal) {
@@ -195,5 +205,76 @@ public class InitUtils {
 
     public static Sig ezSig(ConversionHint selfHint, List<ConversionHint> argHints) {
         return new Sig(selfHint, argHints, argHints.length());
+    }
+
+    public static F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, Interpreter.State> genValueObjConstructor(String cname, F<Domains.BValue, Domains.BValue> bvtrans) {
+        return (bvs, x, env, store, pad, ks, trace)-> {
+            assert bvs.length() >= 2 : cname + " constructor: should have `self` address plus 1 argument by this point";
+            Domains.BValue selfAddr_bv = bvs.index(0), arg_value = bvs.index(1);
+            assert selfAddr_bv.as.size() == 1 : "String constructor: `self` address set should be singleton";
+            Domains.AddressSpace.Address selfAddr = selfAddr_bv.as.head();
+            Domains.BValue final_value = bvtrans.f(arg_value);
+            Domains.Object old_self = store.getObj(selfAddr);
+            //TODO
+            return null;
+        };
+    }
+
+    public static F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, Interpreter.State> valueObjConstructor(String cname, F<Domains.BValue, Void> verify) {
+        return genValueObjConstructor(cname, bv-> {
+            verify.f(bv);
+            return bv;
+        });
+    }
+
+    public static <A> P2<FHashSet<A>, FHashSet<Domains.EValue>> toPrimeHelper(Domains.BValue selfAddr, Domains.Store store, F<JSClass, Boolean> goodClass, F<Domains.BValue, A> conv, A bottom, F<P2<A, A>, A> join) {
+        assert selfAddr.defAddr() : "Assuming selfAddr is always addresses";
+        FHashSet<Domains.Object> selves = selfAddr.as.map(addr-> store.getObj(addr));
+        FHashSet<Domains.Object> goods = selves.filter(self-> goodClass.f(self.getJSClass()));
+        FHashSet<Domains.Object> bads = selves.filter(self-> !goodClass.f(self.getJSClass()));
+        A goodv = goods.foldLeft((acc, self)-> join.f(P.p(acc, conv.f(self.getValue()))), bottom);
+        FHashSet<A> good_res;
+        if (goodv.equals(bottom)) {
+            good_res = FHashSet.empty();
+        } else {
+            good_res = FHashSet.build(goodv);
+        }
+        FHashSet<Domains.EValue> err_res;
+        if (bads.isEmpty()){
+            err_res = FHashSet.empty();
+        } else {
+            err_res = FHashSet.build(Utils.Errors.typeError);
+        }
+        return P.p(good_res, err_res);
+    }
+
+    public static <A> Domains.Object usualToPrim(F<JSClass, Boolean> goodClass, F<Domains.BValue, A> conv, A bottom, F<A, Domains.Value> inject, F<P2<A, A>, A> join) {
+        return usualFunctionObj(ezSig(new NoConversion(), List.list()),
+                (list, store, trace)-> {
+                    if (list.length() == 1) {
+                        Domains.BValue selfAddr = list.head();
+                        P2<FHashSet<A>, FHashSet<Domains.EValue>> tmpP = toPrimeHelper(selfAddr, store, goodClass, conv, bottom, join);
+                        FHashSet<A> goods = tmpP._1();
+                        FHashSet<Domains.EValue> errs = tmpP._2();
+                        return goods.map(inject).union(errs.map(ev -> (Domains.Value) ev)).map(any -> P.p(any, store));
+                    } else {
+                        throw new RuntimeException("usualToPrimHelper: signature nonconformance");
+                    }
+                });
+    }
+
+    public static FHashMap<String, Domains.BValue> dangleMap(FHashMap<String, Domains.BValue> m) {
+        //notJS.Mutable.dangle
+        if (Interpreter.Mutable.dangle) {
+            return m;
+        } else {
+            return FHashMap.empty();
+        }
+    }
+
+    public static Domains.Object unimplemented(String name)  {
+        return createInitFunctionObj(new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks, trace)-> {
+            throw new RuntimeException(name + ": Not implemented");
+        }), FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(0.0))));
     }
 }
