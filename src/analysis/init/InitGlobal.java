@@ -13,7 +13,6 @@ import java.util.DoubleSummaryStatistics;
  */
 public class InitGlobal {
 
-    // TODO
     public static final Domains.Object window_Obj = InitUtils.createInitObj(
             FHashMap.<String, Domains.BValue>build(
                     "window", Domains.AddressSpace.Address.inject(Init.window_Addr),
