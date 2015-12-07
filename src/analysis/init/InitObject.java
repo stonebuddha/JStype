@@ -57,5 +57,5 @@ public class InitObject {
     public static final Domains.Object Object_prototype_valueOf_Obj = InitUtils.unimplemented("Object.prototype.valueOf");
     public static final Domains.Object Object_prototype_hasOwnProperty_Obj = InitUtils.unimplemented("Object.prototype.hasOwnProperty");
     public static final Domains.Object Object_prototype_isPrototypeOf_Obj = InitUtils.unimplemented("Object.prototype.isPrototypeOf");
-    public static final Domains.Object Object_prototype_propertyIfEnumerable_Obj = InitUtils.unimplemented("Object.prototype.propertyIsEnumerable");
+    public static final Domains.Object Object_prototype_propertyIsEnumerable_Obj = InitUtils.unimplemented("Object.prototype.propertyIsEnumerable");
 }

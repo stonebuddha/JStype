@@ -11,14 +11,14 @@ import ir.JSClass;
 public class InitMath {
     public static final Domains.Object Math_Obj = InitUtils.createInitObj(
             FHashMap.build(
-                    "E", Domains.Num.inject(Domains.NReal),
-                    "LN10", Domains.Num.inject(Domains.NReal),
-                    "LN2", Domains.Num.inject(Domains.NReal),
-                    "LOG2E", Domains.Num.inject(Domains.NReal),
-                    "LOG10E", Domains.Num.inject(Domains.NReal),
-                    "PI", Domains.Num.inject(Domains.NReal),
-                    "SQRT1_2", Domains.Num.inject(Domains.NReal),
-                    "SQRT2", Domains.Num.inject(Domains.NReal),
+                    "E", Domains.Num.inject(Domains.Num.NReal),
+                    "LN10", Domains.Num.inject(Domains.Num.NReal),
+                    "LN2", Domains.Num.inject(Domains.Num.NReal),
+                    "LOG2E", Domains.Num.inject(Domains.Num.NReal),
+                    "LOG10E", Domains.Num.inject(Domains.Num.NReal),
+                    "PI", Domains.Num.inject(Domains.Num.NReal),
+                    "SQRT1_2", Domains.Num.inject(Domains.Num.NReal),
+                    "SQRT2", Domains.Num.inject(Domains.Num.NReal),
                     "abs", Domains.AddressSpace.Address.inject(Init.Math_abs_Addr),
                     "acos", Domains.AddressSpace.Address.inject(Init.Math_acos_Addr),
                     "asin", Domains.AddressSpace.Address.inject(Init.Math_asin_Addr),

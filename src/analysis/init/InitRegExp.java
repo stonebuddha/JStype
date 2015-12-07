@@ -28,9 +28,9 @@ public class InitRegExp {
                     "test", Domains.AddressSpace.Address.inject(Init.RegExp_prototype_test_Addr),
                     "toString", Domains.AddressSpace.Address.inject(Init.RegExp_prototype_toString_Addr),
                     "source", Domains.Str.inject(Domains.Str.alpha("")),
-                    "global", Domains.Bool.inject(Domains.BFalse),
-                    "ignoreCase", Domains.Bool.inject(Domains.BFalse),
-                    "multiline", Domains.Bool.inject(Domains.BFalse),
+                    "global", Domains.Bool.inject(Domains.Bool.False),
+                    "ignoreCase", Domains.Bool.inject(Domains.Bool.False),
+                    "multiline", Domains.Bool.inject(Domains.Bool.False),
                     "lastIndex", Domains.Num.inject(Domains.Num.alpha(0.0))
             ),
             FHashMap.build(

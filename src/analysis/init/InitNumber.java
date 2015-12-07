@@ -18,8 +18,8 @@ public class InitNumber {
             FHashMap.build(
                     "prototype", Domains.AddressSpace.Address.inject(Init.Number_prototype_Addr),
                     "length", Domains.Num.inject(Domains.Num.alpha(1.0)),
-                    "MAX_VALUE", Domains.Num.inject(Domains.NReal),
-                    "MIN_VALUE", Domains.Num.inject(Domains.NReal),
+                    "MAX_VALUE", Domains.Num.inject(Domains.Num.NReal),
+                    "MIN_VALUE", Domains.Num.inject(Domains.Num.NReal),
                     "NEGATIVE_INFINITY", Domains.Num.inject(Domains.Num.NInf),
                     "POSITIVE_INFINITY", Domains.Num.inject(Domains.Num.Inf),
                     "NaN", Domains.Num.inject(Domains.Num.NaN)

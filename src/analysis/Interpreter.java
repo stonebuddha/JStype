@@ -194,12 +194,12 @@ public class Interpreter {
             todo = todo.tail();
 
             while (sigmas.size() == 1) {
-                if (sigmas.iterator().next().isMerge()) {
-                    done = done.insert(sigmas.iterator().next());
+                if (sigmas.head().isMerge()) {
+                    done = done.insert(sigmas.head());
                     sigmas = FHashSet.empty();
                 }
                 else {
-                    sigmas = sigmas.iterator().next().next();
+                    sigmas = sigmas.head().next();
                 }
             }
         }
@@ -358,7 +358,7 @@ public class Interpreter {
                 }
                 else if (stmt instanceof IRSeq) {
                     IRSeq irSeq = (IRSeq) stmt;
-                    IRStmt s = irSeq.ss.index(0);
+                    IRStmt s = irSeq.ss.head();
                     List<IRStmt> ss = irSeq.ss.tail();
                     ret = ret.insert(new State(new Domains.StmtTerm(s), env, store, pad, ks.push(new Domains.SeqKont(ss)), trace.update(s)));
                 }
@@ -626,7 +626,7 @@ public class Interpreter {
             if (ks1.top() instanceof Domains.SeqKont) {
                 Domains.SeqKont sk = (Domains.SeqKont) ks1.top();
                 if (sk.ss.isNotEmpty()) {
-                    IRStmt s = sk.ss.index(0);
+                    IRStmt s = sk.ss.head();
                     List<IRStmt> ss = sk.ss.tail();
                     ret = ret.insert(new State(new Domains.StmtTerm(s), env, store1, pad1, ks1.repl(new Domains.SeqKont(ss)), trace.update(s)));
                 }

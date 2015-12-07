@@ -180,7 +180,7 @@ public class InitUtils {
                     VarSig tmpSig = (VarSig)sig;
                     ConversionHint selfHint = tmpSig.selfHint;
                     ConversionHint argsHint = tmpSig.argsHint;
-                    argsList = List.list(P.p(selfAddr, selfHint), P.p(argsArray.apply(Domains.SNum).orSome(Domains.Undef.BV), argsHint));
+                    argsList = List.list(P.p(selfAddr, selfHint), P.p(argsArray.apply(Domains.Str.SNum).orSome(Domains.Undef.BV), argsHint));
                 }
                 return Convert(argsList, f, x, env, store, pad, ks, trace);
             }
@@ -274,5 +274,9 @@ public class InitUtils {
         return createInitFunctionObj(new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks, trace)-> {
             throw new RuntimeException(name + ": Not implemented");
         }), FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(0.0))));
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Hello world!");
     }
 }
