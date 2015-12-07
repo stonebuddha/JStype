@@ -1,13 +1,15 @@
 package analysis;
 
+import ast.Program;
 import fj.*;
 import fj.data.*;
 import immutable.FHashSet;
 import ir.*;
 import analysis.init.*;
 import analysis.Traces.Trace;
+import translator.*;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
@@ -46,6 +48,14 @@ public class Interpreter {
         }
     }
 
+    public static void main(String[] args) {
+        try {
+            runner(args);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
     public static HashMap<Integer, FHashSet<Domains.BValue>> runner(String[] args) throws IOException {
         Mutable.clear();
         PruneScratch.clear();
@@ -61,7 +71,7 @@ public class Interpreter {
         // default: flow-sensitive context-insensitive
         Trace initTrace = new Traces.FSCI(0);
         Mutable.splitStates = false;
-        IRStmt ast = readAST(args[0]);
+        IRStmt ast = readIR(args[0]);
         TreeMap<Trace, State> memo = TreeMap.empty(Ord.<Trace>hashEqualsOrd());
 
         try {
@@ -154,9 +164,24 @@ public class Interpreter {
         return null;
     }
 
-    public static IRStmt readAST(String file) {
-        // TODO
-        return null;
+    public static IRStmt readIR(final String file) throws IOException {
+        final File f = new File(file);
+        final BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+        String data;
+        final StringBuilder builder = new StringBuilder();
+        while ((data = br.readLine()) != null) {
+            builder.append(data + "\n");
+        }
+        Parser.init();
+        Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
+        //System.err.println(program.accept(PrettyPrinter.formatProgram));
+        program = AST2AST.transform(program);
+        System.err.println(program.accept(PrettyPrinter.formatProgram));
+        IRStmt stmt = AST2IR.transform(program);
+        //System.err.println(stmt);
+        stmt = IR2IR.transform(stmt);
+        System.err.println(stmt);
+        return stmt;
     }
 
     public static FHashSet<State> process(State initSigma) {

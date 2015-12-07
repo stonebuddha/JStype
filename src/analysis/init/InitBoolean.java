@@ -47,9 +47,7 @@ public class InitBoolean {
             )
     );
 
-    //Warning: Missing ⊥
-    public static Domains.Object Boolean_prototype_toString_Obj = InitUtils.usualToPrim(any-> any.equals(JSClass.CBoolean), any-> any.b.toStr(), Domains.SBot, any-> Domains.Str.inject((Domains.Str)any), p-> ((Domains.Str)p._1()).merge((Domains.Str)p._2()));
+    public static Domains.Object Boolean_prototype_toString_Obj = InitUtils.usualToPrim(any-> any.equals(JSClass.CBoolean), any-> any.b.toStr(), Domains.Str.Bot, any-> Domains.Str.inject((Domains.Str)any), p-> ((Domains.Str)p._1()).merge((Domains.Str)p._2()));
 
-    //Warning: Missing ⊥
-    public static Domains.Object Boolean_prototype_valueOf_Obj = InitUtils.usualToPrim(any-> any.equals(JSClass.CBoolean), any-> any.b, Domains.BBot, any-> Domains.Bool.inject((Domains.Bool)any), p-> ((Domains.Bool)p._1()).merge((Domains.Bool)p._2()));
+    public static Domains.Object Boolean_prototype_valueOf_Obj = InitUtils.usualToPrim(any-> any.equals(JSClass.CBoolean), any-> any.b, Domains.Bool.Bot, any-> Domains.Bool.inject((Domains.Bool)any), p-> ((Domains.Bool)p._1()).merge((Domains.Bool)p._2()));
 }

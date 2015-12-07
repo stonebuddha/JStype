@@ -259,8 +259,29 @@ public class Init {
 
         Domains.Store initStore = new Domains.Store(
                 FHashMap.build(window_binding_Addr, Domains.AddressSpace.Address.inject(window_Addr)),
-                FHashMap.build(window_Addr, InitGlobal.window_Obj),
-                //TODO
+                FHashMap.build(
+                        window_Addr, InitGlobal.window_Obj,
+                        decodeURI_Addr, InitGlobal.decodeURI_Obj,
+                        decodeURIComponent_Addr, InitGlobal.decodeURIComponent_Obj,
+                        encodeURI_Addr, InitGlobal.encodeURI_Obj,
+                        encodeURIComponent_Addr, InitGlobal.encodeURIComponent_Obj,
+                        escape_Addr, InitGlobal.escape_Obj,
+                        isFinite_Addr, InitGlobal.isFinite_Obj,
+                        isNaN_Addr, InitGlobal.isNaN_Obj,
+                        parseFloat_Addr, InitGlobal.parseFloat_Obj,
+                        parseInt_Addr, InitGlobal.parseInt_Obj,
+                        unescape_Addr, InitGlobal.unescape_Obj,
+                        Array_Addr, InitArray.Array_Obj,
+                        Boolean_Addr, InitBoolean.Boolean_Obj,
+                        Arguments_Addr, InitArguments.Arguments_Obj,
+                        Date_Addr, InitDate.Date_Obj,
+                        //
+                        JSON_Addr, InitJSON.JSON_Obj,
+                        Math_Addr, InitMath.Math_Obj,
+                        // TODO
+                        Dummy_Arguments_Addr, InitArguments.Dummy_Arguments_Obj,
+                        Dummy_Addr, InitArguments.Dummy_Obj
+                        ),
                 FHashMap.empty(),
                 FHashSet.empty()
         );
