@@ -3,7 +3,6 @@ package analysis.init;
 import analysis.Domains;
 import analysis.Utils;
 import fj.F;
-import fj.F2;
 import fj.data.List;
 import immutable.FHashMap;
 import immutable.FHashSet;
