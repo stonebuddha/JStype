@@ -50,7 +50,14 @@ public class Interpreter {
 
     public static void main(String[] args) {
         try {
-            runner(args);
+            HashMap<Integer, FHashSet<Domains.BValue>> result = runner(args);
+            for (Integer p : result) {
+                FHashSet<Domains.BValue> values = result.get(p).some();
+                System.out.println(p + " -->");
+                for (Domains.BValue bv : values) {
+                    System.out.println("    " + bv);
+                }
+            }
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
@@ -72,17 +79,17 @@ public class Interpreter {
         Trace initTrace = new Traces.FSCI(0);
         Mutable.splitStates = false;
         IRStmt ast = readIR(args[0]);
-        TreeMap<Trace, State> memo = TreeMap.empty(Ord.<Trace>hashEqualsOrd());
+        HashMap<Trace, State> memo = new HashMap<Trace, State>(Equal.anyEqual(), Hash.anyHash());
 
         try {
             State initSigma = Init.initState(ast, initTrace);
             for (State sigma : process(initSigma)) {
                 Option<State> memoSigma = memo.get(sigma.trace);
                 if (memoSigma.isNone()) {
-                    memo = memo.set(sigma.trace, sigma);
+                    memo.set(sigma.trace, sigma);
                 }
                 else {
-                    memo = memo.set(sigma.trace, sigma.merge(memoSigma.some()));
+                    memo.set(sigma.trace, sigma.merge(memoSigma.some()));
                 }
                 work.add(P.p(sigma.order(), sigma.trace));
             }
@@ -96,13 +103,13 @@ public class Interpreter {
                     for (State sigma : process(memo.get(trace).some())) {
                         Option<State> memoSigma = memo.get(sigma.trace);
                         if (memoSigma.isNone()) {
-                            memo = memo.set(sigma.trace, sigma);
+                            memo.set(sigma.trace, sigma);
                             work.add(P.p(sigma.order(), sigma.trace));
                         }
                         else {
                             State merged = sigma.merge(memoSigma.some());
                             if (!memoSigma.some().equals(merged)) {
-                                memo = memo.set(sigma.trace, merged);
+                                memo.set(sigma.trace, merged);
                                 work.add(P.p(merged.order(), merged.trace));
                             }
                         }
@@ -136,7 +143,7 @@ public class Interpreter {
                         }
                         State merged = new State(sigma1.t, sigma1.env, new_store, new_pad, sigma1.ks, sigma1.trace);
                         if (!merged.equals(sigma1)) {
-                            memo = memo.set(mtrace, merged);
+                            memo.set(mtrace, merged);
                             work.add(P.p(merged.order(), merged.trace));
                         }
                     }
@@ -202,14 +209,13 @@ public class Interpreter {
                     sigmas = sigmas.head().next();
                 }
             }
-        }
 
-        for (State sigma : sigmas) {
-            if (sigma.isMerge()) {
-                done = done.insert(sigma);
-            }
-            else {
-                todo = todo.cons(sigma);
+            for (State sigma : sigmas) {
+                if (sigma.isMerge()) {
+                    done = done.insert(sigma);
+                } else {
+                    todo = todo.cons(sigma);
+                }
             }
         }
 
@@ -597,6 +603,15 @@ public class Interpreter {
                 else if (stmt instanceof IRMerge) {
                     IRMerge irMerge = (IRMerge) stmt;
                     ret = ret.union(advanceBV(Domains.Undef.BV, store, pad, ks));
+                }
+                else if (stmt instanceof IRPrint) {
+                    IRExp e = ((IRPrint) stmt).e;
+                    Option<FHashSet<Domains.BValue>> tmp = Mutable.outputMap.get(((IRPrint) stmt).id);
+                    if (tmp.isNone()) {
+                        Mutable.outputMap.set(((IRPrint) stmt).id, FHashSet.build(eval(e)));
+                    } else {
+                        Mutable.outputMap.set(((IRPrint) stmt).id, tmp.some().insert(eval(e)));
+                    }
                 }
                 else {
                     throw new RuntimeException("malformed program");

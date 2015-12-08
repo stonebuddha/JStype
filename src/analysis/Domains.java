@@ -474,6 +474,25 @@ public class Domains {
 
         FHashSet<Domain> types;
 
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("<");
+            builder.append(n);
+            builder.append(",");
+            builder.append(b);
+            builder.append(",");
+            builder.append(str);
+            builder.append(",");
+            builder.append(as);
+            builder.append(",");
+            builder.append(nil);
+            builder.append(",");
+            builder.append(undef);
+            builder.append(">");
+            return builder.toString();
+        }
+
         public BValue(Num n, Bool b, Str str, FHashSet<AddressSpace.Address> as, Null nil, Undef undef) {
             this.n = n;
             this.b = b;
@@ -1050,9 +1069,24 @@ public class Domains {
             return (this.equals(Bot) || (this instanceof NConst && ((NConst)this).d != 0));
         }
 
-        public static final Num NTop = new Num() {};
-        public static final Num NBot = new Num() {};
-        public static final Num NReal = new Num() {};
+        public static final Num NTop = new Num() {
+            @Override
+            public String toString() {
+                return "Top";
+            }
+        };
+        public static final Num NBot = new Num() {
+            @Override
+            public String toString() {
+                return "Bot";
+            }
+        };
+        public static final Num NReal = new Num() {
+            @Override
+            public String toString() {
+                return "Real";
+            }
+        };
 
         public static final Num Top = NTop;
         public static final Num Bot = NBot;
@@ -1106,6 +1140,11 @@ public class Domains {
         public NConst(Double d) {
             this.d = d;
             this.calced = false;
+        }
+
+        @Override
+        public String toString() {
+            return d.toString();
         }
 
         @Override
@@ -1217,10 +1256,30 @@ public class Domains {
             }
         }
 
-        public static final Bool BBot = new Bool() {};
-        public static final Bool BTop = new Bool() {};
-        public static final Bool BTrue = new Bool() {};
-        public static final Bool BFalse = new Bool() {};
+        public static final Bool BBot = new Bool() {
+            @Override
+            public String toString() {
+                return "Bot";
+            }
+        };
+        public static final Bool BTop = new Bool() {
+            @Override
+            public String toString() {
+                return "Top";
+            }
+        };
+        public static final Bool BTrue = new Bool() {
+            @Override
+            public String toString() {
+                return "True";
+            }
+        };
+        public static final Bool BFalse = new Bool() {
+            @Override
+            public String toString() {
+                return "False";
+            }
+        };
 
         public static final Bool Top = BTop;
         public static final Bool Bot = BBot;
@@ -1591,13 +1650,48 @@ public class Domains {
                     (this instanceof SConstNotSplNorNum && !((SConstNotSplNorNum)this).str.isEmpty()));
         }
 
-        public static final Str STop = new Str() {};
-        public static final Str SBot = new Str() {};
-        public static final Str SNum = new Str() {};
-        public static final Str SNotNum = new Str() {};
-        public static final Str SSpl = new Str() {};
-        public static final Str SNotSplNorNum = new Str() {};
-        public static final Str SNotSpl = new Str() {};
+        public static final Str STop = new Str() {
+            @Override
+            public String toString() {
+                return "Top";
+            }
+        };
+        public static final Str SBot = new Str() {
+            @Override
+            public String toString() {
+                return "Bot";
+            }
+        };
+        public static final Str SNum = new Str() {
+            @Override
+            public String toString() {
+                return "Num";
+            }
+        };
+        public static final Str SNotNum = new Str() {
+            @Override
+            public String toString() {
+                return "NotNum";
+            }
+        };
+        public static final Str SSpl = new Str() {
+            @Override
+            public String toString() {
+                return "Spl";
+            }
+        };
+        public static final Str SNotSplNorNum = new Str() {
+            @Override
+            public String toString() {
+                return "NotSplNorNum";
+            }
+        };
+        public static final Str SNotSpl = new Str() {
+            @Override
+            public String toString() {
+                return "NotSpl";
+            }
+        };
 
         public static final Str Top = STop;
         public static final Str Bot = SBot;
@@ -1724,6 +1818,11 @@ public class Domains {
         }
 
         @Override
+        public String toString() {
+            return "\"" + str + "\"";
+        }
+
+        @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof SConstNum && ((SConstNum) obj).str.equals(str));
         }
@@ -1751,6 +1850,11 @@ public class Domains {
         }
 
         @Override
+        public String toString() {
+            return "\"" + str + "\"";
+        }
+
+        @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof SConstNotSplNorNum && ((SConstNotSplNorNum) obj).str.equals(str));
         }
@@ -1771,6 +1875,11 @@ public class Domains {
         public String str;
         int recordHash;
         boolean calced;
+
+        @Override
+        public String toString() {
+            return "\"" + str + "\"";
+        }
 
         public SConstSpl(String str) {
             this.str = str;
@@ -1855,8 +1964,18 @@ public class Domains {
             }
         }
 
-        public static final Null MaybeNull = new Null() {};
-        public static final Null NotNull = new Null() {};
+        public static final Null MaybeNull = new Null() {
+            @Override
+            public String toString() {
+                return "MaybeNull";
+            }
+        };
+        public static final Null NotNull = new Null() {
+            @Override
+            public String toString() {
+                return "NotNull";
+            }
+        };
 
         public static final Null Top = MaybeNull;
         public static final Null Bot = NotNull;
@@ -1873,8 +1992,18 @@ public class Domains {
             }
         }
 
-        public static final Undef MaybeUndef = new Undef() {};
-        public static final Undef NotUndef = new Undef() {};
+        public static final Undef MaybeUndef = new Undef() {
+            @Override
+            public String toString() {
+                return "MaybeUndef";
+            }
+        };
+        public static final Undef NotUndef = new Undef() {
+            @Override
+            public String toString() {
+                return "NotUndef";
+            }
+        };
 
         public static final Undef Top = MaybeUndef;
         public static final Undef Bot = NotUndef;
