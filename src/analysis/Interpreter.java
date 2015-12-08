@@ -612,6 +612,7 @@ public class Interpreter {
                     } else {
                         Mutable.outputMap.set(((IRPrint) stmt).id, tmp.some().insert(eval(e)));
                     }
+                    return advanceBV(Domains.Undef.BV, store, pad, ks);
                 }
                 else {
                     throw new RuntimeException("malformed program");
