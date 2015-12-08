@@ -330,11 +330,11 @@ public class Domains {
         }
 
         public Store fullGC(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots, FHashSet<AddressSpace.Address> kRoots) {
-            return null; // TODO
+            throw new RuntimeException("not implemented: fullGC");
         }
 
         public P2<Store, Store> prune(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots) {
-            return null; // TODO
+            throw new RuntimeException("not implemented: prune");
         }
     }
 
@@ -474,6 +474,25 @@ public class Domains {
 
         FHashSet<Domain> types;
 
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("<");
+            builder.append(n);
+            builder.append(",");
+            builder.append(b);
+            builder.append(",");
+            builder.append(str);
+            builder.append(",");
+            builder.append(as);
+            builder.append(",");
+            builder.append(nil);
+            builder.append(",");
+            builder.append(undef);
+            builder.append(">");
+            return builder.toString();
+        }
+
         public BValue(Num n, Bool b, Str str, FHashSet<AddressSpace.Address> as, Null nil, Undef undef) {
             this.n = n;
             this.b = b;
@@ -482,6 +501,14 @@ public class Domains {
             this.nil = nil;
             this.undef = undef;
             this.calced = false;
+
+            this.sorts = FHashSet.<Domain>empty().
+                    union(n.equals(Num.Bot) ? FHashSet.empty() : FHashSet.build(DNum)).
+                    union(b.equals(Bool.Bot) ? FHashSet.empty() : FHashSet.build(DBool)).
+                    union(str.equals(Str.Bot) ? FHashSet.empty() : FHashSet.build(DStr)).
+                    union(as.isEmpty() ? FHashSet.empty() : FHashSet.build(DAddr)).
+                    union(nil.equals(Null.Bot) ? FHashSet.empty() : FHashSet.build(DNull)).
+                    union(undef.equals(Undef.Bot) ? FHashSet.empty() : FHashSet.build(DUndef));
 
             ArrayList<Domain> doms = new ArrayList<>();
             if (!n.equals(Num.Bot)) doms.add(DNum);
@@ -696,13 +723,7 @@ public class Domains {
             return Num.inject(res);
         }
 
-        public final FHashSet<Domain> sorts = FHashSet.<Domain>empty().
-                union(n.equals(Num.Bot) ? FHashSet.empty() : FHashSet.build(DNum)).
-                union(b.equals(Bool.Bot) ? FHashSet.empty() : FHashSet.build(DBool)).
-                union(str.equals(Str.Bot) ? FHashSet.empty() : FHashSet.build(DStr)).
-                union(as.isEmpty() ? FHashSet.empty() : FHashSet.build(DAddr)).
-                union(nil.equals(Null.Bot) ? FHashSet.empty() : FHashSet.build(DNull)).
-                union(undef.equals(Undef.Bot) ? FHashSet.empty() : FHashSet.build(DUndef));
+        public final FHashSet<Domain> sorts;
 
         public Boolean isBot() {
             return types.isEmpty();
@@ -759,7 +780,7 @@ public class Domains {
             else if (bvf.equals(Utils.Filters.IsUndefNull)) {
                 return P.p(removeNullAndUndef(), this);
             }
-            return null;
+            throw new RuntimeException("implementation error");
         }
 
         public static final BValue Bot = new BValue(Num.Bot, Bool.Bot, Str.Bot, FHashSet.empty(), Null.Bot, Undef.Bot);
@@ -1048,6 +1069,25 @@ public class Domains {
             return (this.equals(Bot) || (this instanceof NConst && ((NConst)this).d != 0));
         }
 
+        public static final Num NTop = new Num() {
+            @Override
+            public String toString() {
+                return "Top";
+            }
+        };
+        public static final Num NBot = new Num() {
+            @Override
+            public String toString() {
+                return "Bot";
+            }
+        };
+        public static final Num NReal = new Num() {
+            @Override
+            public String toString() {
+                return "Real";
+            }
+        };
+
         public static final Num Top = NTop;
         public static final Num Bot = NBot;
         public static final Num Zero = new NConst(0.0);
@@ -1092,12 +1132,6 @@ public class Domains {
         }
     }
 
-    public static final Num NBot = new Num() {};
-
-    public static final Num NTop = new Num() {};
-
-    public static final Num NReal = new Num() {};
-
     public static class NConst extends Num {
         public Double d;
         int recordHash;
@@ -1106,6 +1140,11 @@ public class Domains {
         public NConst(Double d) {
             this.d = d;
             this.calced = false;
+        }
+
+        @Override
+        public String toString() {
+            return d.toString();
         }
 
         @Override
@@ -1217,6 +1256,31 @@ public class Domains {
             }
         }
 
+        public static final Bool BBot = new Bool() {
+            @Override
+            public String toString() {
+                return "Bot";
+            }
+        };
+        public static final Bool BTop = new Bool() {
+            @Override
+            public String toString() {
+                return "Top";
+            }
+        };
+        public static final Bool BTrue = new Bool() {
+            @Override
+            public String toString() {
+                return "True";
+            }
+        };
+        public static final Bool BFalse = new Bool() {
+            @Override
+            public String toString() {
+                return "False";
+            }
+        };
+
         public static final Bool Top = BTop;
         public static final Bool Bot = BBot;
         public static final Bool True = BTrue;
@@ -1237,14 +1301,6 @@ public class Domains {
             return new BValue(Num.Bot, b, Str.Bot, FHashSet.empty(), Null.Bot, Undef.Bot);
         }
     }
-
-    public static final Bool BBot = new Bool() {};
-
-    public static final Bool BTrue = new Bool() {};
-
-    public static final Bool BFalse = new Bool() {};
-
-    public static final Bool BTop = new Bool() {};
 
     public static abstract class Str {
         public Str merge(Str str) {
@@ -1594,6 +1650,49 @@ public class Domains {
                     (this instanceof SConstNotSplNorNum && !((SConstNotSplNorNum)this).str.isEmpty()));
         }
 
+        public static final Str STop = new Str() {
+            @Override
+            public String toString() {
+                return "Top";
+            }
+        };
+        public static final Str SBot = new Str() {
+            @Override
+            public String toString() {
+                return "Bot";
+            }
+        };
+        public static final Str SNum = new Str() {
+            @Override
+            public String toString() {
+                return "Num";
+            }
+        };
+        public static final Str SNotNum = new Str() {
+            @Override
+            public String toString() {
+                return "NotNum";
+            }
+        };
+        public static final Str SSpl = new Str() {
+            @Override
+            public String toString() {
+                return "Spl";
+            }
+        };
+        public static final Str SNotSplNorNum = new Str() {
+            @Override
+            public String toString() {
+                return "NotSplNorNum";
+            }
+        };
+        public static final Str SNotSpl = new Str() {
+            @Override
+            public String toString() {
+                return "NotSpl";
+            }
+        };
+
         public static final Str Top = STop;
         public static final Str Bot = SBot;
         public static final Str U32 = SNum;
@@ -1708,20 +1807,6 @@ public class Domains {
         }
     }
 
-    public static final Str SBot = new Str() {};
-
-    public static final Str STop = new Str() {};
-
-    public static final Str SNum = new Str() {};
-
-    public static final Str SNotNum = new Str() {};
-
-    public static final Str SSpl = new Str() {};
-
-    public static final Str SNotSplNorNum = new Str() {};
-
-    public static final Str SNotSpl = new Str() {};
-
     public static class SConstNum extends Str {
         public String str;
         int recordHash;
@@ -1730,6 +1815,11 @@ public class Domains {
         public SConstNum(String str) {
             this.str = str;
             this.calced = false;
+        }
+
+        @Override
+        public String toString() {
+            return "\"" + str + "\"";
         }
 
         @Override
@@ -1760,6 +1850,11 @@ public class Domains {
         }
 
         @Override
+        public String toString() {
+            return "\"" + str + "\"";
+        }
+
+        @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof SConstNotSplNorNum && ((SConstNotSplNorNum) obj).str.equals(str));
         }
@@ -1780,6 +1875,11 @@ public class Domains {
         public String str;
         int recordHash;
         boolean calced;
+
+        @Override
+        public String toString() {
+            return "\"" + str + "\"";
+        }
 
         public SConstSpl(String str) {
             this.str = str;
@@ -1864,15 +1964,24 @@ public class Domains {
             }
         }
 
+        public static final Null MaybeNull = new Null() {
+            @Override
+            public String toString() {
+                return "MaybeNull";
+            }
+        };
+        public static final Null NotNull = new Null() {
+            @Override
+            public String toString() {
+                return "NotNull";
+            }
+        };
+
         public static final Null Top = MaybeNull;
         public static final Null Bot = NotNull;
 
         public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, FHashSet.empty(), Top, Undef.Bot);
     }
-
-    public static final Null MaybeNull = new Null() {};
-
-    public static final Null NotNull = new Null() {};
 
     public static abstract class Undef {
         public Undef merge(Undef undef) {
@@ -1883,15 +1992,24 @@ public class Domains {
             }
         }
 
+        public static final Undef MaybeUndef = new Undef() {
+            @Override
+            public String toString() {
+                return "MaybeUndef";
+            }
+        };
+        public static final Undef NotUndef = new Undef() {
+            @Override
+            public String toString() {
+                return "NotUndef";
+            }
+        };
+
         public static final Undef Top = MaybeUndef;
         public static final Undef Bot = NotUndef;
 
         public static final BValue BV = new BValue(Num.Bot, Bool.Bot, Str.Bot, FHashSet.empty(), Null.Bot, Top);
     }
-
-    public static final Undef MaybeUndef = new Undef() {};
-
-    public static final Undef NotUndef = new Undef() {};
 
     public static abstract class Closure {}
 
@@ -1906,7 +2024,6 @@ public class Domains {
             this.env = env;
             this.m = m;
             this.calced = false;
-            this.recordHash = hash.hash(P.p(env, m));
         }
 
         @Override
@@ -2253,29 +2370,29 @@ public class Domains {
                 if (top.isSome()) bvs = bvs.snoc(top.some());
                 if (num.isSome()) bvs = bvs.snoc(num.some());
                 if (exactnum.contains(str)) bvs = bvs.snoc(exactnum.get(str).some());
-            } else if (str.equals(SNum)) {
+            } else if (str.equals(Str.SNum)) {
                 if (top.isSome()) bvs = bvs.snoc(top.some());
                 if (num.isSome()) bvs = bvs.snoc(num.some());
                 bvs = bvs.append(exactnum.values());
-            } else if (str.equals(SNotSplNorNum)) {
+            } else if (str.equals(Str.SNotSplNorNum)) {
                 if (top.isSome()) bvs = bvs.snoc(top.some());
                 if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
                 bvs = bvs.append(nonSplValues);
-            } else if (str.equals(SSpl)) {
+            } else if (str.equals(Str.SSpl)) {
                 if (top.isSome()) bvs = bvs.snoc(top.some());
                 if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
                 bvs = bvs.append(splValues);
-            } else if (str.equals(SNotSpl)) {
+            } else if (str.equals(Str.SNotSpl)) {
                 if (top.isSome()) bvs = bvs.snoc(top.some());
                 if (num.isSome()) bvs = bvs.snoc(num.some());
                 if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
                 bvs = bvs.append(exactnum.values());
                 bvs = bvs.append(nonSplValues);
-            } else if (str.equals(SNotNum)) {
+            } else if (str.equals(Str.SNotNum)) {
                 if (top.isSome()) bvs = bvs.snoc(top.some());
                 if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
                 bvs = bvs.append(exactnotnum.values());
-            } else if (str.equals(STop)) {
+            } else if (str.equals(Str.STop)) {
                 if (top.isSome()) bvs = bvs.snoc(top.some());
                 if (num.isSome()) bvs = bvs.snoc(num.some());
                 if (notnum.isSome()) bvs = bvs.snoc(notnum.some());
@@ -2323,7 +2440,7 @@ public class Domains {
                     bv1 = bv;
                 }
                 return new ExternMap(top, notnum, num, exactnotnum, exactnum.set(str, bv1));
-            } else if (str.equals(SNum)) {
+            } else if (str.equals(Str.SNum)) {
                 Option<BValue> num1;
                 if (num.isSome()) {
                     num1 = Option.some(num.some().merge(bv));
@@ -2331,7 +2448,7 @@ public class Domains {
                     num1 = Option.some(bv);
                 }
                 return new ExternMap(top, notnum, num1, exactnotnum, exactnum);
-            } else if (str.equals(SSpl) || str.equals(SNotSplNorNum) || str.equals(SNotNum)) {
+            } else if (str.equals(Str.SSpl) || str.equals(Str.SNotSplNorNum) || str.equals(Str.SNotNum)) {
                 Option<BValue> notnum1;
                 if (notnum.isSome()) {
                     notnum1 = Option.some(notnum.some().merge(bv));
@@ -2339,7 +2456,7 @@ public class Domains {
                     notnum1 = Option.some(bv);
                 }
                 return new ExternMap(top, notnum1, num, exactnotnum, exactnum);
-            } else if (str.equals(SNotSpl) || str.equals(STop)) {
+            } else if (str.equals(Str.SNotSpl) || str.equals(Str.STop)) {
                 Option<BValue> top1;
                 if (top.isSome()) {
                     top1 = Option.some(top.some().merge(bv));
@@ -2370,17 +2487,17 @@ public class Domains {
                 return top.isNone() && notnum.isNone() && !(exactnotnum.contains(str));
             } else if (str instanceof SConstNum) {
                 return top.isNone() && num.isNone() && !(exactnum.contains(str));
-            } else if (str.equals(SNotSplNorNum)) {
+            } else if (str.equals(Str.SNotSplNorNum)) {
                 return top.isNone() && notnum.isNone() && nonSplValues.isEmpty();
-            } else if (str.equals(SSpl)) {
+            } else if (str.equals(Str.SSpl)) {
                 return top.isNone() && notnum.isNone() && splValues.isEmpty();
-            } else if (str.equals(SNum)) {
+            } else if (str.equals(Str.SNum)) {
                 return top.isNone() && num.isNone() && exactnum.isEmpty();
-            } else if (str.equals(SNotSpl)) {
+            } else if (str.equals(Str.SNotSpl)) {
                 return top.isNone() && num.isNone() && notnum.isNone() && exactnum.isEmpty() && nonSplValues.isEmpty();
-            } else if (str.equals(SNotNum)) {
+            } else if (str.equals(Str.SNotNum)) {
                 return top.isNone() && notnum.isNone() && exactnotnum.isEmpty();
-            } else if (str.equals(STop)) {
+            } else if (str.equals(Str.STop)) {
                 return top.isNone() && notnum.isNone() && num.isNone() && exactnotnum.isEmpty() && exactnum.isEmpty();
             } else {
                 throw new RuntimeException("used SBot with an object");
@@ -2401,17 +2518,17 @@ public class Domains {
                 } else {
                     return FHashSet.empty();
                 }
-            } else if (str.equals(SNum)) {
+            } else if (str.equals(Str.SNum)) {
                 return FHashSet.build(exactnum.keys());
-            } else if (str.equals(SNotSplNorNum)) {
+            } else if (str.equals(Str.SNotSplNorNum)) {
                 return FHashSet.build(nonSplKeys);
-            } else if (str.equals(SSpl)) {
+            } else if (str.equals(Str.SSpl)) {
                 return FHashSet.build(exactnotnum.keys().filter(k -> Str.SplStrings.member(Str.getExact(k).some())));
-            } else if (str.equals(SNotSpl)) {
+            } else if (str.equals(Str.SNotSpl)) {
                 return FHashSet.build(exactnum.keys().append(nonSplKeys));
-            } else if (str.equals(SNotNum)) {
+            } else if (str.equals(Str.SNotNum)) {
                 return FHashSet.build(exactnotnum.keys());
-            } else if (str.equals(STop)) {
+            } else if (str.equals(Str.STop)) {
                 return FHashSet.build(exactnotnum.keys().append(exactnum.keys()));
             } else {
                 throw new RuntimeException("used SBot with an object");
@@ -2420,10 +2537,10 @@ public class Domains {
 
         public FHashSet<Str> reducedKeys() {
             if (top.isSome()) {
-                return FHashSet.build(STop);
+                return FHashSet.build(Str.STop);
             } else {
-                List<Str> l1 = notnum.isSome() ? List.list(SNotNum) : exactnotnum.keys();
-                List<Str> l2 = num.isSome() ? List.list(SNum) : exactnum.keys();
+                List<Str> l1 = notnum.isSome() ? List.list(Str.SNotNum) : exactnotnum.keys();
+                List<Str> l2 = num.isSome() ? List.list(Str.SNum) : exactnum.keys();
                 return FHashSet.build(l1.append(l2));
             }
         }
@@ -2880,5 +2997,9 @@ public class Domains {
         public static KontStack apply(Kont k, Integer exc) {
             return new KontStack(List.list(k), List.list(exc));
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Hello world!");
     }
 }

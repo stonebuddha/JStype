@@ -140,4 +140,21 @@ public class FHashSet<E> implements Iterable<E> {
     public E head() {
         return set.iterator().next();
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        boolean first = true;
+        for (E elem : set) {
+            if (first) {
+                first = false;
+            } else {
+                builder.append(",");
+            }
+            builder.append(elem);
+        }
+        builder.append("}");
+        return builder.toString();
+    }
 }

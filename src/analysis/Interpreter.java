@@ -1,13 +1,15 @@
 package analysis;
 
+import ast.Program;
 import fj.*;
 import fj.data.*;
 import immutable.FHashSet;
 import ir.*;
 import analysis.init.*;
 import analysis.Traces.Trace;
+import translator.*;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
@@ -46,6 +48,21 @@ public class Interpreter {
         }
     }
 
+    public static void main(String[] args) {
+        try {
+            HashMap<Integer, FHashSet<Domains.BValue>> result = runner(args);
+            for (Integer p : result) {
+                FHashSet<Domains.BValue> values = result.get(p).some();
+                System.out.println(p + " -->");
+                for (Domains.BValue bv : values) {
+                    System.out.println("    " + bv);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
     public static HashMap<Integer, FHashSet<Domains.BValue>> runner(String[] args) throws IOException {
         Mutable.clear();
         PruneScratch.clear();
@@ -61,18 +78,18 @@ public class Interpreter {
         // default: flow-sensitive context-insensitive
         Trace initTrace = new Traces.FSCI(0);
         Mutable.splitStates = false;
-        IRStmt ast = readAST(args[0]);
-        TreeMap<Trace, State> memo = TreeMap.empty(Ord.<Trace>hashEqualsOrd());
+        IRStmt ast = readIR(args[0]);
+        HashMap<Trace, State> memo = new HashMap<Trace, State>(Equal.anyEqual(), Hash.anyHash());
 
         try {
             State initSigma = Init.initState(ast, initTrace);
             for (State sigma : process(initSigma)) {
                 Option<State> memoSigma = memo.get(sigma.trace);
                 if (memoSigma.isNone()) {
-                    memo = memo.set(sigma.trace, sigma);
+                    memo.set(sigma.trace, sigma);
                 }
                 else {
-                    memo = memo.set(sigma.trace, sigma.merge(memoSigma.some()));
+                    memo.set(sigma.trace, sigma.merge(memoSigma.some()));
                 }
                 work.add(P.p(sigma.order(), sigma.trace));
             }
@@ -86,13 +103,13 @@ public class Interpreter {
                     for (State sigma : process(memo.get(trace).some())) {
                         Option<State> memoSigma = memo.get(sigma.trace);
                         if (memoSigma.isNone()) {
-                            memo = memo.set(sigma.trace, sigma);
+                            memo.set(sigma.trace, sigma);
                             work.add(P.p(sigma.order(), sigma.trace));
                         }
                         else {
                             State merged = sigma.merge(memoSigma.some());
                             if (!memoSigma.some().equals(merged)) {
-                                memo = memo.set(sigma.trace, merged);
+                                memo.set(sigma.trace, merged);
                                 work.add(P.p(merged.order(), merged.trace));
                             }
                         }
@@ -126,7 +143,7 @@ public class Interpreter {
                         }
                         State merged = new State(sigma1.t, sigma1.env, new_store, new_pad, sigma1.ks, sigma1.trace);
                         if (!merged.equals(sigma1)) {
-                            memo = memo.set(mtrace, merged);
+                            memo.set(mtrace, merged);
                             work.add(P.p(merged.order(), merged.trace));
                         }
                     }
@@ -154,9 +171,24 @@ public class Interpreter {
         return null;
     }
 
-    public static IRStmt readAST(String file) {
-        // TODO
-        return null;
+    public static IRStmt readIR(final String file) throws IOException {
+        final File f = new File(file);
+        final BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+        String data;
+        final StringBuilder builder = new StringBuilder();
+        while ((data = br.readLine()) != null) {
+            builder.append(data + "\n");
+        }
+        Parser.init();
+        Program program = Parser.parse(builder.toString(), f.getCanonicalPath());
+        //System.err.println(program.accept(PrettyPrinter.formatProgram));
+        program = AST2AST.transform(program);
+        System.err.println(program.accept(PrettyPrinter.formatProgram));
+        IRStmt stmt = AST2IR.transform(program);
+        //System.err.println(stmt);
+        stmt = IR2IR.transform(stmt);
+        System.err.println(stmt);
+        return stmt;
     }
 
     public static FHashSet<State> process(State initSigma) {
@@ -169,22 +201,21 @@ public class Interpreter {
             todo = todo.tail();
 
             while (sigmas.size() == 1) {
-                if (sigmas.iterator().next().isMerge()) {
-                    done = done.insert(sigmas.iterator().next());
+                if (sigmas.head().isMerge()) {
+                    done = done.insert(sigmas.head());
                     sigmas = FHashSet.empty();
                 }
                 else {
-                    sigmas = sigmas.iterator().next().next();
+                    sigmas = sigmas.head().next();
                 }
             }
-        }
 
-        for (State sigma : sigmas) {
-            if (sigma.isMerge()) {
-                done = done.insert(sigma);
-            }
-            else {
-                todo = todo.cons(sigma);
+            for (State sigma : sigmas) {
+                if (sigma.isMerge()) {
+                    done = done.insert(sigma);
+                } else {
+                    todo = todo.cons(sigma);
+                }
             }
         }
 
@@ -333,7 +364,7 @@ public class Interpreter {
                 }
                 else if (stmt instanceof IRSeq) {
                     IRSeq irSeq = (IRSeq) stmt;
-                    IRStmt s = irSeq.ss.index(0);
+                    IRStmt s = irSeq.ss.head();
                     List<IRStmt> ss = irSeq.ss.tail();
                     ret = ret.insert(new State(new Domains.StmtTerm(s), env, store, pad, ks.push(new Domains.SeqKont(ss)), trace.update(s)));
                 }
@@ -573,6 +604,16 @@ public class Interpreter {
                     IRMerge irMerge = (IRMerge) stmt;
                     ret = ret.union(advanceBV(Domains.Undef.BV, store, pad, ks));
                 }
+                else if (stmt instanceof IRPrint) {
+                    IRExp e = ((IRPrint) stmt).e;
+                    Option<FHashSet<Domains.BValue>> tmp = Mutable.outputMap.get(((IRPrint) stmt).id);
+                    if (tmp.isNone()) {
+                        Mutable.outputMap.set(((IRPrint) stmt).id, FHashSet.build(eval(e)));
+                    } else {
+                        Mutable.outputMap.set(((IRPrint) stmt).id, tmp.some().insert(eval(e)));
+                    }
+                    return advanceBV(Domains.Undef.BV, store, pad, ks);
+                }
                 else {
                     throw new RuntimeException("malformed program");
                 }
@@ -601,7 +642,7 @@ public class Interpreter {
             if (ks1.top() instanceof Domains.SeqKont) {
                 Domains.SeqKont sk = (Domains.SeqKont) ks1.top();
                 if (sk.ss.isNotEmpty()) {
-                    IRStmt s = sk.ss.index(0);
+                    IRStmt s = sk.ss.head();
                     List<IRStmt> ss = sk.ss.tail();
                     ret = ret.insert(new State(new Domains.StmtTerm(s), env, store1, pad1, ks1.repl(new Domains.SeqKont(ss)), trace.update(s)));
                 }

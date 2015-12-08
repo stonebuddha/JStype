@@ -517,8 +517,8 @@ public class Utils {
                     );
                 }
                 else {
-                    extern = o.extern.weakUpdate(Fields.length, Domains.Num.inject(Domains.NReal)).
-                            weakUpdate(Domains.SNum, Domains.Str.inject(Domains.Str.SingleChar));
+                    extern = o.extern.weakUpdate(Fields.length, Domains.Num.inject(Domains.Num.NReal)).
+                            weakUpdate(Domains.Str.SNum, Domains.Str.inject(Domains.Str.SingleChar));
                 }
                 FHashMap<Domains.Str, Object> intern1 = o.intern.set(Fields.value, bv.onlyStr());
                 Domains.Object o1 = new Domains.Object(extern, intern1, o.present.insert(Fields.length));

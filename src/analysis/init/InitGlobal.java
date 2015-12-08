@@ -60,65 +60,69 @@ public class InitGlobal {
             )))
     );
 
-    public static final Domains.Object uriMethodObj = InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)),
-            any-> FHashSet.build(Domains.Str.inject(Domains.STop), Utils.Errors.uriError));
+    public static final Domains.Object uriMethodObj = InitUtils.unimplemented("uriMethod"); //InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)),
+         //   any-> FHashSet.build(Domains.Str.inject(Domains.Str.STop), Utils.Errors.uriError));
     public static final Domains.Object decodeURI_Obj = uriMethodObj;
     public static final Domains.Object decodeURIComponent_Obj = uriMethodObj;
     public static final Domains.Object encodeURI_Obj = uriMethodObj;
     public static final Domains.Object encodeURIComponent_Obj = uriMethodObj;
-    public static final Domains.Object compatabilityURIMethodObj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),  Domains.Str.inject(Domains.STop));
+    public static final Domains.Object compatabilityURIMethodObj = InitUtils.unimplemented("compatabilityURIMethod"); //InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),  Domains.Str.inject(Domains.Str.STop));
     public static final Domains.Object escape_Obj = compatabilityURIMethodObj;
     public static final Domains.Object unescape_Obj = compatabilityURIMethodObj;
-    public static final Domains.Object isFinite_Obj = InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
+    public static final Domains.Object isFinite_Obj = InitUtils.unimplemented("isFinite"); /*InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
             (list)-> {
                 if (list.length() == 2) {
                     Domains.BValue bv = list.index(1);
                     assert bv.defNum() : "isFinite: conversion should guarante argument must be a number";
                     Domains.Bool tmp;
-                    if (bv.n.equals(Domains.NBot)) {
-                        tmp = Domains.BBot;
-                    } else if (bv.n.equals(Domains.NTop)) {
-                        tmp = Domains.BTop;
-                    } else if (bv.n.equals(Domains.NReal)) {
-                        tmp = Domains.BTrue;
+                    if (bv.n.equals(Domains.Num.Bot)) {
+                        tmp = Domains.Bool.Bot;
+                    } else if (bv.n.equals(Domains.Num.Top)) {
+                        tmp = Domains.Bool.Top;
+                    } else if (bv.n.equals(Domains.Num.NReal)) {
+                        tmp = Domains.Bool.True;
                     } else {
                         Double d = ((Domains.NConst)bv.n).d;
                         if (d.equals(Double.POSITIVE_INFINITY) || d.equals(Double.NEGATIVE_INFINITY) || d.isNaN()) {
-                            tmp = Domains.BFalse;
+                            tmp = Domains.Bool.False;
                         } else {
-                            tmp = Domains.BTrue;
+                            tmp = Domains.Bool.True;
                         }
                     }
                     return FHashSet.build(Domains.Bool.inject(tmp));
                 } else {
                     throw new RuntimeException("isFinite: signature conformance error");
                 }
-            });
-    public static final Domains.Object isNaN_Obj = InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
+            });*/
+    public static final Domains.Object isNaN_Obj = InitUtils.unimplemented("isNaN"); /*InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
             (list)-> {
                 if (list.length() == 2) {
                     Domains.BValue bv = list.index(1);
                     assert bv.defNum() : "isNaN: conversion should guarantee argument must be a number";
                     Domains.Bool tmp;
-                    if (bv.n.equals(Domains.NBot)) {
-                        tmp = Domains.BBot;
-                    } else if (bv.n.equals(Domains.NTop)) {
-                        tmp = Domains.BTop;
-                    } else if (bv.n.equals(Domains.NReal)) {
-                        tmp = Domains.BFalse;
+                    if (bv.n.equals(Domains.Num.Bot)) {
+                        tmp = Domains.Bool.Bot;
+                    } else if (bv.n.equals(Domains.Num.Top)) {
+                        tmp = Domains.Bool.Top;
+                    } else if (bv.n.equals(Domains.Num.NReal)) {
+                        tmp = Domains.Bool.False;
                     } else {
                         Double d = ((Domains.NConst)bv.n).d;
                         if (d.isNaN()) {
-                            tmp = Domains.BTrue;
+                            tmp = Domains.Bool.True;
                         } else {
-                            tmp = Domains.BFalse;
+                            tmp = Domains.Bool.False;
                         }
                     }
                     return FHashSet.build(Domains.Bool.inject(tmp));
                 } else {
                     throw new RuntimeException("isNaN: signature conformance error");
                 }
-            });
-    public static final Domains.Object parseFloat_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)), Domains.Num.inject(Domains.NTop));
-    public static final Domains.Object parseInt_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint, InitUtils.NumberHint)), Domains.Num.inject(Domains.NTop));
+            });*/
+    public static final Domains.Object parseFloat_Obj = InitUtils.unimplemented("parseFloat"); //InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)), Domains.Num.inject(Domains.Num.Top));
+    public static final Domains.Object parseInt_Obj = InitUtils.unimplemented("parseInt"); //InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint, InitUtils.NumberHint)), Domains.Num.inject(Domains.Num.Top));
+
+    public static void main(String[] args) {
+        System.out.println("Hello world!");
+    }
 }
