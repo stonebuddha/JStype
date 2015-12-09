@@ -36,7 +36,7 @@ public class InitFunction {
     );
 
     public static final Domains.Object Function_prototype_toString_Obj = InitUtils.unimplemented("Function.prototype.toString");/*InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Str.inject(Domains.Str.FunctionStr));*/
-    public static final Domains.Object Function_prototype_apply_Obj = /*InitUtils.unimplemented("Function.prototype.apply");*/ InitUtils.createInitFunctionObj(
+    public static final Domains.Object Function_prototype_apply_Obj = InitUtils.unimplemented("Function.prototype.apply"); /*InitUtils.createInitFunctionObj(
             new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks, tr)-> {
                 assert argArrayAddr.defAddr() && argArrayAddr.as.size() == 1 : "Arguments array refers to non-addresses or multiple addresses";
                 Domains.Object argsObj = store.getObj(argArrayAddr.as.head());
@@ -109,7 +109,58 @@ public class InitFunction {
                 }
             }),
             FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(2.0)))
-    );
-    public static final Domains.Object Function_prototype_call_Obj = InitUtils.unimplemented("Function.prototype.call");
+    );*/
+    public static final Domains.Object Function_prototype_call_Obj = InitUtils.unimplemented("Function.prototype.call");/*InitUtils.createInitFunctionObj(
+            new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks, tr)-> {
+                assert argArrayAddr.defAddr() && argArrayAddr.as.size() == 1 : "Arguments array refers to non-addresses or multiple addresses";
+                Domains.Object argsObj = store.getObj(argArrayAddr.as.head());
+                Domains.Num argLength = argsObj.apply(Domains.Str.alpha("length")).orSome(Domains.BValue.Bot).n;
+                Domains.BValue input = argsObj.apply(Domains.Str.alpha("0")).orSome(Domains.Undef.BV);
+                Domains.AddressSpace.Address traceAddr = tr.toAddr();
+                P3<Domains.BValue, Domains.Store, FHashSet<Domains.Domain>> tmp1 = Utils.toObjBody(input, store, tr, traceAddr);
+                Domains.BValue bv1 = tmp1._1(), bv2;
+                Domains.Store store1 = tmp1._2(), store2;
+                P2<Domains.Store, Domains.BValue> tmp2;
+                if (input.nil.equals(Domains.Null.MaybeNull) || input.undef.equals(Domains.Undef.MaybeUndef)) {
+                    tmp2 = Utils.allocObj(Domains.AddressSpace.Address.inject(Init.Object_Addr), traceAddr, store1, tr);
+                } else {
+                    tmp2 = P.p(store1, Domains.BValue.Bot);
+                }
+                store2 = tmp2._1();
+                bv2 = tmp2._2();
+                Domains.BValue newThisAddr = bv2.merge(bv1);
+                Option<Integer> extractedArgLength;
+                if (argLength instanceof Domains.NConst) {
+                    Double d = ((Domains.NConst)argLength).d;
+                    extractedArgLength = Option.some(d.intValue());
+                } else {
+                    extractedArgLength = Option.none();
+                }
+                Domains.AddressSpace.Address newArgsAddr = tr.modAddr(traceAddr, JSClass.CArguments);
+                FHashMap<Domains.Str, java.lang.Object> intern = FHashMap.build(
+                        Utils.Fields.proto, Domains.AddressSpace.Address.inject(Init.Object_prototype_Addr),
+                        Utils.Fields.classname, JSClass.CArguments
+                );
+                Domains.Object tmpArgsObj = new Domains.Object(new Domains.ExternMap(), intern, FHashSet.empty());
 
+                //TODO length 0
+
+                Domains.Object newArgsObj;
+                if (extractedArgLength.isSome()) {
+                    Integer newlen = extractedArgLength.some();
+                    newArgsObj = StringHelpers.newArray(Domains.Num.alpha(newlen.doubleValue() - 1.0), List.range(1, newlen).map(n -> argsObj.apply(Domains.Str.alpha(n.toString())).some()), Option.none(), tmpArgsObj, false);
+                } else {
+                    newArgsObj = StringHelpers.newArray(argLength, List.list(), argsObj.apply(Domains.Str.SNum), tmpArgsObj, false);
+                }
+                Domains.Store store3 = store2.alloc(newArgsAddr, newArgsObj);
+                FHashSet<Interpreter.State> tmp;
+                if (!selfAddr.defAddr()) {
+                    tmp = InitUtils.makeState(Utils.Errors.typeError, x, env, store, pad, ks, tr);
+                } else {
+                    tmp = FHashSet.empty();
+                }
+                return Utils.applyClo(selfAddr, newThisAddr, Domains.AddressSpace.Address.inject(newArgsAddr), x, env, store3, pad, ks, tr).union(tmp);
+            }),
+            FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(1.0)))
+    );*/
 }
