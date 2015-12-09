@@ -317,7 +317,7 @@ public class InitUtils {
         return new Sig(selfHint, argHints, argHints.length());
     }
 
-    public static F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, Interpreter.State> genValueObjConstructor(String cname, F<Domains.BValue, Domains.BValue> bvtrans) {
+    public static F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, FHashSet<Interpreter.State>> genValueObjConstructor(String cname, F<Domains.BValue, Domains.BValue> bvtrans) {
         return (bvs, x, env, store, pad, ks, trace)-> {
             assert bvs.length() >= 2 : cname + " constructor: should have `self` address plus 1 argument by this point";
             Domains.BValue selfAddr_bv = bvs.index(0), arg_value = bvs.index(1);
@@ -330,7 +330,7 @@ public class InitUtils {
         };
     }
 
-    public static F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, Interpreter.State> valueObjConstructor(String cname, F<Domains.BValue, Void> verify) {
+    public static F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, FHashSet<Interpreter.State>> valueObjConstructor(String cname, F<Domains.BValue, Void> verify) {
         return genValueObjConstructor(cname, bv-> {
             verify.f(bv);
             return bv;
