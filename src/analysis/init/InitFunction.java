@@ -35,8 +35,8 @@ public class InitFunction {
             )
     );
 
-    public static final Domains.Object Function_prototype_toString_Obj = InitUtils.unimplemented("Function.prototype.toString");/*InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Str.inject(Domains.Str.FunctionStr));*/
-    public static final Domains.Object Function_prototype_apply_Obj = InitUtils.unimplemented("Function.prototype.apply"); /*InitUtils.createInitFunctionObj(
+    public static final Domains.Object Function_prototype_toString_Obj = /*InitUtils.unimplemented("Function.prototype.toString");*/ InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Str.inject(Domains.Str.FunctionStr));
+    public static final Domains.Object Function_prototype_apply_Obj = /*InitUtils.unimplemented("Function.prototype.apply");*/ InitUtils.createInitFunctionObj(
             new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks, tr)-> {
                 assert argArrayAddr.defAddr() && argArrayAddr.as.size() == 1 : "Arguments array refers to non-addresses or multiple addresses";
                 Domains.Object argsObj = store.getObj(argArrayAddr.as.head());
@@ -109,8 +109,8 @@ public class InitFunction {
                 }
             }),
             FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(2.0)))
-    );*/
-    public static final Domains.Object Function_prototype_call_Obj = InitUtils.unimplemented("Function.prototype.call");/*InitUtils.createInitFunctionObj(
+    );
+    public static final Domains.Object Function_prototype_call_Obj = /*InitUtils.unimplemented("Function.prototype.call");*/ InitUtils.createInitFunctionObj(
             new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks, tr)-> {
                 assert argArrayAddr.defAddr() && argArrayAddr.as.size() == 1 : "Arguments array refers to non-addresses or multiple addresses";
                 Domains.Object argsObj = store.getObj(argArrayAddr.as.head());
@@ -162,5 +162,5 @@ public class InitFunction {
                 return Utils.applyClo(selfAddr, newThisAddr, Domains.AddressSpace.Address.inject(newArgsAddr), x, env, store3, pad, ks, tr).union(tmp);
             }),
             FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(1.0)))
-    );*/
+    );
 }

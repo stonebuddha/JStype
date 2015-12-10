@@ -66,10 +66,10 @@ public class InitGlobal {
     public static final Domains.Object decodeURIComponent_Obj = uriMethodObj;
     public static final Domains.Object encodeURI_Obj = uriMethodObj;
     public static final Domains.Object encodeURIComponent_Obj = uriMethodObj;
-    public static final Domains.Object compatabilityURIMethodObj = InitUtils.unimplemented("compatabilityURIMethod"); //InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),  Domains.Str.inject(Domains.Str.STop));
+    public static final Domains.Object compatabilityURIMethodObj = /*InitUtils.unimplemented("compatabilityURIMethod");*/ InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),  Domains.Str.inject(Domains.Str.STop));
     public static final Domains.Object escape_Obj = compatabilityURIMethodObj;
     public static final Domains.Object unescape_Obj = compatabilityURIMethodObj;
-    public static final Domains.Object isFinite_Obj = InitUtils.unimplemented("isFinite"); /*InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
+    public static final Domains.Object isFinite_Obj = /*InitUtils.unimplemented("isFinite");*/ InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
             (list)-> {
                 if (list.length() == 2) {
                     Domains.BValue bv = list.index(1);
@@ -93,8 +93,8 @@ public class InitGlobal {
                 } else {
                     throw new RuntimeException("isFinite: signature conformance error");
                 }
-            });*/
-    public static final Domains.Object isNaN_Obj = InitUtils.unimplemented("isNaN"); /*InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
+            });
+    public static final Domains.Object isNaN_Obj = /*InitUtils.unimplemented("isNaN");*/ InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint)),
             (list)-> {
                 if (list.length() == 2) {
                     Domains.BValue bv = list.index(1);
@@ -118,9 +118,9 @@ public class InitGlobal {
                 } else {
                     throw new RuntimeException("isNaN: signature conformance error");
                 }
-            });*/
-    public static final Domains.Object parseFloat_Obj = InitUtils.unimplemented("parseFloat"); //InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)), Domains.Num.inject(Domains.Num.Top));
-    public static final Domains.Object parseInt_Obj = InitUtils.unimplemented("parseInt"); //InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint, InitUtils.NumberHint)), Domains.Num.inject(Domains.Num.Top));
+            });
+    public static final Domains.Object parseFloat_Obj = /*InitUtils.unimplemented("parseFloat");*/ InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)), Domains.Num.inject(Domains.Num.Top));
+    public static final Domains.Object parseInt_Obj = /*InitUtils.unimplemented("parseInt");*/ InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint, InitUtils.NumberHint)), Domains.Num.inject(Domains.Num.Top));
 
     public static void main(String[] args) {
         System.out.println("Hello world!");

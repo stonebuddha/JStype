@@ -2,7 +2,6 @@ package analysis.init;
 
 import analysis.Domains;
 import analysis.Utils;
-import fj.F;
 import fj.data.List;
 import fj.function.Effect1;
 import immutable.FHashMap;
@@ -23,7 +22,7 @@ public class InitBoolean {
                 Boolean calledAsConstr = (Boolean)argsObj.intern.get(Utils.Fields.constructor).orSome(false);
                 if (calledAsConstr) {
                     Effect1<Domains.BValue> check = bv-> {
-                        assert ((Domains.BValue)bv).defBool() : "Boolean: in_bool should be a boolean; refactor valueObjConstructor";
+                        assert bv.defBool() : "Boolean: in_bool should be a boolean; refactor valueObjConstructor";
                     };
                     return FHashSet.build(InitUtils.valueObjConstructor("Boolean", check).f(List.list(selfAddr, in_bool), x, env, store, pad, ks, trace));
                 } else {
