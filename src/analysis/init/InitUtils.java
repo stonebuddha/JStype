@@ -7,12 +7,15 @@ import analysis.Utils;
 import fj.*;
 import fj.data.List;
 import fj.data.Option;
+import fj.function.Effect1;
 import immutable.FHashMap;
 import immutable.FHashSet;
 import ir.IRPVar;
 import ir.IRScratch;
 import ir.IRVar;
 import ir.JSClass;
+
+import javax.rmi.CORBA.Util;
 
 /**
  * Created by BenZ on 15/11/24.
@@ -318,13 +321,28 @@ public class InitUtils {
             Domains.AddressSpace.Address selfAddr = selfAddr_bv.as.head();
             Domains.BValue final_value = bvtrans.f(arg_value);
             Domains.Object old_self = store.getObj(selfAddr);
-            //TODO
-            throw new RuntimeException("not implemented");
-            //return null;
+            Domains.Object new_self = new Domains.Object(old_self.extern.strongUpdate(Utils.Fields.value, final_value), old_self.intern, old_self.present);
+            Domains.Object newer_self;
+            if (cname.equals("String")) {
+                Option<String> exactStr = Domains.Str.getExact(final_value.str);
+                Domains.ExternMap extern;
+                if (exactStr.isSome()) {
+                    String s = exactStr.some();
+                    extern = List.range(0, s.length()).foldLeft(
+                            (acc, e)-> acc.strongUpdate(Domains.Str.alpha(e.toString()), Domains.Str.inject(Domains.Str.alpha(s.substring(e, e + 1)))),
+                            new_self.extern.strongUpdate(Utils.Fields.length, Domains.Num.inject(Domains.Num.alpha((double)s.length()))));
+                } else {
+                    extern = new_self.extern.weakUpdate(Utils.Fields.length, Domains.Num.inject(Domains.Num.NReal)).weakUpdate(Domains.Str.SNum, Domains.Str.inject(Domains.Str.SingleChar));
+                }
+                newer_self = new Domains.Object(extern, new_self.intern, new_self.present.insert(Utils.Fields.length));
+            } else {
+                newer_self = new_self;
+            }
+            return InitUtils.makeState(selfAddr_bv, x, env, store.putObj(selfAddr, newer_self), pad, ks, trace);
         };
     }
 
-    public static F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, FHashSet<Interpreter.State>> valueObjConstructor(String cname, F<Domains.BValue, Void> verify) {
+    public static F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, FHashSet<Interpreter.State>> valueObjConstructor(String cname, Effect1<Domains.BValue> verify) {
         return genValueObjConstructor(cname, bv-> {
             verify.f(bv);
             return bv;

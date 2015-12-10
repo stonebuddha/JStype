@@ -4,6 +4,7 @@ import analysis.Domains;
 import analysis.Utils;
 import fj.F;
 import fj.data.List;
+import fj.function.Effect1;
 import immutable.FHashMap;
 import immutable.FHashSet;
 import ir.JSClass;
@@ -21,9 +22,8 @@ public class InitBoolean {
                 Domains.BValue in_bool = input.toBool();
                 Boolean calledAsConstr = (Boolean)argsObj.intern.get(Utils.Fields.constructor).orSome(false);
                 if (calledAsConstr) {
-                    F<Domains.BValue, Void> check = bv-> {
+                    Effect1<Domains.BValue> check = bv-> {
                         assert ((Domains.BValue)bv).defBool() : "Boolean: in_bool should be a boolean; refactor valueObjConstructor";
-                        throw new RuntimeException("unimplemented"); // TODO
                     };
                     return FHashSet.build(InitUtils.valueObjConstructor("Boolean", check).f(List.list(selfAddr, in_bool), x, env, store, pad, ks, trace));
                 } else {
