@@ -1,10 +1,16 @@
 package analysis;
 
+import fj.Hash;
+import fj.P;
+import fj.P4;
 import fj.data.List;
 import immutable.FHashMap;
 import ir.IRStmt;
 import ir.IRVar;
 import ir.JSClass;
+
+import java.math.BigInteger;
+import java.util.SortedSet;
 
 /**
  * Created by BenZ on 15/11/28.
@@ -84,6 +90,56 @@ public class Traces {
 
         public static FSCI apply() {
             return new FSCI(0);
+        }
+    }
+
+    public static class StackCFA extends Trace {
+        public Integer k, h, pp;
+        public List<Integer> tr;
+        final int recordHash;
+        static final Hash<P4<Integer, Integer, Integer, List<Integer>>> hasher = Hash.p4Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
+        public StackCFA(Integer k, Integer h, Integer pp, List<Integer> tr) {
+            assert k >= h;
+            this.k = k; this.h = h; this.pp = pp;
+            this.tr = tr;
+            this.recordHash = hasher.hash(P.p(k, h, pp, tr));
+        }
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof StackCFA && k.equals(((StackCFA) obj).k) && h.equals(((StackCFA) obj).h) && pp.equals(((StackCFA) obj).pp) && tr.equals(((StackCFA) obj).tr));
+        }
+
+        @Override
+        public int hashCode() {
+            return recordHash;
+        }
+
+        public StackCFA update(IRStmt s) {
+            return new StackCFA(k, h, s.id, tr);
+        }
+
+        public StackCFA update(Domains.Env env, Domains.Store store, Domains.BValue self, Domains.BValue args, IRStmt s){
+            return new StackCFA(k, h, s.id, tr.cons(pp).take(k));
+        }
+
+        public Domains.AddressSpace.Address toAddr() {
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.take(h), pp));
+        }
+
+        public Domains.AddressSpace.Address makeAddr(IRVar x) {
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.take(h), x.id));
+        }
+
+        public static StackCFA apply(Integer k, Integer h) {
+            return new StackCFA(k, h, 0, List.list());
+        }
+    }
+
+    public static class TraceUtils {
+        public static BigInteger IntsToBigInt(List<Integer> tr, Integer pp) {
+            BigInteger tracePart = tr.foldLeft((acc, e) ->
+                acc.shiftLeft(32).add(BigInteger.valueOf(e)), BigInteger.valueOf(0));
+            return tracePart.shiftLeft(32).add(BigInteger.valueOf(pp));
         }
     }
 
