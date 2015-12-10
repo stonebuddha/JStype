@@ -1,11 +1,11 @@
 package analysis.init;
 
 import analysis.Domains;
-import analysis.Traces;
 import analysis.Utils;
 import fj.P;
 import fj.P2;
 import fj.P3;
+import fj.data.List;
 import immutable.FHashMap;
 import immutable.FHashSet;
 import ir.JSClass;
@@ -71,10 +71,18 @@ public class InitObject {
             )
     );
 
-    public static final Domains.Object Object_prototype_toString_Obj = InitUtils.unimplemented("Object.prototype.toString");
-    public static final Domains.Object Object_prototype_toLocaleString_Obj = InitUtils.unimplemented("Object.prototype.toLocaleString");
-    public static final Domains.Object Object_prototype_valueOf_Obj = InitUtils.unimplemented("Object.prototype.valueOf");
-    public static final Domains.Object Object_prototype_hasOwnProperty_Obj = InitUtils.unimplemented("Object.prototype.hasOwnProperty");
-    public static final Domains.Object Object_prototype_isPrototypeOf_Obj = InitUtils.unimplemented("Object.prototype.isPrototypeOf");
-    public static final Domains.Object Object_prototype_propertyIsEnumerable_Obj = InitUtils.unimplemented("Object.prototype.propertyIsEnumerable");
+    public static final Domains.Object Object_prototype_toString_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Str.inject(Domains.Str.SNotNum));
+    public static final Domains.Object Object_prototype_toLocaleString_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Str.inject(Domains.Str.SNotNum));
+    public static final Domains.Object Object_prototype_hasOwnProperty_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Bool.inject(Domains.Bool.BTop));
+    public static final Domains.Object Object_prototype_isPrototypeOf_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Bool.inject(Domains.Bool.BTop));
+    public static final Domains.Object Object_prototype_propertyIsEnumerable_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Bool.inject(Domains.Bool.BTop));
+    public static final Domains.Object Object_prototype_valueOf_Obj = InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()),
+            list-> {
+                if (list.length() == 1) {
+                    Domains.BValue selfAddr = list.index(0);
+                    return FHashSet.build(selfAddr);
+                } else {
+                    throw new RuntimeException("Object.prototype.valueOf: signature nonconformance error");
+                }
+            });
 }
