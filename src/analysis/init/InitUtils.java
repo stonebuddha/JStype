@@ -260,7 +260,6 @@ public class InitUtils {
     public static class VarSig extends UsualSignature {
         ConversionHint selfHint;
         ConversionHint argsHint;
-        Integer lengthProperty;
 
         VarSig(ConversionHint selfHint, ConversionHint argsHint, Integer lengthProperty) {
             this.selfHint = selfHint;
@@ -296,8 +295,8 @@ public class InitUtils {
     }
 
     public static Domains.Object usualFunctionObj(UsualSignature sig, F3<List<Domains.BValue>, Domains.Store, Traces.Trace, FHashSet<P2<Domains.Value, Domains.Store> > > f) {
-        return sigFunctionObj(sig, (List<Domains.BValue> bvs, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Traces.Trace trace)->
-            f.f(bvs, store, trace).map(p2 -> makeState(p2._1(), x, env, p2._2(), pad, ks, trace)).foldLeft((acc, set) -> acc.union(set), FHashSet.empty())
+        return sigFunctionObj(sig, (bvs, x, env, store, pad, ks, trace)->
+            f.f(bvs, store, trace).map(p2-> makeState(p2._1(), x, env, p2._2(), pad, ks, trace)).foldLeft((acc, set) -> acc.union(set), FHashSet.empty())
         );
     }
 
