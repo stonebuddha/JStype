@@ -246,7 +246,6 @@ public class InitUtils {
     public static class Sig extends UsualSignature {
         ConversionHint selfHint;
         List<ConversionHint> argHints;
-        Integer lengthProperty;
 
         Sig(ConversionHint selfHint, List<ConversionHint> argHints, Integer lengthProperty) {
             this.selfHint = selfHint;

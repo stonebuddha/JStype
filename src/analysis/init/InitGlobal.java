@@ -60,8 +60,8 @@ public class InitGlobal {
             )))
     );
 
-    public static final Domains.Object uriMethodObj = InitUtils.unimplemented("uriMethod"); /* InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)),
-           any-> FHashSet.build(Domains.Str.inject(Domains.Str.STop), Utils.Errors.uriError)); */
+    public static final Domains.Object uriMethodObj = /* InitUtils.unimplemented("uriMethod"); */ InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)),
+           any-> FHashSet.build(Domains.Str.inject(Domains.Str.STop), Utils.Errors.uriError));
     public static final Domains.Object decodeURI_Obj = uriMethodObj;
     public static final Domains.Object decodeURIComponent_Obj = uriMethodObj;
     public static final Domains.Object encodeURI_Obj = uriMethodObj;
