@@ -12,7 +12,7 @@ public class InitString {
     public static final Domains.Object String_Obj = InitUtils.createInitFunctionObj(
             new Domains.Native(
                     (selfAddr, argArrayAddr, x, env, store, pad, ks, tr) -> {
-                        return null; // TODO
+                        throw new RuntimeException("not implemented"); // TODO
                     }
             ),
             FHashMap.build(

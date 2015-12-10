@@ -23,7 +23,7 @@ public class InitBoolean {
                 if (calledAsConstr) {
                     F<Domains.BValue, Void> check = bv-> {
                         assert ((Domains.BValue)bv).defBool() : "Boolean: in_bool should be a boolean; refactor valueObjConstructor";
-                        return null;
+                        throw new RuntimeException("unimplemented"); // TODO
                     };
                     return FHashSet.build(InitUtils.valueObjConstructor("Boolean", check).f(List.list(selfAddr, in_bool), x, env, store, pad, ks, trace));
                 } else {

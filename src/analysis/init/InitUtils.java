@@ -13,7 +13,6 @@ import ir.IRPVar;
 import ir.IRScratch;
 import ir.IRVar;
 import ir.JSClass;
-import translator.TypeInfer;
 
 /**
  * Created by BenZ on 15/11/24.
@@ -27,113 +26,108 @@ public class InitUtils {
     public static final PrimHint StringHint = new PrimHint() {};
     public static final PrimHint NumberHint = new PrimHint() {};
 
+    private static F<Domains.AddressSpace.Address, P2<Domains.BValue, Boolean>> convObj(PrimHint hint, Domains.Store store) {
+        return a-> {
+            Domains.BValue valueOf = Utils.lookup(Domains.AddressSpace.Addresses.apply(a), Domains.Str.alpha("valueOf"), store);
+            Domains.BValue toString = Utils.lookup(Domains.AddressSpace.Addresses.apply(a), Domains.Str.alpha("toString"), store);
+            Domains.Object o = store.getObj(a);
+
+            FHashSet<Domains.BValue> values = valueOf.as.map(av-> {
+                if (av.equals(Init.Number_prototype_toString_Addr)) {
+                    return o.getValue();
+                } else if (av.equals(Init.String_prototype_toString_Addr)) {
+                    return o.getValue();
+                } else if (av.equals(Init.Boolean_prototype_toString_Addr)) {
+                    return o.getValue();
+                } else if (av.equals(Init.Date_prototype_toString_Addr)) {
+                    return Domains.Num.inject(Domains.Num.NReal);
+                } else if (av.equals(Init.Object_prototype_toString_Addr)) {
+                    return Domains.AddressSpace.Address.inject(a);
+                } else if (!store.getObj(av).getCode().isEmpty()) {
+                    return Domains.BValue.Bot; // TODO: print a warning
+                } else {
+                    return Domains.BValue.Bot;
+                }
+            });
+            FHashSet<Domains.BValue> strings = toString.as.map(av-> {
+                if (av.equals(Init.Number_prototype_toString_Addr)) {
+                    return o.getValue().toStr();
+                } else if (av.equals(Init.String_prototype_toString_Addr)) {
+                    return o.getValue();
+                } else if (av.equals(Init.Boolean_prototype_toString_Addr)) {
+                    return o.getValue().toStr();
+                } else if (av.equals(Init.Object_prototype_toString_Addr)) {
+                    return Domains.Str.inject(Domains.Str.SNotNum).toStr(); //TODO: can be more precise
+                } else if (av.equals(Init.Array_prototype_toString_Addr)) {
+                    convBValue(StringHint, Utils.lookup(Domains.AddressSpace.Addresses.apply(a), Domains.Str.SNum, store), store);
+                    return Domains.Str.inject(Domains.Str.STop).toStr();
+                } else if (av.equals(Init.Date_prototype_toString_Addr)) {
+                    return Domains.Str.inject(Domains.Str.SNotNum).toStr();
+                } else if (av.equals(Init.Function_prototype_toString_Addr)) {
+                    return Domains.Str.inject(Domains.Str.SNotNum).toStr();
+                } else if (!store.getObj(av).getCode().isEmpty()) {
+                    return Domains.BValue.Bot; // TODO: print a warning
+                } else {
+                    return Domains.BValue.Bot;
+                }
+            });
+//                P2<Domains.BValue, FHashSet<Domains.BValue>> numconv = P.p(valueOf, values);
+//                P2<Domains.BValue, FHashSet<Domains.BValue>> strconv = P.p(toString, strings);
+            Domains.BValue primaryConversion;
+            FHashSet<Domains.BValue> primaryConverted;
+            if (hint.equals(NumberHint)) {
+                primaryConversion = valueOf;
+                primaryConverted = values;
+            } else {
+                primaryConversion = toString;
+                primaryConverted = strings;
+            }
+            Domains.BValue secondaryConversion;
+            FHashSet<Domains.BValue> secondaryConverted;
+            if (hint.equals(NumberHint)) {
+                secondaryConversion = toString;
+                secondaryConverted = strings;
+            } else {
+                secondaryConversion = valueOf;
+                secondaryConverted = values;
+            }
+
+            F<FHashSet<Domains.BValue>, Domains.BValue> convPrims = bvs-> bvs.map(convPrim(hint)).foldLeft((acc, bv) -> acc.merge(bv), Domains.BValue.Bot);
+
+            Domains.BValue tmp;
+            if (primaryConversion.defAddr()) {
+                tmp = Domains.BValue.Bot;
+            } else {
+                tmp = convPrims.f(secondaryConverted);
+            }
+            return P.p(convPrims.f(primaryConverted).merge(tmp), !secondaryConversion.defAddr());
+        };
+    }
+
+    private static P2<Domains.BValue, Boolean> convBValue(PrimHint hint, Domains.BValue bv, Domains.Store store) {
+        return bv.as.map(convObj(hint, store)).foldLeft((a, b) -> P.p(a._1().merge(b._1()), a._2() || b._2()), P.p(convPrim(hint).f(bv), false));
+    }
+
+    private static F<Domains.BValue, Domains.BValue> convPrim(PrimHint hint) {
+        if (hint.equals(NumberHint)) {
+            return bv->bv.toNum();
+        } else {
+            return bv->bv.toStr();
+        }
+    }
+
     //TODO
     public static FHashSet<Interpreter.State> Convert(
             List<P2<Domains.BValue, ConversionHint>> l,
             F7<List<Domains.BValue>, IRVar, Domains.Env, Domains.Store, Domains.Scratchpad, Domains.KontStack, Traces.Trace, FHashSet<Interpreter.State>> f,
             IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Traces.Trace trace) {
-        F<PrimHint, F<Domains.BValue, Domains.BValue>> convPrim = hint-> {
-            if (hint.equals(NumberHint)) {
-                return bv-> bv.toNum();
-            } else {
-                return bv-> bv.toStr();
-            }
-        };
-
-        //TODO
-        F2<PrimHint, Domains.BValue, P2<Domains.BValue, Boolean>> convBValue = null;
-/*
-        F2<PrimHint, Domains.BValue, P2<Domains.BValue, Boolean>> convBValue = (hint, bv)-> {
-            return bv.as.map(convObj.f(hint)).foldLeft((a, b)-> {
-                P.p(a._1(), )
-            }, P.p(convPrim.f(hint).f(bv), false));
-        };
-*/
-        F<PrimHint, F<Domains.AddressSpace.Address, P2<Domains.BValue, Boolean>>> convObj = hint-> {
-            return a-> {
-                Domains.BValue valueOf = Utils.lookup(Domains.AddressSpace.Addresses.apply(a), Domains.Str.alpha("valueOf"), store);
-                Domains.BValue toString = Utils.lookup(Domains.AddressSpace.Addresses.apply(a), Domains.Str.alpha("toString"), store);
-                Domains.Object o = store.getObj(a);
-
-                FHashSet<Domains.BValue> values = valueOf.as.map(av-> {
-                    if (av.equals(Init.Number_prototype_toString_Addr)) {
-                        return o.getValue();
-                    } else if (av.equals(Init.String_prototype_toString_Addr)){
-                        return o.getValue();
-                    } else if (av.equals(Init.Boolean_prototype_toString_Addr)) {
-                        return o.getValue();
-                    } else if (av.equals(Init.Date_prototype_toString_Addr)) {
-                        return Domains.Num.inject(Domains.Num.NReal);
-                    } else if (av.equals(Init.Object_prototype_toString_Addr)) {
-                        return Domains.AddressSpace.Address.inject(a);
-                    } else if (!store.getObj(av).getCode().isEmpty()) {
-                        return Domains.BValue.Bot; // TODO: print a warning
-                    } else {
-                        return Domains.BValue.Bot;
-                    }
-                });
-                FHashSet<Domains.BValue> strings = toString.as.map(av-> {
-                    if (av.equals(Init.Number_prototype_toString_Addr)) {
-                        return o.getValue().toStr();
-                    } else if (av.equals(Init.String_prototype_toString_Addr)) {
-                        return o.getValue();
-                    } else if (av.equals(Init.Boolean_prototype_toString_Addr)) {
-                        return o.getValue().toStr();
-                    } else if (av.equals(Init.Object_prototype_toString_Addr)) {
-                        return Domains.Str.inject(Domains.Str.SNotNum).toStr(); //TODO: can be more precise
-                    } else if (av.equals(Init.Array_prototype_toString_Addr)) {
-                        convBValue.f(StringHint, Utils.lookup(Domains.AddressSpace.Addresses.apply(a), Domains.Str.SNum, store));
-                        return Domains.Str.inject(Domains.Str.STop).toStr();
-                    } else if (av.equals(Init.Date_prototype_toString_Addr)) {
-                        return Domains.Str.inject(Domains.Str.SNotNum).toStr();
-                    } else if (av.equals(Init.Function_prototype_toString_Addr)) {
-                        return Domains.Str.inject(Domains.Str.SNotNum).toStr();
-                    } else if (!store.getObj(av).getCode().isEmpty()) {
-                        return Domains.BValue.Bot; // TODO: print a warning
-                    } else {
-                        return Domains.BValue.Bot;
-                    }
-                });
-//                P2<Domains.BValue, FHashSet<Domains.BValue>> numconv = P.p(valueOf, values);
-//                P2<Domains.BValue, FHashSet<Domains.BValue>> strconv = P.p(toString, strings);
-                Domains.BValue primaryConversion;
-                FHashSet<Domains.BValue> primaryConverted;
-                if (hint.equals(NumberHint)) {
-                    primaryConversion = valueOf;
-                    primaryConverted = values;
-                } else {
-                    primaryConversion = toString;
-                    primaryConverted = strings;
-                }
-                Domains.BValue secondaryConversion;
-                FHashSet<Domains.BValue> secondaryConverted;
-                if (hint.equals(NumberHint)) {
-                    secondaryConversion = toString;
-                    secondaryConverted = strings;
-                } else {
-                    secondaryConversion = valueOf;
-                    secondaryConverted = values;
-                }
-
-                F<FHashSet<Domains.BValue>, Domains.BValue> convPrims = bvs-> bvs.map(convPrim.f(hint)).foldLeft((acc, bv)-> acc.merge(bv), Domains.BValue.Bot);
-
-                Domains.BValue tmp;
-                if (primaryConversion.defAddr()) {
-                    tmp = Domains.BValue.Bot;
-                } else {
-                    tmp = convPrims.f(secondaryConverted);
-                }
-                return P.p(convPrims.f(primaryConverted).merge(tmp), !secondaryConversion.defAddr());
-            };
-        };
-
         List<P2<Domains.BValue, Boolean>> prims = l.map(p2-> {
             Domains.BValue bv = p2._1();
             ConversionHint hint = p2._2();
             if (hint.equals(NoConversion)) {
                 return P.p(bv, false);
             } else {
-                return convBValue.f((PrimHint)hint, bv);
+                return convBValue((PrimHint) hint, bv, store);
             }
         });
 
@@ -326,7 +320,8 @@ public class InitUtils {
             Domains.BValue final_value = bvtrans.f(arg_value);
             Domains.Object old_self = store.getObj(selfAddr);
             //TODO
-            return null;
+            throw new RuntimeException("not implemented");
+            //return null;
         };
     }
 

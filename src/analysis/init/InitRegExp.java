@@ -12,7 +12,7 @@ public class InitRegExp {
     public static final Domains.Object RegExp_Obj = InitUtils.createInitFunctionObj(
             new Domains.Native(
                     (selfAddr, argArrayAddr, x, env, store, pad, ks, tr) -> {
-                        return null; // TODO
+                        throw new RuntimeException("unimplemented"); // TODO
                     }
             ),
             FHashMap.build(
