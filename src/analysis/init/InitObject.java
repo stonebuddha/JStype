@@ -1,8 +1,13 @@
 package analysis.init;
 
 import analysis.Domains;
+import analysis.Traces;
 import analysis.Utils;
+import fj.P;
+import fj.P2;
+import fj.P3;
 import immutable.FHashMap;
+import immutable.FHashSet;
 import ir.JSClass;
 
 /**
@@ -12,7 +17,21 @@ public class InitObject {
     public static final Domains.Object Object_Obj = InitUtils.createInitFunctionObj(
             new Domains.Native(
                     (selfAddr, argArrayAddr, x, env, store, pad, ks, tr) -> {
-                        throw new RuntimeException("unimplemented"); // TODO
+                        Domains.Object argsObj = store.getObj(argArrayAddr.as.head());
+                        Domains.BValue input = argsObj.apply(Domains.Str.alpha("0")).orSome(Domains.Undef.BV);
+                        Domains.AddressSpace.Address resAddr = tr.toAddr();
+                        P3<Domains.BValue, Domains.Store, FHashSet<Domains.Domain>> tmp = Utils.toObjBody(input, store, tr, resAddr);
+                        P2<Domains.Store, Domains.BValue> tmp1;
+                        Domains.BValue bv1 = tmp._1();
+                        Domains.Store store1 = tmp._2();
+                        if (input.nil.equals(Domains.Null.MaybeNull) || input.undef.equals(Domains.Undef.MaybeUndef)) {
+                            tmp1 = Utils.allocObj(Domains.AddressSpace.Address.inject(Init.Object_Addr), resAddr, store1, tr);
+                        } else {
+                            tmp1 = P.p(store1, Domains.BValue.Bot);
+                        }
+                        Domains.Store store2 = tmp1._1();
+                        Domains.BValue bv2 = tmp1._2();
+                        return InitUtils.makeState(bv2.merge(bv1), x, env, store2, pad, ks, tr);
                     }
             ),
             FHashMap.build(

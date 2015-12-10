@@ -1,9 +1,23 @@
-var a = 1.0;
-if (Math.E == 1.0) {
-    a = "true";
-} else if (Math.LN2 == 2.0) {
-    a = false;
+var x;
+print(x)
+
+function foo() { print("foo"); x = 1; }
+function bar() { print("bar"); x = "str"; }
+function blah() { print("blah"); x = true; }
+
+function oracle() { print("oracle"); return 1 < 2; }
+
+var func = blah;
+print("funcblah")
+
+if (oracle()) {
+    func = foo;
+    print("if")
 } else {
-    a = 2.0 + 0.5;
+    func = bar;
+    print("else")
 }
-print(a);
+
+func();
+print(x)
+x
