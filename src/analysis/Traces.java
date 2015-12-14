@@ -2,9 +2,11 @@ package analysis;
 
 import fj.Hash;
 import fj.P;
+import fj.P3;
 import fj.P4;
 import fj.data.List;
 import immutable.FHashMap;
+import ir.IRMerge;
 import ir.IRStmt;
 import ir.IRVar;
 import ir.JSClass;
@@ -96,21 +98,14 @@ public class Traces {
     public static class StackCFA extends Trace {
         public Integer k, h, pp;
         public List<Integer> tr;
-        boolean calced;
-        int recordHash;
+        final int recordHash;
         static final Hash<P4<Integer, Integer, Integer, List<Integer>>> hasher = Hash.p4Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
         public StackCFA(Integer k, Integer h, Integer pp, List<Integer> tr) {
             assert k >= h;
             this.k = k; this.h = h; this.pp = pp;
             this.tr = tr;
-            this.calced = false;
+            this.recordHash = hasher.hash(P.p(k, h, pp, tr));
         }
-
-        @Override
-        public String toString() {
-            return "StackCFA(" + pp + "," + tr + ")";
-        }
-
         @Override
         public boolean equals(Object obj) {
             return (obj instanceof StackCFA && k.equals(((StackCFA) obj).k) && h.equals(((StackCFA) obj).h) && pp.equals(((StackCFA) obj).pp) && tr.equals(((StackCFA) obj).tr));
@@ -118,13 +113,7 @@ public class Traces {
 
         @Override
         public int hashCode() {
-            if (calced) {
-                return recordHash;
-            } else {
-                calced = true;
-                recordHash = hasher.hash(P.p(k, h, pp, tr));
-                return recordHash;
-            }
+            return recordHash;
         }
 
         public StackCFA update(IRStmt s) {
@@ -148,9 +137,55 @@ public class Traces {
         }
     }
 
+    // K-merge Nodes sensetive
+    public static class KMNS extends Trace {
+        public Integer k, pp;
+        public List<Integer> tr;
+        final int recordHash;
+        static final Hash<P3<Integer, Integer, List<Integer>>> hasher = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
+        public KMNS(Integer k, Integer pp, List<Integer> tr) {
+            this.k = k; this.pp = pp;
+            this.tr = tr;
+            this.recordHash = hasher.hash(P.p(k, pp, tr));
+        }
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof KMNS && k.equals(((KMNS) obj).k) && pp.equals(((KMNS) obj).pp) && tr.equals(((KMNS) obj).tr));
+        }
+
+             @Override
+             public int hashCode() {
+                 return recordHash;
+             }
+
+             public KMNS update(IRStmt s) {
+                 if (s instanceof IRMerge)
+                     return new KMNS(k, s.id, tr.cons(s.id).take(k));
+                 else return new KMNS(k, s.id, tr);
+             }
+
+             public KMNS update(Domains.Env env, Domains.Store store, Domains.BValue self, Domains.BValue args, IRStmt s){
+                 return this.update(s);
+                 //return new KMNS(k, s.id, tr.cons(pp).take(k));
+             }
+
+             public Domains.AddressSpace.Address toAddr() {
+                 return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr, pp));
+             }
+
+             public Domains.AddressSpace.Address makeAddr(IRVar x) {
+                 return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr, x.id));
+             }
+
+             public static KMNS apply(Integer k) {
+                 return new KMNS(k, 0, List.list());
+             }
+         }
+     
+
     public static class TraceUtils {
         public static BigInteger IntsToBigInt(List<Integer> tr, Integer pp) {
-            BigInteger tracePart = tr.foldLeft((acc, e) ->
+            BigInteger tracePart = tr.foldLeft((acc, e)  ->
                 acc.shiftLeft(32).add(BigInteger.valueOf(e)), BigInteger.valueOf(0));
             return tracePart.shiftLeft(32).add(BigInteger.valueOf(pp));
         }

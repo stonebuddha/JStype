@@ -71,11 +71,14 @@ public class Interpreter {
         PriorityQueue<P2<Integer, Trace>> work = new PriorityQueue<P2<Integer, Trace>>(new Comparator<P2<Integer, Trace>>() {
             @Override
             public int compare(P2<Integer, Trace> p1, P2<Integer, Trace> p2) {
-                return Integer.compare(p1._1(), p2._1());
+                return Integer.compare(p2._1(), p1._1());
             }
         });
 
-        Trace initTrace = new Traces.FSCI(0);
+        // default: flow-sensitive context-insensitive
+        //Trace initTrace = new Traces.FSCI(0);
+        //Trace initTrace = Traces.StackCFA.apply(2000, 1000);
+        Trace initTrace = Traces.KMNS.apply(100);
         Mutable.splitStates = false;
         IRStmt ast = readIR(args[0]);
         HashMap<Trace, State> memo = new HashMap<Trace, State>(Equal.anyEqual(), Hash.anyHash());
@@ -902,7 +905,7 @@ public class Interpreter {
             else if (ks1.top() instanceof Domains.LblKont && ((Domains.LblKont)ks1.top()).lbl.equals(jv.lbl)) {
                 ret = ret.union(advanceBV(jv.bv, store1, pad1, ks1.pop()));
             }
-            else if (!ks1.top().equals(Domains.HaltKont)) {
+            else if (ks1.top() != Domains.HaltKont) {
                 Domains.KontStack ks2 = ks1.toSpecial(jv.lbl);
                 ret = ret.union(advanceJV(jv, store1, pad1, ks2));
             }
