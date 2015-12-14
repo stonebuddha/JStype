@@ -1,8 +1,13 @@
 package analysis.init;
 
 import analysis.Domains;
+import analysis.Interpreter;
 import analysis.Utils;
+import fj.P2;
+import fj.data.List;
+import fj.data.Option;
 import immutable.FHashMap;
+import immutable.FHashSet;
 import ir.JSClass;
 
 /**
@@ -12,7 +17,91 @@ public class InitArray {
     public static final Domains.Object Array_Obj = InitUtils.createInitFunctionObj(
             new Domains.Native(
                     (selfAddr, argArrayAddr, x, env, store, pad, ks, tr) -> {
-                        throw new RuntimeException("unimplemented"); // TODO
+                        assert argArrayAddr.defAddr() : "Arguments array refers to non-addresses";
+                        assert argArrayAddr.as.size() == 1 : "Arguments array refers to multiple addresses";
+
+                        Domains.Object argsObj = store.getObj(argArrayAddr.as.head());
+                        Domains.Num argLength = argsObj.apply(Utils.Fields.length).orSome(Domains.BValue.Bot).n;
+                        assert !argLength.equals(Domains.Num.Bot) : "When constructing an array, arguments length should be provided";
+
+                        Boolean calledAsConstr = (Boolean)argsObj.intern.get(Utils.Fields.constructor).orSome(false);
+                        Domains.Store store1 = store;
+                        FHashSet<Domains.AddressSpace.Address> arrayAddrs;
+                        if (calledAsConstr) {
+                            arrayAddrs = selfAddr.as.filter(a -> store.getObj(a).getJSClass().equals(JSClass.CArray));
+                        } else {
+                            P2<Domains.Store, Domains.BValue> tmp = Utils.allocObj(Domains.AddressSpace.Address.inject(Init.Array_Addr), tr.toAddr(), store, tr);
+                            store1 = tmp._1();
+                            arrayAddrs = tmp._2().as;
+                        }
+                        assert arrayAddrs.size() == 1 : "We should have allocated one and only one address for arrays";
+                        Domains.AddressSpace.Address arrayAddr = arrayAddrs.head();
+                        Domains.Object oldArrayObj = store1.getObj(arrayAddr);
+
+                        boolean argLenMaybe1, argLenMaybeNot1;
+                        if (argLength instanceof Domains.NConst) {
+                            Double d = ((Domains.NConst) argLength).d;
+                            if (d.intValue() == 1) {
+                                argLenMaybe1 = true;
+                                argLenMaybeNot1 = false;
+                            } else {
+                                argLenMaybe1 = false;
+                                argLenMaybeNot1 = true;
+                            }
+                        } else {
+                            argLenMaybe1 = true;
+                            argLenMaybeNot1 = true;
+                        }
+                        Option<Integer> extractedArgLength;
+                        if (argLength instanceof Domains.NConst) {
+                            extractedArgLength = Option.some(((Domains.NConst) argLength).d.intValue());
+                        } else {
+                            extractedArgLength = Option.none();
+                        }
+                        Domains.BValue arg0 = argsObj.apply(Domains.Str.alpha("0")).orSome(Domains.Undef.BV);
+                        boolean arg0MaybeNumeric = arg0.sorts.member(Domains.DNum);
+                        boolean arg0MaybeNotNumeric = !arg0.defNum();
+
+                        FHashSet<Interpreter.State> ones;
+                        if (argLenMaybe1 && arg0MaybeNumeric) {
+                            P2<Option<P2<Domains.BValue, Domains.Store>>, Option<Domains.EValue>> tmp =
+                                    Utils.updateObj(Domains.AddressSpace.Address.inject(arrayAddr), Domains.Str.inject(Utils.Fields.length), arg0.onlyNum(), store1);
+                            Option<P2<Domains.BValue, Domains.Store>> noexc = tmp._1();
+                            Option<Domains.EValue> exc = tmp._2();
+                            FHashSet<Interpreter.State> s1, s2;
+                            if (noexc.isSome()) {
+                                Domains.BValue bv = noexc.some()._1();
+                                Domains.Store store2 = noexc.some()._2();
+                                s1 = InitUtils.makeState(Domains.AddressSpace.Address.inject(arrayAddr), x, env, store2, pad, ks, tr);
+                            } else {
+                                s1 = FHashSet.empty();
+                            }
+                            if (exc.isSome()) {
+                                Domains.EValue ev = exc.some();
+                                s2 = InitUtils.makeState(ev, x, env, store1, pad, ks, tr);
+                            } else {
+                                s2 = FHashSet.empty();
+                            }
+                            ones = s1.union(s2);
+                        } else {
+                            ones = FHashSet.empty();
+                        }
+
+                        FHashSet<Interpreter.State> notones;
+                        if (argLenMaybeNot1 || arg0MaybeNotNumeric) {
+                            Domains.Object updatedArrObj;
+                            if (extractedArgLength.isSome()) {
+                                int knownArgLength = extractedArgLength.some();
+                                updatedArrObj = StringHelpers.newArray(Domains.Num.alpha(knownArgLength * 1.0), List.range(0, knownArgLength).map(n -> argsObj.apply(Domains.Str.alpha(n.toString())).orSome(Domains.Undef.BV)), Option.none(), oldArrayObj, false);
+                            } else {
+                                updatedArrObj = StringHelpers.newArray(argLength, List.list(), argsObj.extern.num, oldArrayObj, false);
+                            }
+                            notones = InitUtils.makeState(Domains.AddressSpace.Address.inject(arrayAddr), x, env, store1.putObj(arrayAddr, updatedArrObj), pad, ks, tr);
+                        } else {
+                            notones = FHashSet.empty();
+                        }
+
+                        return ones.union(notones);
                     }
             ),
             FHashMap.build(

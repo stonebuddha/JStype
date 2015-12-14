@@ -1043,7 +1043,12 @@ public class Domains {
 
         public Str toStr() {
             if (this instanceof NConst) {
-                return Str.alpha(((NConst)this).d.toString());
+                Double d = ((NConst)this).d;
+                if (d.longValue() == d) {
+                    return Str.alpha(Long.toString(d.longValue()));
+                } else {
+                    return Str.alpha(d.toString());
+                }
             } else if (this.equals(NTop)) {
                 return Str.Top;
             } else if (this.equals(NReal)) {

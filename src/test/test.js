@@ -1,9 +1,4 @@
-function fac(n) {
-    if (n == 0) {
-        return 1;
-    } else {
-        return n * fac(n - 1);
-    }
-}
-var a = fac(0);
-print(a);
+var a = [1, 2, 3];
+print(a[0]);
+a[0] = true;
+print(a[0]);
