@@ -96,14 +96,21 @@ public class Traces {
     public static class StackCFA extends Trace {
         public Integer k, h, pp;
         public List<Integer> tr;
-        final int recordHash;
+        boolean calced;
+        int recordHash;
         static final Hash<P4<Integer, Integer, Integer, List<Integer>>> hasher = Hash.p4Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
         public StackCFA(Integer k, Integer h, Integer pp, List<Integer> tr) {
             assert k >= h;
             this.k = k; this.h = h; this.pp = pp;
             this.tr = tr;
-            this.recordHash = hasher.hash(P.p(k, h, pp, tr));
+            this.calced = false;
         }
+
+        @Override
+        public String toString() {
+            return "StackCFA(" + pp + "," + tr + ")";
+        }
+
         @Override
         public boolean equals(Object obj) {
             return (obj instanceof StackCFA && k.equals(((StackCFA) obj).k) && h.equals(((StackCFA) obj).h) && pp.equals(((StackCFA) obj).pp) && tr.equals(((StackCFA) obj).tr));
@@ -111,7 +118,13 @@ public class Traces {
 
         @Override
         public int hashCode() {
-            return recordHash;
+            if (calced) {
+                return recordHash;
+            } else {
+                calced = true;
+                recordHash = hasher.hash(P.p(k, h, pp, tr));
+                return recordHash;
+            }
         }
 
         public StackCFA update(IRStmt s) {

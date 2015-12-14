@@ -1,23 +1,9 @@
-var x;
-print(x)
-
-function foo() { print("foo"); x = 1; }
-function bar() { print("bar"); x = "str"; }
-function blah() { print("blah"); x = true; }
-
-function oracle() { print("oracle"); return 1 < 2; }
-
-var func = blah;
-print("funcblah")
-
-if (oracle()) {
-    func = foo;
-    print("if")
-} else {
-    func = bar;
-    print("else")
+function fac(n) {
+    if (n == 0) {
+        return 1;
+    } else {
+        return n * fac(n - 1);
+    }
 }
-
-func();
-print(x)
-x
+var a = fac(0);
+print(a);
