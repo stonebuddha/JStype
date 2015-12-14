@@ -77,7 +77,8 @@ public class Interpreter {
 
         // default: flow-sensitive context-insensitive
         //Trace initTrace = new Traces.FSCI(0);
-        Trace initTrace = Traces.StackCFA.apply(2000, 1000);
+        //Trace initTrace = Traces.StackCFA.apply(2000, 1000);
+        Trace initTrace = Traces.KMNS.apply(100);
         Mutable.splitStates = false;
         IRStmt ast = readIR(args[0]);
         HashMap<Trace, State> memo = new HashMap<Trace, State>(Equal.anyEqual(), Hash.anyHash());
