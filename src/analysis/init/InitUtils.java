@@ -35,7 +35,7 @@ public class InitUtils {
             Domains.BValue toString = Utils.lookup(Domains.AddressSpace.Addresses.apply(a), Domains.Str.alpha("toString"), store);
             Domains.Object o = store.getObj(a);
 
-            FHashSet<Domains.BValue> values = valueOf.as.map(av-> {
+            FHashSet<Domains.BValue> values = valueOf.as.map(av -> {
                 if (av.equals(Init.Number_prototype_toString_Addr)) {
                     return o.getValue();
                 } else if (av.equals(Init.String_prototype_toString_Addr)) {
