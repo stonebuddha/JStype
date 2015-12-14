@@ -3,10 +3,8 @@ package analysis;
 import fj.Hash;
 import fj.P;
 import fj.P4;
-import fj.P3;
 import fj.data.List;
 import immutable.FHashMap;
-import ir.IRMerge;
 import ir.IRStmt;
 import ir.IRVar;
 import ir.JSClass;
@@ -106,7 +104,6 @@ public class Traces {
             this.tr = tr;
             this.recordHash = hasher.hash(P.p(k, h, pp, tr));
         }
-
         @Override
         public boolean equals(Object obj) {
             return (obj instanceof StackCFA && k.equals(((StackCFA) obj).k) && h.equals(((StackCFA) obj).h) && pp.equals(((StackCFA) obj).pp) && tr.equals(((StackCFA) obj).tr));
@@ -135,52 +132,6 @@ public class Traces {
 
         public static StackCFA apply(Integer k, Integer h) {
             return new StackCFA(k, h, 0, List.list());
-        }
-    }
-
-    // K-merge Nodes sensetive
-    public static class KMNS extends Trace {
-        public Integer k, pp;
-        public List<Integer> tr;
-        final int recordHash;
-        static final Hash<P3<Integer, Integer, List<Integer>>> hasher = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
-        public KMNS(Integer k, Integer pp, List<Integer> tr) {
-            this.k = k; this.pp = pp;
-            this.tr = tr;
-            this.recordHash = hasher.hash(P.p(k, pp, tr));
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return (obj instanceof KMNS && k.equals(((KMNS) obj).k) && pp.equals(((KMNS) obj).pp) && tr.equals(((KMNS) obj).tr));
-        }
-
-        @Override
-        public int hashCode() {
-            return recordHash;
-        }
-
-        public KMNS update(IRStmt s) {
-            if (s instanceof IRMerge)
-                return new KMNS(k, s.id, tr.cons(s.id).take(k));
-            else return new KMNS(k, s.id, tr);
-        }
-
-        public KMNS update(Domains.Env env, Domains.Store store, Domains.BValue self, Domains.BValue args, IRStmt s){
-            return this.update(s);
-            //return new KMNS(k, s.id, tr.cons(pp).take(k));
-        }
-
-        public Domains.AddressSpace.Address toAddr() {
-            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr, pp));
-        }
-
-        public Domains.AddressSpace.Address makeAddr(IRVar x) {
-            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr, x.id));
-        }
-
-        public static KMNS apply(Integer k) {
-            return new KMNS(k, 0, List.list());
         }
     }
 

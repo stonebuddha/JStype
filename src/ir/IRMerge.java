@@ -26,7 +26,7 @@ public final class IRMerge extends IRStmt {
 
     @Override
     public String toString() {
-        return "(merge)\n";
+        return "(merge@" + id + ")\n";
     }
 
     @Override

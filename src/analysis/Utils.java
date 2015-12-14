@@ -137,7 +137,7 @@ public class Utils {
         }
         Domains.BValue bv2as = Domains.AddressSpace.Addresses.inject(bv2.as);
         assert bv2as.defAddr() && bv3.defAddr() && bv3.as.size() == 1;
-        Boolean isctor = store.getObj(bv3.as.iterator().next()).calledAsCtor();
+        Boolean isctor = store.getObj(bv3.as.head()).calledAsCtor();
 
         FHashSet<Domains.AddressSpace.Address> oas;
         if (Interpreter.Mutable.pruneStore) {
@@ -239,7 +239,7 @@ public class Utils {
     public static FHashSet<Interpreter.State> applyCloWithSplits(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, IRVar x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad, Domains.KontStack ks, Trace trace) {
         Domains.BValue bv2as = Domains.AddressSpace.Addresses.inject(bv2.as);
         assert bv2as.defAddr() && bv3.defAddr() && bv3.as.size() == 1;
-        boolean isctor = store.getObj(bv3.as.iterator().next()).calledAsCtor();
+        boolean isctor = store.getObj(bv3.as.head()).calledAsCtor();
 
         FHashSet<Domains.AddressSpace.Address> oas;
         if (Interpreter.Mutable.pruneStore) {
@@ -347,7 +347,7 @@ public class Utils {
     }
 
     public static P2<Option<P2<Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> delete(Domains.BValue bv1, Domains.BValue bv2, IRScratch x, Domains.Env env, Domains.Store store, Domains.Scratchpad pad) {
-        Boolean isStrong = bv1.as.size() == 1 & store.isStrong(bv1.as.iterator().next());
+        Boolean isStrong = bv1.as.size() == 1 & store.isStrong(bv1.as.head());
 
         Boolean defPresent = true, defAbsent = true;
         for (Domains.AddressSpace.Address a : bv1.as) {
@@ -379,7 +379,7 @@ public class Utils {
         }
         else if (defPresent) {
             if (isStrong) {
-                Domains.AddressSpace.Address a = bv1.as.iterator().next();
+                Domains.AddressSpace.Address a = bv1.as.head();
                 Domains.Store store1 = store.putObjStrong(a, store.getObj(a).strongDelete(bv2.str));
                 noexc = Option.some(P.p(store1, pad.update(x, Domains.Bool.TrueBV)));
             }
@@ -467,9 +467,9 @@ public class Utils {
 
     public static Domains.Store setConstr(Domains.Store store, Domains.BValue bv) {
         assert bv.as.size() == 1;
-        Domains.Object o = store.getObj(bv.as.iterator().next());
+        Domains.Object o = store.getObj(bv.as.head());
         Domains.Object o1 = new Domains.Object(o.extern, o.intern.set(Fields.constructor, true), o.present);
-        return store.putObjStrong(bv.as.iterator().next(), o1);
+        return store.putObjStrong(bv.as.head(), o1);
     }
 
     public static P3<Domains.BValue, Domains.Store, FHashSet<Domains.Domain>> toObjBody(Domains.BValue bv, Domains.Store store, Trace trace, Domains.AddressSpace.Address a) {
@@ -486,27 +486,27 @@ public class Utils {
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
                 assert bv2.as.size() == 1;
-                Domains.Object o = store.getObj(bv.as.iterator().next());
+                Domains.Object o = store.getObj(bv.as.head());
                 Domains.Object o1 = new Domains.Object(o.extern, o.intern.set(Fields.value, bv.onlyNum()), o.present);
                 bv1 = bv1.merge(bv2);
-                store1 = store2.putObj(bv2.as.iterator().next(), o1);
+                store1 = store2.putObj(bv2.as.head(), o1);
             }
             else if (sort.equals(Domains.DBool)) {
                 P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
                 assert bv2.as.size() == 1;
-                Domains.Object o = store.getObj(bv.as.iterator().next());
+                Domains.Object o = store.getObj(bv.as.head());
                 Domains.Object o1 = new Domains.Object(o.extern, o.intern.set(Fields.value, bv.onlyNum()), o.present);
                 bv1 = bv1.merge(bv2);
-                store1 = store2.putObj(bv2.as.iterator().next(), o1);
+                store1 = store2.putObj(bv2.as.head(), o1);
             }
             else if (sort.equals(Domains.DStr)) {
                 P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
                 assert bv2.as.size() == 1;
-                Domains.Object o = store.getObj(bv.as.iterator().next());
+                Domains.Object o = store.getObj(bv.as.head());
                 Option<String> exactStr = Domains.Str.getExact(bv.str);
                 Domains.ExternMap extern;
                 if (exactStr.isSome()) {
@@ -523,7 +523,7 @@ public class Utils {
                 FHashMap<Domains.Str, Object> intern1 = o.intern.set(Fields.value, bv.onlyStr());
                 Domains.Object o1 = new Domains.Object(extern, intern1, o.present.insert(Fields.length));
                 bv1 = bv1.merge(bv2);
-                store1 = store2.putObj(bv2.as.iterator().next(), o1);
+                store1 = store2.putObj(bv2.as.head(), o1);
             }
             else if (sort.equals(Domains.DUndef) || sort.equals(Domains.DNull)) {
                 throw new RuntimeException("suppresses compiler warning; this case can't happen");
@@ -565,7 +565,7 @@ public class Utils {
     public static P2<Option<P2<Domains.BValue, Domains.Store>>, Option<Domains.EValue>> updateObj(Domains.BValue bv1, Domains.BValue bv2, Domains.BValue bv3, Domains.Store store) {
         Domains.Str str = bv2.str;
         Boolean maybeLength = Fields.length.partialLessEqual(str);
-        Boolean isStrong = bv1.as.size() == 1 && store.isStrong(bv1.as.iterator().next());
+        Boolean isStrong = bv1.as.size() == 1 && store.isStrong(bv1.as.head());
         Domains.BValue bv3num = bv3.toNum();
         Boolean maybeArray = bv1.as.filter(a -> store.getObj(a).getJSClass().equals(JSClass.CArray)).size() > 0;
         Boolean rhsMaybeU32 = Domains.Num.maybeU32(bv3num);
@@ -573,7 +573,7 @@ public class Utils {
 
         Option<P2<Domains.BValue, Domains.Store>> noexc;
         if (isStrong) {
-            Domains.Object o = store.getObj(bv1.as.iterator().next());
+            Domains.Object o = store.getObj(bv1.as.head());
             Domains.Object o1;
             if (!maybeArray) {
                 o1 = o.strongUpdate(str, bv3);
@@ -581,13 +581,13 @@ public class Utils {
             else if (!maybeLength) {
                 o1 = o.strongUpdate(str, bv3).strongUpdate(Fields.length, Domains.Num.inject(Domains.Num.U32));
             }
-            else if (str != Fields.length) {
+            else if (!str.equals(Fields.length)) {
                 o1 = o.weakDelete(Domains.Str.U32).strongUpdate(str, bv3).strongUpdate(Fields.length, Domains.Num.inject(Domains.Num.U32));
             }
             else {
                 o1 = o.weakDelete(Domains.Str.U32).strongUpdate(Fields.length, Domains.Num.inject(Domains.Num.U32));
             }
-            Domains.Store store1 = store.putObjStrong(bv1.as.iterator().next(), o1);
+            Domains.Store store1 = store.putObjStrong(bv1.as.head(), o1);
             noexc = Option.some(P.p(bv3, store1));
         }
         else if (bv1.as.size() > 0 ) {
@@ -690,10 +690,10 @@ public class Utils {
     }
 
     public static Option<P2<Domains.AddressSpace.Address, Domains.Object>> refineableAddrObj(Domains.BValue bv, Domains.Str str, Domains.Store store) {
-        if (bv.as.size() == 1 && store.isStrong(bv.as.iterator().next()) && Domains.Str.isExact(str)) {
-            Domains.Object obj = store.getObj(bv.as.iterator().next());
+        if (bv.as.size() == 1 && store.isStrong(bv.as.head()) && Domains.Str.isExact(str)) {
+            Domains.Object obj = store.getObj(bv.as.head());
             if (obj.defField(str)) {
-                return Option.some(P.p(bv.as.iterator().next(), obj));
+                return Option.some(P.p(bv.as.head(), obj));
             }
             else if (obj.defNotField(str)) {
                 return refineableAddrObj(obj.getProto(), str, store);

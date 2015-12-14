@@ -26,6 +26,7 @@ public class InitArguments {
                     (selfAddr, argArrayAddr, x, env, store, pad, ks, tr) -> {
                         Domains.Object argsObj = store.getObj(argArrayAddr.as.head());
                         Boolean calledAsConstr = argsObj.intern.get(Utils.Fields.constructor).map(o -> (Boolean)o).orSome(false);
+                        assert calledAsConstr : "Arguments should never be called as a function";
                         return InitUtils.makeState(selfAddr, x, env, store, pad, ks, tr);
                     }
             ),
