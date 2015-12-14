@@ -259,18 +259,96 @@ public class InitArray {
             ), FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(1.0)))
     );
 
-    public static final Domains.Object Array_prototype_splice_Obj = InitUtils.unimplemented("Array.prototype.splice");
+    public static final Domains.Object Array_prototype_splice_Obj = InitUtils.createInitFunctionObj(
+            new Domains.Native(
+                    (selfAddr, argArrayAddr, x, env, store, pad, ks, tr)-> {
+                        assert argArrayAddr.defAddr() : "Array.prototype.concat: Arguments array refers to non-addresses";
+                        assert argArrayAddr.as.size() == 1 : "Array.prototype.concat: Arguments array refers to multiple addresses";
+                        Domains.Object argArray = store.getObj(argArrayAddr.as.head());
+                        FHashSet<Domains.AddressSpace.Address> arrayAddrs = selfAddr.as.filter(a-> store.getObj(a).getJSClass().equals(JSClass.CArray));
+                        if (arrayAddrs.size() != selfAddr.as.size()) {
+                            return InitUtils.makeState(Utils.Errors.typeError, x, env, store, pad, ks, tr);
+                        } else {
+                            Domains.AddressSpace.Address selfArrayAddr = arrayAddrs.head();
+                            Domains.Object oldSelf = store.getObj(selfArrayAddr);
+                            Domains.BValue oldSummary = oldSelf.apply(Domains.Str.SNum).orSome(Domains.Undef.BV);
+                            Domains.BValue newSummary = oldSummary.merge(argArray.apply(Domains.Str.SNum).orSome(Domains.BValue.Bot));
+                            Domains.Object newSelf = StringHelpers.newArray(Domains.Num.NReal, List.list(), Option.some(newSummary), oldSelf, true);
+                            Domains.Store store1 = store.putObj(selfArrayAddr, newSelf);
+                            P2<Domains.Store, Domains.BValue> p2 = Utils.allocObj(Domains.AddressSpace.Address.inject(Init.Array_Addr), tr.toAddr(), store1, tr);
+                            Domains.Store store2 = p2._1();
+                            Domains.BValue retAddr_bv = p2._2();
+                            assert retAddr_bv.as.size() == 1 : "Array.prototype.concat: freshly allocated address set should be singleton";
+                            Domains.AddressSpace.Address retAddr = retAddr_bv.as.head();
+                            Domains.Object freshObj = store2.getObj(retAddr);
+                            Domains.Object retArray = StringHelpers.newArray(Domains.Num.NReal, List.list(), Option.some(oldSummary), freshObj, true);
+                            Domains.Store store3 = store2.putObj(retAddr, retArray);
+                            return InitUtils.makeState(retAddr_bv, x, env, store3, pad, ks, tr);
+                        }
+                    }
+            ), FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(2.0)))
+    );
+
     public static final Domains.Object Array_prototype_every_Obj = InitUtils.unimplemented("Array.prototype.every");
     public static final Domains.Object Array_prototype_filter_Obj = InitUtils.unimplemented("Array.prototype.filter");
     public static final Domains.Object Array_prototype_forEach_Obj = InitUtils.unimplemented("Array.prototype.forEach");
     public static final Domains.Object Array_prototype_map_Obj = InitUtils.unimplemented("Array.prototype.map");
     public static final Domains.Object Array_prototype_reduce_Obj = InitUtils.unimplemented("Array.prototype.reduce");
     public static final Domains.Object Array_prototype_reduceRight_Obj = InitUtils.unimplemented("Array.prototype.reduceRight");
-    public static final Domains.Object Array_prototype_reverse_Obj = InitUtils.unimplemented("Array.prototype.reverse");
-    public static final Domains.Object Array_prototype_shift_Obj = InitUtils.unimplemented("Array.prototype.shift");
+
+    public static final Domains.Object Array_prototype_reverse_Obj = InitUtils.createInitFunctionObj(
+            new Domains.Native(
+                    (selfAddr, argArrayAddr, x, env, store, pad, ks, tr)-> {
+                        FHashSet<Domains.AddressSpace.Address> arrayAddrs = selfAddr.as.filter(a-> store.getObj(a).getJSClass().equals(JSClass.CArray));
+                        if (arrayAddrs.size() != selfAddr.as.size()) {
+                            return InitUtils.makeState(Utils.Errors.typeError, x, env, store, pad, ks, tr);
+                        } else {
+                            Domains.AddressSpace.Address arrayAddr = arrayAddrs.head();
+                            Domains.Object oldArrayObj = store.getObj(arrayAddr);
+                            Domains.BValue summaryVal = Utils.lookup(arrayAddrs, Domains.Str.SNum, store);
+                            Domains.Object updatedObj = new Domains.Object(new Domains.ExternMap(oldArrayObj.extern.top, oldArrayObj.extern.notnum, Option.some(summaryVal), oldArrayObj.extern.exactnotnum, FHashMap.empty()), oldArrayObj.intern, oldArrayObj.present);
+                            return InitUtils.makeState(Domains.AddressSpace.Addresses.inject(arrayAddrs), x, env, store.putObj(arrayAddr, updatedObj), pad, ks, tr);
+                        }
+                    }
+            ), FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(0.0)))
+    );
+
+    public static final Domains.Object Array_prototype_shift_Obj = InitUtils.createInitFunctionObj(
+            new Domains.Native(
+                    (selfAddr, argArrayAddr, x, env, store, pad, ks, tr)-> {
+                        FHashSet<Domains.AddressSpace.Address> arrayAddrs = selfAddr.as.filter(a-> store.getObj(a).getJSClass().equals(JSClass.CArray));
+                        if (arrayAddrs.size() != selfAddr.as.size()) {
+                            return InitUtils.makeState(Utils.Errors.typeError, x, env, store, pad, ks, tr);
+                        } else {
+                            Domains.AddressSpace.Address arrayAddr = arrayAddrs.head();
+                            Domains.Object oldArrayObj = store.getObj(arrayAddr);
+                            Domains.BValue summaryVal = Utils.lookup(arrayAddrs, Domains.Str.SNum, store);
+                            Domains.Object updatedObj = StringHelpers.newArray(Domains.Num.NReal, List.list(), Option.some(summaryVal), oldArrayObj, true);
+                            return InitUtils.makeState(summaryVal, x, env, store.putObj(arrayAddr, updatedObj), pad, ks, tr);
+                        }
+                    }
+            ), FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(0.0)))
+    );
+
     public static final Domains.Object Array_prototype_slice_Obj = InitUtils.unimplemented("Array.prototype.slice");
     public static final Domains.Object Array_prototype_some_Obj = InitUtils.unimplemented("Array.prototype.some");
     public static final Domains.Object Array_prototype_toLocaleString_Obj = InitUtils.unimplemented("Array.prototype.toLocaleString");
-    public static final Domains.Object Array_prototype_toString_Obj = InitUtils.unimplemented("Array.prototype.toString");
+
+    public static final Domains.Object Array_prototype_toString_Obj = InitUtils.createInitFunctionObj(
+            new Domains.Native(
+                    (selfAddr, argArrayAddr, x, env, store, pad, ks, tr)-> {
+                        Domains.BValue func = Utils.lookup(selfAddr.as, Domains.Str.alpha("join"), store);
+                        FHashSet<Domains.AddressSpace.Address> callableAddrs = func.as.filter(a-> !store.getObj(a).getCode().isEmpty()).delete(Init.Array_prototype_toString_Addr);
+                        FHashSet<Interpreter.State> tmp;
+                        if (!func.defAddr() || (callableAddrs.size() != func.as.size())) {
+                            tmp = Utils.applyClo(Domains.AddressSpace.Address.inject(Init.Object_prototype_toString_Addr), selfAddr, Domains.AddressSpace.Address.inject(Init.Dummy_Arguments_Addr), x, env, store, pad, ks, tr);
+                        } else {
+                            tmp = FHashSet.empty();
+                        }
+                        return Utils.applyClo(Domains.AddressSpace.Addresses.inject(callableAddrs), selfAddr, Domains.AddressSpace.Address.inject(Init.Dummy_Arguments_Addr), x, env, store, pad, ks, tr).union(tmp);
+                    }
+            ), FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(0.0)))
+    );
+
     public static final Domains.Object Array_prototype_unshift_Obj = InitUtils.unimplemented("Array.prototype.unshift");
 }
