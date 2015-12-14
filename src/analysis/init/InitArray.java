@@ -141,9 +141,63 @@ public class InitArray {
             FHashMap.build(Utils.Fields.classname, JSClass.CArray_prototype_Obj)
     );
 
-    public static final Domains.Object Array_prototype_join_Obj = InitUtils.unimplemented("Array.prototype.join");
+    public static final Domains.Object Array_prototype_join_Obj = InitUtils.createInitFunctionObj(
+            new Domains.Native(
+                    (selfAddr, argArrayAddr, x, env, store, pad, ks, tr) -> {
+                        assert argArrayAddr.defAddr() : "Arguments array refers to non-addresses";
+                        assert argArrayAddr.as.size() == 1 : "Arguments array refers to multiple addresses";
+                        Domains.BValue lenVal = Utils.lookup(selfAddr.as, Utils.Fields.length, store);
+                        Domains.Object argsObj = store.getObj(argArrayAddr.as.head());
+                        Domains.BValue separator = argsObj.apply(Domains.Str.alpha("0")).orSome(Domains.Str.inject(Domains.Str.alpha(",")));
+                        if (lenVal.equals(Domains.Num.inject(Domains.Num.alpha(0.0))))
+                            return InitUtils.makeState(Domains.Str.inject(Domains.Str.alpha("")), x, env, store, pad, ks, tr);
+                        else {
+                            Domains.BValue summaryVal = Utils.lookup(selfAddr.as, Domains.Str.SNum, store);
+                            return InitUtils.ToString(
+                                    List.list(separator, summaryVal),
+                                    (l, x1, env1, store1, pad1, ks1, tr1) -> {
+                                        return InitUtils.makeState(Domains.Str.inject(Domains.Str.STop), x1, env1, store1, pad1, ks1, tr1);
+                                    },
+                                    x, env, store, pad, ks, tr);
+                        }
+                    }
+            ),
+            FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(1.0)))
+    );
     public static final Domains.Object Array_prototype_pop_Obj = InitUtils.unimplemented("Array.prototype.pop");
-    public static final Domains.Object Array_prototype_push_Obj = InitUtils.unimplemented("Array.prototype.push");
+    public static final Domains.Object Array_prototype_push_Obj = InitUtils.createInitFunctionObj(
+            new Domains.Native(
+                    (selfAddr, argArrayAddr, x, env, store, pad, ks, tr) -> {
+                        assert argArrayAddr.defAddr() : "Arguments array refers to non-addresses";
+                        assert argArrayAddr.as.size() == 1 : "Arguments array refers to multiple addresses";
+                        FHashSet<Domains.AddressSpace.Address> arrayAddrs = selfAddr.as.filter(a -> store.getObj(a).getJSClass().equals(JSClass.CArray));
+                        FHashSet<Interpreter.State> errState;
+                        if (arrayAddrs.size() != selfAddr.as.size()) {
+                            errState = InitUtils.makeState(Utils.Errors.typeError, x, env, store, pad, ks, tr);
+                        } else {
+                            errState = FHashSet.empty();
+                        }
+
+                        boolean isStrong = arrayAddrs.size() == 1 && store.isStrong(arrayAddrs.head());
+                        Domains.Store store1 = arrayAddrs.foldLeft((acc, cur) -> {
+                            Domains.Object oldArrayObj = acc.getObj(cur);
+                            Domains.BValue summaryVal = Utils.lookup(FHashSet.build(cur), Domains.Str.SNum, acc).merge(
+                                    Utils.lookup(argArrayAddr.as, Domains.Str.SNum, acc));
+                            Domains.Object updatedArrObj = StringHelpers.newArray(Domains.Num.NReal, List.list(), Option.some(summaryVal), oldArrayObj, true);
+
+                            if (isStrong) {
+                                return acc.putObjStrong(cur, updatedArrObj);
+                            } else {
+                                return acc.putObjWeak(cur, updatedArrObj);
+                            }
+                        }, store);
+                        FHashSet<Interpreter.State> pushedState = InitUtils.makeState(Domains.Num.inject(Domains.Num.NReal), x, env, store1, pad, ks, tr);
+
+                        return pushedState.union(errState);
+                    }
+            ),
+            FHashMap.build("length", Domains.Num.inject(Domains.Num.alpha(1.0)))
+    );
     public static final Domains.Object Array_prototype_indexOf_Obj = InitUtils.unimplemented("Array.prototype.indexOf");
     public static final Domains.Object Array_prototype_lastIndexOf_Obj = InitUtils.unimplemented("Array.prototype.lastIndexOf");
     public static final Domains.Object Array_prototype_concat_Obj = InitUtils.unimplemented("Array.prototype.concat");

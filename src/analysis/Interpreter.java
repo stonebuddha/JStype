@@ -902,7 +902,7 @@ public class Interpreter {
             else if (ks1.top() instanceof Domains.LblKont && ((Domains.LblKont)ks1.top()).lbl.equals(jv.lbl)) {
                 ret = ret.union(advanceBV(jv.bv, store1, pad1, ks1.pop()));
             }
-            else if (ks1.top() != Domains.HaltKont) {
+            else if (!ks1.top().equals(Domains.HaltKont)) {
                 Domains.KontStack ks2 = ks1.toSpecial(jv.lbl);
                 ret = ret.union(advanceJV(jv, store1, pad1, ks2));
             }
