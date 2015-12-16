@@ -31,6 +31,11 @@ public class Domains {
         }
 
         @Override
+        public String toString() {
+            return s.toString();
+        }
+
+        @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof StmtTerm && s.equals(((StmtTerm) obj).s));
         }
@@ -58,6 +63,11 @@ public class Domains {
         }
 
         @Override
+        public String toString() {
+            return v.toString();
+        }
+
+        @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof ValueTerm && v.equals(((ValueTerm) obj).v));
         }
@@ -82,6 +92,11 @@ public class Domains {
         public Env(FHashMap<IRPVar, FHashSet<AddressSpace.Address>> env) {
             this.env = env;
             this.calced = false;
+        }
+
+        @Override
+        public String toString() {
+            return "Env(" + env.toString() + ")";
         }
 
         @Override
@@ -146,6 +161,11 @@ public class Domains {
             this.toKonts = toKonts;
             this.weak = weak;
             this.calced = false;
+        }
+
+        @Override
+        public String toString() {
+            return "Store(" + toValue.toString() + "; " + toObject.toString() + ")";
         }
 
         @Override
@@ -346,6 +366,11 @@ public class Domains {
         public Scratchpad(FVector<BValue> mem) {
             this.mem = mem;
             this.calced = false;
+        }
+
+        @Override
+        public String toString() {
+            return "Pad(" + mem + ")";
         }
 
         @Override
@@ -1375,7 +1400,7 @@ public class Domains {
             } else if (this.partialLessEqual(str)) {
                 return str;
             } else if (str.partialLessEqual(this)) {
-                return str;
+                return this;
             } else {
                 throw new RuntimeException("Incorrect implementation of string lattice");
             }
@@ -1921,6 +1946,11 @@ public class Domains {
             }
 
             @Override
+            public String toString() {
+                return "ADDR@" + loc;
+            }
+
+            @Override
             public boolean equals(java.lang.Object obj) {
                 return (obj instanceof Address && loc.equals(((Address) obj).loc));
             }
@@ -2090,6 +2120,11 @@ public class Domains {
         @Override
         public boolean equals(java.lang.Object obj) {
             return (obj instanceof Object && extern.equals(((Object) obj).extern) && intern.equals(((Object) obj).intern) && present.equals(((Object) obj).present));
+        }
+
+        @Override
+        public String toString() {
+            return "Obj(" + extern + ")";
         }
 
         @Override
@@ -2268,6 +2303,11 @@ public class Domains {
             this.exactnotnum = exactnotnum;
             this.exactnum = exactnum;
             this.calced = false;
+        }
+
+        @Override
+        public String toString() {
+            return exactnotnum.toString();
         }
 
         @Override

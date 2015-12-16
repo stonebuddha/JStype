@@ -2,7 +2,10 @@ package analysis.init;
 
 import analysis.Domains;
 import analysis.Utils;
+import fj.F;
+import fj.data.List;
 import immutable.FHashMap;
+import immutable.FHashSet;
 import ir.JSClass;
 
 /**
@@ -43,13 +46,35 @@ public class InitMath {
             )
     );
 
-    public static final Domains.Object Math_abs_Obj = InitUtils.unimplemented("Math.abs");
+    public static Domains.Object easyMathFunctionObj(F<Double, Double> mathFun) {
+        return InitUtils.pureFunctionObj(unaryMathSig, bvs -> {
+            if (bvs.length() == 2) {
+                Domains.BValue bv = bvs.tail().head();
+                assert bv.defNum() : "type conversion should guarantee math functions only get nums";
+                Domains.BValue ret;
+                if (bv.n instanceof Domains.NConst) {
+                    ret = Domains.Num.inject(Domains.Num.alpha(((Domains.NConst)bv.n).d));
+                } else {
+                    ret = Domains.Num.inject(bv.n);
+                }
+                return FHashSet.build(ret);
+            } else {
+                throw new RuntimeException("arity mismatch!");
+            }
+        });
+    }
+
+    public static final InitUtils.Sig unaryMathSig = InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint));
+
+    public static final Domains.Object approxUnaryMathFunctionObj = InitUtils.constFunctionObj(unaryMathSig, Domains.Num.inject(Domains.Num.NTop));
+
+    public static final Domains.Object Math_abs_Obj = easyMathFunctionObj(Math::abs);
     public static final Domains.Object Math_acos_Obj = InitUtils.unimplemented("Math.acos");
     public static final Domains.Object Math_asin_Obj = InitUtils.unimplemented("Math.asin");
     public static final Domains.Object Math_atan_Obj = InitUtils.unimplemented("Math.atan");
     public static final Domains.Object Math_atan2_Obj = InitUtils.unimplemented("Math.atan2");
     public static final Domains.Object Math_ceil_Obj = InitUtils.unimplemented("Math.ceil");
-    public static final Domains.Object Math_cos_Obj = InitUtils.unimplemented("Math.cos");
+    public static final Domains.Object Math_cos_Obj = approxUnaryMathFunctionObj;
     public static final Domains.Object Math_exp_Obj = InitUtils.unimplemented("Math.exp");
     public static final Domains.Object Math_floor_Obj = InitUtils.unimplemented("Math.floor");
     public static final Domains.Object Math_log_Obj = InitUtils.unimplemented("Math.log");
@@ -57,9 +82,17 @@ public class InitMath {
     public static final Domains.Object Math_min_Obj = InitUtils.unimplemented("Math.min");
     public static final Domains.Object Math_pow_Obj = InitUtils.unimplemented("Math.pow");
     public static final Domains.Object Math_random_Obj = InitUtils.unimplemented("Math.random");
-    public static final Domains.Object Math_round_Obj = InitUtils.unimplemented("Math.round");
-    public static final Domains.Object Math_sin_Obj = InitUtils.unimplemented("Math.sin");
-    public static final Domains.Object Math_sqrt_Obj = InitUtils.unimplemented("Math.sqrt");
+    public static final Domains.Object Math_round_Obj = easyMathFunctionObj(d -> {
+        if (d.isInfinite()) {
+            return d;
+        } else if (d.isNaN()) {
+            return d;
+        } else {
+            return Math.round(d) * 1.0;
+        }
+    });
+    public static final Domains.Object Math_sin_Obj = approxUnaryMathFunctionObj;
+    public static final Domains.Object Math_sqrt_Obj = approxUnaryMathFunctionObj;
     public static final Domains.Object Math_tan_Obj = InitUtils.unimplemented("Math.tan");
 
 }

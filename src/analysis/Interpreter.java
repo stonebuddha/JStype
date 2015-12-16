@@ -177,6 +177,12 @@ public class Interpreter {
                 Mutable.prunedInfo.clear();
             } while (!work.isEmpty());
 
+            /*for (Trace tr : memo) {
+                Traces.FSCI fs = (Traces.FSCI)tr;
+                State state = memo.get(tr).some();
+                System.out.println(fs.pp + ":\n" + "  " + state.env + "\n  " + state.store + "\n  " + state.pad);
+            }*/
+
             if (Mutable.testing || Mutable.print) {
                 Mutable.inPostFixpoint = true;
                 process(initSigma);

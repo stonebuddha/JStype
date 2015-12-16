@@ -22,6 +22,11 @@ public class FVector<E> {
     }
 
     @Override
+    public String toString() {
+        return vector.toString();
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return (obj instanceof FVector && vector.equals(((FVector) obj).vector));
     }

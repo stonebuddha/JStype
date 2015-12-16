@@ -27,6 +27,11 @@ public class FHashMap<K, V> implements Iterable<Map.Entry<K, V>> {
     }
 
     @Override
+    public String toString() {
+        return map.toString();
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return (obj instanceof FHashMap && map.equals(((FHashMap) obj).map));
     }
