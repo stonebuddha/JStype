@@ -164,6 +164,7 @@ public class Utils {
                         IRStmt s = ((Domains.Clo) clo).m.s;
 
                         if (Interpreter.Mutable.pruneStore) {
+                            // TODO: not right
                             FHashSet<Domains.AddressSpace.Address> vas = envc.addrs();
                             Domains.Store reach_store;
                             Option<Domains.Store> storeOption = memo.get(vas);
@@ -187,20 +188,24 @@ public class Utils {
                             sigmas = sigmas.insert(new Interpreter.State(new Domains.StmtTerm(s), envc1, rstore2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1));
                         }
                         else {
-                            Trace trace1 = trace.update(envc, store, bv2as, bv3, s);
-                            Domains.AddressSpace.Address ka = trace1.toAddr();
-                            List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
-                            Domains.Store store1 = alloc(store, as, List.list(bv2as, bv3));
-                            Domains.Store store2 = alloc(store1, ka, ks.push(new Domains.RetKont(x, env, isctor, trace)));
-                            Domains.Env envc1 = envc.extendAll(List.list(self, args).zip(as));
-                            Integer exc = ks.exc.head() != 0 ? 1 : 0;
-                            Interpreter.PruneScratch.update(trace, pad);
-
-                            sigmas = sigmas.insert(new Interpreter.State(new Domains.StmtTerm(s), envc1, store2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1));
+                            for (Domains.AddressSpace.Address selfAddr : bv2.as) {
+                                Domains.BValue selfBV = Domains.AddressSpace.Address.inject(selfAddr);
+                                Trace trace1 = trace.update(envc, store, selfBV, bv3, s);
+                                Domains.AddressSpace.Address ka = trace1.toAddr();
+                                List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
+                                Domains.Store store1 = alloc(store, ka, ks.push(new Domains.RetKont(x, env, isctor, trace)));
+                                Domains.Store store2 = alloc(store1, as, List.list(selfBV, bv3));
+                                Domains.Env envc1 = envc.extendAll(List.list(self, args).zip(as));
+                                Integer exc = ks.exc.head() != 0 ? 1 : 0;
+                                Interpreter.PruneScratch.update(trace, pad);
+                                sigmas = sigmas.insert(new Interpreter.State(new Domains.StmtTerm(s), envc1, store2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1));
+                            }
                         }
                     }
                     else if (clo instanceof Domains.Native) {
-                        sigmas = sigmas.union(((Domains.Native) clo).f.f(bv2as, bv3, x, env, store, pad, ks, trace));
+                        for (Domains.AddressSpace.Address selfAddr : bv2.as) {
+                            sigmas = sigmas.union(((Domains.Native) clo).f.f(Domains.AddressSpace.Address.inject(selfAddr), bv3, x, env, store, pad, ks, trace));
+                        }
                     }
                 }
             }
@@ -227,6 +232,16 @@ public class Utils {
             }
 
             Interpreter.Mutable.prunedInfo.set(merge_trace, P.p(trace, x, as));
+        }
+
+        for (Interpreter.State s : sigmas) {
+            if (s.t instanceof Domains.ValueTerm && ((Domains.ValueTerm) s.t).v.equals(Errors.typeError)) {
+                Interpreter.Mutable.except(x.id, Errors.typeError);
+            }
+        }
+
+        if (!bv1.defAddr() || nonfun) {
+            Interpreter.Mutable.except(x.id, Errors.typeError);
         }
 
         if (nonfun) {
@@ -486,7 +501,7 @@ public class Utils {
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
                 assert bv2.as.size() == 1;
-                Domains.Object o = store.getObj(bv.as.head());
+                Domains.Object o = store2.getObj(bv2.as.head());
                 Domains.Object o1 = new Domains.Object(o.extern, o.intern.set(Fields.value, bv.onlyNum()), o.present);
                 bv1 = bv1.merge(bv2);
                 store1 = store2.putObj(bv2.as.head(), o1);
@@ -496,7 +511,7 @@ public class Utils {
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
                 assert bv2.as.size() == 1;
-                Domains.Object o = store.getObj(bv.as.head());
+                Domains.Object o = store2.getObj(bv2.as.head());
                 Domains.Object o1 = new Domains.Object(o.extern, o.intern.set(Fields.value, bv.onlyNum()), o.present);
                 bv1 = bv1.merge(bv2);
                 store1 = store2.putObj(bv2.as.head(), o1);
@@ -506,7 +521,7 @@ public class Utils {
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
                 assert bv2.as.size() == 1;
-                Domains.Object o = store.getObj(bv.as.head());
+                Domains.Object o = store2.getObj(bv2.as.head());
                 Option<String> exactStr = Domains.Str.getExact(bv.str);
                 Domains.ExternMap extern;
                 if (exactStr.isSome()) {

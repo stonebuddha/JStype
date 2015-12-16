@@ -384,14 +384,14 @@ public class InitUtils {
                 });
     }
 
-    public static FHashMap<String, Domains.BValue> dangleMap(FHashMap<String, Domains.BValue> m) {
+    /*public static FHashMap<String, Domains.BValue> dangleMap(FHashMap<String, Domains.BValue> m) {
         //notJS.Mutable.dangle
         if (Interpreter.Mutable.dangle) {
             return m;
         } else {
             return FHashMap.empty();
         }
-    }
+    }*/
 
     public static Domains.Object unimplemented(String name)  {
         return createInitFunctionObj(new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks, trace)-> {

@@ -157,4 +157,18 @@ public class FHashSet<E> implements Iterable<E> {
         builder.append("}");
         return builder.toString();
     }
+
+    public String mkString(String sep) {
+        StringBuilder builder = new StringBuilder();
+        boolean first = true;
+        for (E elem : set) {
+            if (first) {
+                first = false;
+            } else {
+                builder.append(sep);
+            }
+            builder.append(elem);
+        }
+        return builder.toString();
+    }
 }

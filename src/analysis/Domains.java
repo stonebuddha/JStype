@@ -265,7 +265,7 @@ public class Domains {
             if (obv.isSome()) {
                 return obv.some();
             } else {
-                throw new RuntimeException("address not found");
+                throw new RuntimeException("ccc: address not found");
             }
         }
 
@@ -274,7 +274,7 @@ public class Domains {
             if (oo.isSome()) {
                 return oo.some();
             } else {
-                throw new RuntimeException("address not found");
+                throw new RuntimeException("ccc: address not found");
             }
         }
 
