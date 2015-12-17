@@ -350,7 +350,122 @@ public class Domains {
         }
 
         public Store fullGC(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots, FHashSet<AddressSpace.Address> kRoots) {
-            throw new RuntimeException("not implemented: fullGC");
+            FHashSet<AddressSpace.Address> todoV = vRoots.union(FHashSet.empty());
+            FHashSet<AddressSpace.Address> doneV = FHashSet.empty();
+            FHashSet<AddressSpace.Address> todoO = oRoots.union(FHashSet.empty());
+            FHashSet<AddressSpace.Address> doneO = FHashSet.empty();
+            FHashSet<AddressSpace.Address> todoK = kRoots.union(FHashSet.empty());
+            FHashSet<AddressSpace.Address> doneK = FHashSet.empty();
+            FHashSet<AddressSpace.Address> empty = FHashSet.empty();
+            while (!todoK.isEmpty()) {
+                AddressSpace.Address a = todoK.head();
+                todoK = todoK.delete(a);
+                doneK = doneK.insert(a);
+                FHashSet<AddressSpace.Address> vas, oas, kas;
+                Option<FHashSet<KontStack>> tmp = toKonts.get(a);
+                if (tmp.isSome()) {
+                    FHashSet<KontStack> kss = tmp.some();
+                    P3<FHashSet<AddressSpace.Address>, FHashSet<AddressSpace.Address>, FHashSet<AddressSpace.Address>> p3;
+                    p3 = kss.foldLeft(
+                            (acc, ks)-> ks.ks.foldLeft(
+                                    (P3<FHashSet<AddressSpace.Address>, FHashSet<AddressSpace.Address>, FHashSet<AddressSpace.Address>> nacc, Kont kont) -> {
+                                        if (kont instanceof AddrKont) {
+                                            AddressSpace.Address na = ((AddrKont)kont).a;
+                                            return P.p(nacc._1(), nacc._2(), nacc._3().insert(na));
+                                        } else if (kont instanceof RetKont) {
+                                            Domains.Env nenv = ((RetKont)kont).env;
+                                            Traces.Trace ntr = ((RetKont)kont).trace;
+                                            FHashSet<AddressSpace.Address> noas;
+                                            if (Interpreter.Mutable.pruneStore) {
+                                                noas = Interpreter.PruneStoreToo.apply(ntr)._2().addrs();
+                                            } else {
+                                                noas = Interpreter.PruneScratch.apply(ntr).addrs();
+                                            }
+                                            return P.p(nacc._1().union(nenv.addrs()), nacc._2().union(noas), nacc._3());
+                                        } else if (kont instanceof FinKont) {
+                                            FHashSet<Value> vs = ((FinKont)kont).vs;
+                                            return vs.foldLeft(
+                                                    (P3<FHashSet<AddressSpace.Address>, FHashSet<AddressSpace.Address>, FHashSet<AddressSpace.Address>> nnacc, Value v)-> {
+                                                        BValue bv;
+                                                        if (v instanceof BValue) {
+                                                            bv = (BValue)v;
+                                                        } else if (v instanceof EValue) {
+                                                            bv = ((EValue)v).bv;
+                                                        } else {
+                                                            bv = ((JValue)v).bv;
+                                                        }
+                                                        return P.p(nnacc._1(), nnacc._2().union(bv.as), nnacc._3());
+                                                    }, nacc);
+                                        } else {
+                                            return nacc;
+                                        }
+                                    },  acc),
+                            P.p(empty, empty, empty));
+                    vas = p3._1();
+                    oas = p3._2();
+                    kas = p3._3();
+                } else {
+                    if (Interpreter.Mutable.pruneStore) {
+                        vas = oas = kas = empty;
+                    } else {
+                        throw new RuntimeException("dangling address in store");
+                    }
+                }
+                todoV = todoV.union(vas);
+                todoO = todoO.union(oas);
+                todoK = todoK.union(kas.minus(doneK));
+            }
+            FHashMap<AddressSpace.Address, FHashSet<KontStack>> _toKonts = FHashMap.empty();
+            for (AddressSpace.Address a : toKonts.keys()) {
+                if (doneK.member(a)) {
+                    _toKonts = _toKonts.set(a, toKonts.get(a).some());
+                }
+            }
+            while (!todoV.isEmpty() || !todoO.isEmpty()) {
+                if (Interpreter.Mutable.pruneStore) {
+                    todoV = todoV.minus(todoV.filter(a-> !toValue.contains(a)));
+                }
+                todoO = todoO.union(todoV.foldLeft((acc, a)-> acc.union(toValue.get(a).some().as), empty)).minus(doneO);
+                doneV = doneV.union(todoV);
+                todoV = FHashSet.empty();
+                while (!todoO.isEmpty()) {
+                    AddressSpace.Address a = todoO.head();
+                    todoO = todoO.delete(a);
+                    doneO = doneO.insert(a);
+                    if (toObject.get(a).isSome()) {
+                        Object o = toObject.get(a).some();
+                        FHashSet<BValue> bvs = o.getAllValues();
+                        todoO = todoO.union(bvs.foldLeft((acc, bv)-> acc.union(bv.as), empty));
+                        todoV = todoV.union(o.getCode().foldLeft(
+                                (acc, clo)-> {
+                                    if (clo instanceof Clo) {
+                                        Env env = ((Clo)clo).env;
+                                        return acc.union(env.addrs());
+                                    } else {
+                                        return acc;
+                                    }
+                                }, empty
+                        ).minus(doneV));
+                    } else {
+                        if (!Interpreter.Mutable.pruneStore) {
+                            throw new RuntimeException("dangling address in store");
+                        }
+                    }
+                }
+            }
+            FHashMap<AddressSpace.Address, BValue> _toValue = FHashMap.empty();
+            for (AddressSpace.Address a : toValue.keys()) {
+                if (doneV.member(a)) {
+                    _toValue = _toValue.set(a, toValue.get(a).some());
+                }
+            }
+            FHashMap<AddressSpace.Address, Object> _toObject = FHashMap.empty();
+            for (AddressSpace.Address a : toObject.keys()) {
+                if (doneO.member(a)) {
+                    _toObject = _toObject.set(a, toObject.get(a).some());
+                }
+            }
+            return new Store(_toValue, _toObject, _toKonts, weak.intersect(doneV.union(doneO)));
         }
 
         public P2<Store, Store> prune(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots) {

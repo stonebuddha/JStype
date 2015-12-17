@@ -11,7 +11,6 @@ import immutable.FHashSet;
  */
 //TODO
 public class StringHelpers {
-    //TODO
     public static Domains.Object newArray(Domains.Num length, List<Domains.BValue> exactEntries, Option<Domains.BValue> summaryVal, Domains.Object origArray, Boolean update) {
         FHashMap<Domains.Str, Domains.BValue> exactnum =
         exactEntries.zipIndex().foldLeft((acc, cur) -> {
