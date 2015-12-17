@@ -5,13 +5,16 @@ import fj.P;
 import fj.P3;
 import fj.P4;
 import fj.data.List;
+import fj.data.Set;
 import immutable.FHashMap;
+import immutable.FTreeSet;
 import ir.IRMerge;
 import ir.IRStmt;
 import ir.IRVar;
 import ir.JSClass;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.SortedSet;
 
 /**
@@ -137,6 +140,158 @@ public class Traces {
         }
     }
 
+    public static class ObjCFA extends Trace {
+        public Integer k, h, pp;
+        public List<FTreeSet<Integer>> tr;
+        final int recordHash;
+        static final Hash<P4<Integer, Integer, Integer, List<FTreeSet<Integer>>>> hasher = Hash.p4Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
+
+        public ObjCFA(Integer k, Integer h, Integer pp, List<FTreeSet<Integer>> tr) {
+            assert k >= h : "Heap sensitivity cannot be more than context sensitivity";
+            this.k = k;
+            this.h = h;
+            this.pp = pp;
+            this.tr = tr;
+            this.recordHash = hasher.hash(P.p(k, h, pp, tr));
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof ObjCFA && k == ((ObjCFA) obj).k && h == ((ObjCFA) obj).h && pp == ((ObjCFA) obj).pp && tr.equals(((ObjCFA) obj).tr));
+        }
+
+        @Override
+        public int hashCode() {
+            return recordHash;
+        }
+
+        @Override
+        public Trace update(IRStmt s) {
+            return new ObjCFA(k, h, s.id, tr);
+        }
+
+        @Override
+        public Trace update(Domains.Env env, Domains.Store store, Domains.BValue self, Domains.BValue args, IRStmt s) {
+            return new ObjCFA(k, h, s.id, tr.cons(FTreeSet.<Integer>empty().union(self.as.map(a -> Trace.getBase(a)))).take(k));
+        }
+
+        @Override
+        public Domains.AddressSpace.Address toAddr() {
+            return new Domains.AddressSpace.Address(TraceUtils.SortedIntSetsToBigInt(tr.take(h), pp));
+        }
+
+        @Override
+        public Domains.AddressSpace.Address makeAddr(IRVar x) {
+            return new Domains.AddressSpace.Address(TraceUtils.SortedIntSetsToBigInt(tr.take(h), x.id));
+        }
+
+        public static ObjCFA apply(Integer k, Integer h) {
+            return new ObjCFA(k, h, 0, List.list());
+        }
+    }
+
+    public static class ObjFullCFA extends Trace {
+        public Integer k, pp;
+        public List<Integer> tr;
+        final int recordHash;
+        static Hash<P3<Integer, Integer, List<Integer>>> hasher = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
+
+        public ObjFullCFA(Integer k, Integer pp, List<Integer> tr) {
+            assert k > 0 : "k needs to be at least 1";
+            this.k = k;
+            this.pp = pp;
+            this.tr = tr;
+            this.recordHash = hasher.hash(P.p(k, pp, tr));
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof ObjFullCFA && k == ((ObjFullCFA) obj).k && pp == ((ObjFullCFA) obj).pp && tr.equals(((ObjFullCFA) obj).tr));
+        }
+
+        @Override
+        public int hashCode() {
+            return recordHash;
+        }
+
+        @Override
+        public Trace update(IRStmt s) {
+            return new ObjFullCFA(k, s.id, tr);
+        }
+
+        @Override
+        public Trace update(Domains.Env env, Domains.Store store, Domains.BValue self, Domains.BValue args, IRStmt s) {
+            assert self.as.size() == 1;
+            return new ObjFullCFA(k, s.id, TraceUtils.BigIntToSeqInt(self.as.head().loc));
+        }
+
+        @Override
+        public Domains.AddressSpace.Address toAddr() {
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k - 1).reverse(), pp));
+        }
+
+        @Override
+        public Domains.AddressSpace.Address makeAddr(IRVar x) {
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k - 1).reverse(), x.id));
+        }
+
+        public static ObjFullCFA apply(Integer k) {
+            return new ObjFullCFA(k, 0, List.list());
+        }
+    }
+
+    public static class AcyclicCFA extends Trace {
+        public Integer h, pp;
+        public List<Integer> tr;
+        final int recordHash;
+        static Hash<P3<Integer, Integer, List<Integer>>> hasher = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
+
+        public AcyclicCFA(Integer h, Integer pp, List<Integer> tr) {
+            this.h = h;
+            this.pp = pp;
+            this.tr = tr;
+            this.recordHash = hasher.hash(P.p(h, pp, tr));
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof AcyclicCFA && h == ((AcyclicCFA) obj).h && pp == ((AcyclicCFA) obj).pp && tr.equals(((AcyclicCFA) obj).tr));
+        }
+
+        @Override
+        public int hashCode() {
+            return recordHash;
+        }
+
+        @Override
+        public Trace update(IRStmt s) {
+            return new AcyclicCFA(h, s.id, tr);
+        }
+
+        @Override
+        public Trace update(Domains.Env env, Domains.Store store, Domains.BValue self, Domains.BValue args, IRStmt s) {
+            if (tr.exists(i -> i == pp)) {
+                return new AcyclicCFA(h, s.id, tr.dropWhile(i -> i != pp));
+            } else {
+                return new AcyclicCFA(h, s.id, tr.cons(pp));
+            }
+        }
+
+        @Override
+        public Domains.AddressSpace.Address toAddr() {
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.take(h), pp));
+        }
+
+        @Override
+        public Domains.AddressSpace.Address makeAddr(IRVar x) {
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.take(h), x.id));
+        }
+
+        public static AcyclicCFA apply(Integer h) {
+            return new AcyclicCFA(h, 0, List.list());
+        }
+    }
+
     // K-merge Nodes sensetive
     public static class KMNS extends Trace {
         public Integer k, pp;
@@ -188,6 +343,24 @@ public class Traces {
             BigInteger tracePart = tr.foldLeft((acc, e)  ->
                 acc.shiftLeft(32).add(BigInteger.valueOf(e)), BigInteger.valueOf(0));
             return tracePart.shiftLeft(32).add(BigInteger.valueOf(pp));
+        }
+
+        public static BigInteger SortedIntSetsToBigInt(List<FTreeSet<Integer>> tr, Integer pp) {
+            BigInteger tracePart = tr.foldLeft((acc, e) -> {
+                BigInteger setToAddress = e.foldLeft((acc1, e1) -> acc1.shiftLeft(32).add(BigInteger.valueOf(e1)), BigInteger.ZERO);
+                return acc.shiftLeft(64).add(setToAddress);
+            }, BigInteger.ZERO);
+            return tracePart.shiftLeft(64).add(BigInteger.valueOf(pp));
+        }
+
+        public static List<Integer> BigIntToSeqInt(BigInteger tr) {
+            BigInteger otr = tr;
+            ArrayList<Integer> trlist = new ArrayList<>();
+            while (!otr.equals(BigInteger.ZERO) && !otr.equals(BigInteger.ONE.negate())) {
+                trlist.add(otr.intValue());
+                otr = otr.shiftRight(32);
+            }
+            return List.list(trlist).reverse();
         }
     }
 

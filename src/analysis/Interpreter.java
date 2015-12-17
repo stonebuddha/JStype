@@ -26,7 +26,7 @@ public class Interpreter {
         public static Boolean dangle = false;
         public static Boolean testing = false;
         public static Boolean print = false;
-        //public static Boolean catchExc = false;
+        public static Boolean catchExc = false;
         public static Boolean inPostFixpoint = false;
         public static Boolean splitStates = false;
         public static HashMap<Trace, P3<Trace, IRVar, FHashSet<Domains.AddressSpace.Address>>> prunedInfo = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
@@ -66,14 +66,14 @@ public class Interpreter {
         }
 
         public static void clear() {
-            Mutable.lightGC = true; // set
+            Mutable.lightGC = true;
             Mutable.fullGC = false;
-            Mutable.pruneStore = true; // set
+            Mutable.pruneStore = true;
             Mutable.dangle = false;
-            Mutable.testing = true; // set
-            Mutable.print = true; // set
-            //Mutable.catchExc = false;
-            Mutable.inPostFixpoint = false; // set
+            Mutable.testing = true;
+            Mutable.print = true;
+            Mutable.catchExc = false;
+            Mutable.inPostFixpoint = false;
             Mutable.splitStates = false;
             Mutable.prunedInfo.clear();
             Mutable.outputMap.clear();
@@ -101,9 +101,7 @@ public class Interpreter {
             }
         });
 
-        Trace initTrace = new Traces.FSCI(0);
-        //Trace initTrace = Traces.StackCFA.apply(1, 0);
-        //Trace initTrace = Traces.KMNS.apply(100);
+        Trace initTrace = Traces.FSCI.apply();
         IRStmt ast = readIR(args[0]);
         HashMap<Trace, State> memo = new HashMap<Trace, State>(Equal.anyEqual(), Hash.anyHash());
 
@@ -198,7 +196,13 @@ public class Interpreter {
 
             return Mutable.outputMap;
         } catch (Exception e) {
-            e.printStackTrace();
+            if (Mutable.catchExc) {
+                if (Mutable.print) {
+                    System.out.println("Abstract Interpreter threw exception");
+                }
+            } else {
+                e.printStackTrace();
+            }
             return Mutable.outputMap;
         }
     }
