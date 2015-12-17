@@ -469,7 +469,73 @@ public class Domains {
         }
 
         public P2<Store, Store> prune(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots) {
-            throw new RuntimeException("not implemented: prune");
+            FHashSet<AddressSpace.Address> todoV = vRoots.union(FHashSet.empty());
+            FHashSet<AddressSpace.Address> doneV = FHashSet.empty();
+            FHashSet<AddressSpace.Address> todoO = oRoots.union(FHashSet.empty());
+            FHashSet<AddressSpace.Address> doneO = FHashSet.empty();
+            FHashSet<AddressSpace.Address> empty = FHashSet.empty();
+            while (!todoV.isEmpty() || !todoO.isEmpty()) {
+                for (AddressSpace.Address a : todoV) {
+                    for (AddressSpace.Address a1 : apply(a).as) {
+                        if (!doneO.member(a1)) {
+                            todoO = todoO.insert(a1);
+                        }
+                    }
+                }
+                doneV = doneV.union(todoV);
+                todoV = FHashSet.empty();
+                while (!todoO.isEmpty()) {
+                    AddressSpace.Address a = todoO.head();
+                    todoO = todoO.delete(a);
+                    doneO = doneO.insert(a);
+                    Object o = getObj(a);
+                    FHashSet<BValue> bvs = o.getAllValues();
+                    for (BValue bv : bvs) {
+                        for (AddressSpace.Address na : bv.as) {
+                            if (!doneO.member(na)) {
+                                todoO = todoO.insert(na);
+                            }
+                        }
+                    }
+                    for (Closure clo : o.getCode()) {
+                        if (clo instanceof Clo) {
+                            Env env = ((Clo)clo).env;
+                            for (AddressSpace.Address na : env.addrs()) {
+                                if (!doneV.member(na)) {
+                                    todoV = todoV.insert(na);
+                                } else {
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            FHashMap<AddressSpace.Address, BValue> reachToValue = FHashMap.empty(), unreachToValue = FHashMap.empty();
+            for (AddressSpace.Address a : toValue.keys()) {
+                if (doneV.member(a)) {
+                    reachToValue = reachToValue.set(a, toValue.get(a).some());
+                } else {
+                    unreachToValue = unreachToValue.set(a, toValue.get(a).some());
+                }
+            }
+            FHashMap<AddressSpace.Address, Object> reachToObject = FHashMap.empty(), unreachToObject = FHashMap.empty();
+            for (AddressSpace.Address a : toObject.keys()) {
+                if (doneO.member(a)) {
+                    reachToObject = reachToObject.set(a, toObject.get(a).some());
+                } else {
+                    unreachToObject= unreachToObject.set(a, toObject.get(a).some());
+                }
+            }
+            FHashMap<AddressSpace.Address, FHashSet<KontStack>> reachToKonts = FHashMap.empty(), unreachToKonts = toKonts;
+            FHashSet<AddressSpace.Address> reachWeak = FHashSet.empty(), unreachWeak = FHashSet.empty();
+            for (AddressSpace.Address a : weak) {
+                if (doneV.member(a) || doneO.member(a)) {
+                    reachWeak = reachWeak.insert(a);
+                } else {
+                    unreachWeak = unreachWeak.insert(a);
+                }
+            }
+            return P.p(new Store(reachToValue, reachToObject, reachToKonts, reachWeak), new Store(unreachToValue, unreachToObject, unreachToKonts, unreachWeak));
         }
     }
 
