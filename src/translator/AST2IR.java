@@ -341,9 +341,20 @@ public class AST2IR {
                         _right._2(),
                         _right._3());
             } else if (left instanceof MemberExpression) {
-                // TODO: for window?
                 Expression object = ((MemberExpression) left).getObject();
                 Expression property = ((MemberExpression) left).getProperty();
+
+                if (object.equals(new RealIdentifierExpression(PVarMapper.windowName)) && property instanceof LiteralExpression) {
+                    assert ((LiteralExpression) property).getLiteral() instanceof StringLiteral;
+                    String string = ((StringLiteral) ((LiteralExpression) property).getLiteral()).getValue();
+                    P3<IRStmt, IRExp, Set<IRPVar>> _right = right.accept(this);
+                    return P.p(
+                            new IRSeq(List.list(_right._1(), new IRUpdate(PVarMapper.window, new IRStr(string), _right._2()))),
+                            _right._2(),
+                            _right._3()
+                    );
+                }
+
                 P3<IRStmt, IRExp, Set<IRPVar>> _right = right.accept(this), _object = object.accept(this), _property = property.accept(this);
                 P4<IRStmt, IRExp, IRExp, Set<IRPVar>> tmp = accessSetup(_object._2(), _property._2());
                 return P.p(
@@ -557,9 +568,13 @@ public class AST2IR {
 
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forMemberExpression(MemberExpression memberExpression) {
-            // TODO: for window?
             Expression object = memberExpression.getObject();
             Expression property = memberExpression.getProperty();
+            if (object.equals(new RealIdentifierExpression(PVarMapper.windowName)) && property instanceof LiteralExpression) {
+                assert ((LiteralExpression) property).getLiteral() instanceof StringLiteral;
+                String string = ((StringLiteral) ((LiteralExpression) property).getLiteral()).getValue();
+                return nopStmt(new IRBinop(Bop.Access, PVarMapper.window, new IRStr(string)));
+            }
             P3<IRStmt, IRExp, Set<IRPVar>> _object = object.accept(this), _property = property.accept(this);
             P4<IRStmt, IRExp, IRExp, Set<IRPVar>> tmp = accessSetup(_object._2(), _property._2());
             return P.p(

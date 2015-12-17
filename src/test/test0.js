@@ -56,3 +56,8 @@ function h() {
     g();
 }
 h();
+
+z = 1.0;
+z = 2.0;
+z = z + z;
+print(z);
