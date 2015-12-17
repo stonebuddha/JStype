@@ -67,21 +67,26 @@ public class InitMath {
     public static final InitUtils.Sig unaryMathSig = InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint));
 
     public static final Domains.Object approxUnaryMathFunctionObj = InitUtils.constFunctionObj(unaryMathSig, Domains.Num.inject(Domains.Num.NTop));
+    public static final Domains.Object approxBinaryMathFunctionObj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.NumberHint, InitUtils.NumberHint)), Domains.Num.inject(Domains.Num.NTop));
+    public static final Domains.Object variadicMathFunctionObj = InitUtils.constFunctionObj(new InitUtils.VarSig(InitUtils.NoConversion, InitUtils.NumberHint, 2), Domains.Num.inject(Domains.Num.NTop));
 
     public static final Domains.Object Math_abs_Obj = easyMathFunctionObj(Math::abs);
-    public static final Domains.Object Math_acos_Obj = InitUtils.unimplemented("Math.acos");
-    public static final Domains.Object Math_asin_Obj = InitUtils.unimplemented("Math.asin");
-    public static final Domains.Object Math_atan_Obj = InitUtils.unimplemented("Math.atan");
-    public static final Domains.Object Math_atan2_Obj = InitUtils.unimplemented("Math.atan2");
-    public static final Domains.Object Math_ceil_Obj = InitUtils.unimplemented("Math.ceil");
+    public static final Domains.Object Math_acos_Obj = approxUnaryMathFunctionObj;
+    public static final Domains.Object Math_asin_Obj = approxUnaryMathFunctionObj;
+    public static final Domains.Object Math_atan_Obj = approxUnaryMathFunctionObj;
+    public static final Domains.Object Math_atan2_Obj = approxBinaryMathFunctionObj;
+    public static final Domains.Object Math_ceil_Obj = easyMathFunctionObj(Math::ceil);
     public static final Domains.Object Math_cos_Obj = approxUnaryMathFunctionObj;
-    public static final Domains.Object Math_exp_Obj = InitUtils.unimplemented("Math.exp");
-    public static final Domains.Object Math_floor_Obj = InitUtils.unimplemented("Math.floor");
-    public static final Domains.Object Math_log_Obj = InitUtils.unimplemented("Math.log");
-    public static final Domains.Object Math_max_Obj = InitUtils.unimplemented("Math.max");
-    public static final Domains.Object Math_min_Obj = InitUtils.unimplemented("Math.min");
-    public static final Domains.Object Math_pow_Obj = InitUtils.unimplemented("Math.pow");
-    public static final Domains.Object Math_random_Obj = InitUtils.unimplemented("Math.random");
+    public static final Domains.Object Math_exp_Obj = approxBinaryMathFunctionObj;
+    public static final Domains.Object Math_floor_Obj = easyMathFunctionObj(Math::floor);
+    public static final Domains.Object Math_log_Obj = approxUnaryMathFunctionObj;
+    public static final Domains.Object Math_max_Obj = variadicMathFunctionObj;
+    public static final Domains.Object Math_min_Obj = variadicMathFunctionObj;
+    public static final Domains.Object Math_pow_Obj = approxBinaryMathFunctionObj;
+    public static final Domains.Object Math_random_Obj = InitUtils.constFunctionObj(
+            InitUtils.ezSig(InitUtils.NoConversion, List.list()),
+            Domains.Num.inject(Domains.Num.NReal)
+    );
     public static final Domains.Object Math_round_Obj = easyMathFunctionObj(d -> {
         if (d.isInfinite()) {
             return d;
@@ -93,6 +98,6 @@ public class InitMath {
     });
     public static final Domains.Object Math_sin_Obj = approxUnaryMathFunctionObj;
     public static final Domains.Object Math_sqrt_Obj = approxUnaryMathFunctionObj;
-    public static final Domains.Object Math_tan_Obj = InitUtils.unimplemented("Math.tan");
+    public static final Domains.Object Math_tan_Obj = approxUnaryMathFunctionObj;
 
 }
