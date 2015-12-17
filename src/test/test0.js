@@ -62,5 +62,5 @@ z = 2.0;
 z = z + z;
 print(z);
 
-var t = z < 5 ? 6 : "orz";
+var t = (z < 5 && z < 7) ? 6 : "orz";
 print(t);

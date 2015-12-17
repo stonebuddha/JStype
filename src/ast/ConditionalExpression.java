@@ -10,7 +10,7 @@ public class ConditionalExpression extends Expression {
     Expression alternate;
     Expression consequent;
 
-    public ConditionalExpression(Expression test, Expression alternate, Expression consequent) {
+    public ConditionalExpression(Expression test, Expression consequent, Expression alternate) {
         this.test = test;
         this.alternate = alternate;
         this.consequent = consequent;
