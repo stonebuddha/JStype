@@ -42,8 +42,8 @@ public class InitDate {
             )
     );
 
-    public static final Domains.Object Date_now_Obj = InitUtils.unimplemented("Date.now"); /*InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Num.inject(Domains.Num.NTop));*/
-    public static final Domains.Object Date_parse_Obj = InitUtils.unimplemented("Date.parse"); /*InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)), Domains.Num.inject(Domains.Num.NTop));*/
+    public static final Domains.Object Date_now_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Num.inject(Domains.Num.NTop));
+    public static final Domains.Object Date_parse_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)), Domains.Num.inject(Domains.Num.NTop));
 
     public static final Domains.Object Date_prototype_Obj = InitUtils.createInitObj(
             FHashMap.build(
@@ -57,7 +57,7 @@ public class InitDate {
             )
     );
 
-    public static final Domains.Object Date_prototype_toString_Obj = InitUtils.unimplemented("Date.prototype.toString"); /*InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Str.inject(Domains.Str.DateStr));*/
-    public static final Domains.Object Date_prototype_valueOf_Obj = InitUtils.unimplemented("Date.prototype.valueOf");/*InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Num.inject(Domains.Num.NTop));*/
-    public static final Domains.Object Date_prototype_toLocaleString_Obj = InitUtils.unimplemented("Date.prototype.toLocaleString");/*InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Str.inject(Domains.Str.DateStr));*/
+    public static final Domains.Object Date_prototype_toString_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Str.inject(Domains.Str.DateStr));
+    public static final Domains.Object Date_prototype_valueOf_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Num.inject(Domains.Num.NTop));
+    public static final Domains.Object Date_prototype_toLocaleString_Obj = InitUtils.constFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list()), Domains.Str.inject(Domains.Str.DateStr));
 }

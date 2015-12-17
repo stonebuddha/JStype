@@ -517,7 +517,7 @@ public class Utils {
                 store1 = store2.putObj(bv2.as.head(), o1);
             }
             else if (sort.equals(Domains.DStr)) {
-                P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
+                P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.String_Addr), a, store1, trace);
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
                 assert bv2.as.size() == 1;

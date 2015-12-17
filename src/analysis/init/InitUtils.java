@@ -320,7 +320,10 @@ public class InitUtils {
             Domains.AddressSpace.Address selfAddr = selfAddr_bv.as.head();
             Domains.BValue final_value = bvtrans.f(arg_value);
             Domains.Object old_self = store.getObj(selfAddr);
-            Domains.Object new_self = new Domains.Object(old_self.extern.strongUpdate(Utils.Fields.value, final_value), old_self.intern, old_self.present);
+            Domains.Object new_self = new Domains.Object(
+                    old_self.extern,
+                    old_self.intern.set(Utils.Fields.value, final_value),
+                    old_self.present);
             Domains.Object newer_self;
             if (cname.equals("String")) {
                 Option<String> exactStr = Domains.Str.getExact(final_value.str);
@@ -384,14 +387,14 @@ public class InitUtils {
                 });
     }
 
-    /*public static FHashMap<String, Domains.BValue> dangleMap(FHashMap<String, Domains.BValue> m) {
+    public static FHashMap<String, Domains.BValue> dangleMap(FHashMap<String, Domains.BValue> m) {
         //notJS.Mutable.dangle
         if (Interpreter.Mutable.dangle) {
             return m;
         } else {
             return FHashMap.empty();
         }
-    }*/
+    }
 
     public static Domains.Object unimplemented(String name)  {
         return createInitFunctionObj(new Domains.Native((selfAddr, argArrayAddr, x, env, store, pad, ks, trace)-> {

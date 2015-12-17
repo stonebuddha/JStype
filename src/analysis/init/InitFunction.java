@@ -17,13 +17,13 @@ import ir.JSClass;
  */
 public class InitFunction {
     public static final Domains.Object Function_prototype_Obj = InitUtils.createInitObj(
-            FHashMap.build(
+            FHashMap.<String, Domains.BValue>build(
                     "length", Domains.Num.inject(Domains.Num.alpha(0.0)),
                     "apply", Domains.AddressSpace.Address.inject(Init.Function_prototype_apply_Addr),
                     "call", Domains.AddressSpace.Address.inject(Init.Function_prototype_call_Addr),
-                    "toString", Domains.AddressSpace.Address.inject(Init.Function_prototype_toString_Addr),
+                    "toString", Domains.AddressSpace.Address.inject(Init.Function_prototype_toString_Addr)).union(InitUtils.dangleMap(FHashMap.build(
                     "constructor", Domains.AddressSpace.Address.inject(Init.Function_Addr)
-            ),
+            ))),
             FHashMap.build(
                     Utils.Fields.proto, Domains.AddressSpace.Address.inject(Init.Object_prototype_Addr),
                     Utils.Fields.classname, JSClass.CFunction_prototype_Obj,

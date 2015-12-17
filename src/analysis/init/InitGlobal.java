@@ -48,7 +48,7 @@ public class InitGlobal {
                     "Float64Array", Domains.AddressSpace.Address.inject(Init.Float64Array_Addr),
                     "dummyAddress", Domains.AddressSpace.Address.inject(Init.Dummy_Addr),
                     "Infinity", Domains.Num.inject(Domains.Num.alpha(Double.POSITIVE_INFINITY)),
-                    "NaN", Domains.Num.inject(Domains.Num.alpha(Double.NaN)),
+                    "NaN", Domains.Num.inject(Domains.Num.alpha(Double.NaN))).union(InitUtils.dangleMap(FHashMap.build(
                     "Error", Domains.AddressSpace.Address.inject(Init.Error_Addr),
                     "EvalError", Domains.AddressSpace.Address.inject(Init.EvalError_Addr),
                     "RangeError", Domains.AddressSpace.Address.inject(Init.RangeError_Addr),
@@ -56,7 +56,7 @@ public class InitGlobal {
                     "TypeError", Domains.AddressSpace.Address.inject(Init.TypeError_Addr),
                     "URIError", Domains.AddressSpace.Address.inject(Init.URIError_Addr),
                     "Function", Domains.AddressSpace.Address.inject(Init.Function_Addr)
-            )
+            )))
     );
 
     public static final Domains.Object uriMethodObj = /* InitUtils.unimplemented("uriMethod"); */ InitUtils.pureFunctionObj(InitUtils.ezSig(InitUtils.NoConversion, List.list(InitUtils.StringHint)),

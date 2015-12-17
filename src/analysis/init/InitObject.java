@@ -34,9 +34,9 @@ public class InitObject {
                         return InitUtils.makeState(bv2.merge(bv1), x, env, store2, pad, ks, tr);
                     }
             ),
-            FHashMap.build(
+            FHashMap.<String, Domains.BValue>build(
                     "prototype", Domains.AddressSpace.Address.inject(Init.Object_prototype_Addr),
-                    "length", Domains.Num.inject(Domains.Num.alpha(1.0)),
+                    "length", Domains.Num.inject(Domains.Num.alpha(1.0))).union(InitUtils.dangleMap(FHashMap.build(
                     "create", Domains.AddressSpace.Address.inject(Init.Object_create_Addr), // TODO
                     "defineProperties", Domains.AddressSpace.Address.inject(Init.Object_defineProperties_Addr), // TODO
                     "defineProperty", Domains.AddressSpace.Address.inject(Init.Object_defineProperty_Addr), // TODO
@@ -50,7 +50,7 @@ public class InitObject {
                     "keys", Domains.AddressSpace.Address.inject(Init.Object_keys_Addr), // TODO
                     "preventExtensions", Domains.AddressSpace.Address.inject(Init.Object_preventExtensions_Addr), // TODO
                     "seal", Domains.AddressSpace.Address.inject(Init.Object_seal_Addr)
-            ),
+            ))),
             FHashMap.empty(),
             JSClass.CObject_Obj
     );

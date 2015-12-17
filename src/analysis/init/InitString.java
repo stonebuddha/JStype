@@ -7,6 +7,8 @@ import analysis.Utils;
 import fj.F7;
 import fj.P;
 import fj.P2;
+import fj.P3;
+import fj.data.Option;
 import immutable.FHashMap;
 import immutable.FHashSet;
 import ir.IRVar;
@@ -107,11 +109,38 @@ public class InitString {
     public static final Domains.Object String_prototype_indexOf_Obj = InitUtils.constFunctionObj(strSig(List.list(InitUtils.StringHint, InitUtils.NumberHint), 1), Domains.Num.inject(Domains.Num.NReal));
     public static final Domains.Object String_prototype_lastIndexOf_Obj = InitUtils.constFunctionObj(strSig(List.list(InitUtils.StringHint, InitUtils.NumberHint), 1), Domains.Num.inject(Domains.Num.NReal));
     public static final Domains.Object String_prototype_localeCompare_Obj = InitUtils.constFunctionObj(ezStrSig(InitUtils.StringHint), Domains.Num.inject(Domains.Num.NReal));
-    public static final Domains.Object String_prototype_match_Obj = InitUtils.unimplemented("String.prototype.match");//TODO
-    public static final Domains.Object String_prototype_replace_Obj = InitUtils.unimplemented("String.prototype.replace");//TODO
+    public static final Domains.Object String_prototype_match_Obj = InitUtils.usualFunctionObj(
+            ezStrSig(InitUtils.StringHint),
+            (bvs, store, trace) -> {
+                if (bvs.length() == 2) {
+                    Domains.BValue regexp = bvs.tail().head();
+                    return InitRegExp.matchBody(regexp.as, store, trace);
+                } else {
+                    throw new RuntimeException("String.prototype.match: signature conformance error");
+                }
+            }
+    );
+    public static final Domains.Object String_prototype_replace_Obj = InitUtils.usualFunctionObj(
+            ezStrSig(InitUtils.StringHint, InitUtils.StringHint),
+            (bvs, store, trace) -> {
+                if (bvs.length() == 3) {
+                    Domains.BValue searchValue = bvs.tail().head();
+                    return FHashSet.build(P.p(Domains.Str.inject(Domains.Str.STop), InitRegExp.mutateLastIndex(searchValue.as, store)));
+                } else {
+                    throw new RuntimeException("string replace: arguments nonconformant to signature; usualFunctionObj must be broken");
+                }
+            }
+    );
     public static final Domains.Object String_prototype_search_Obj = InitUtils.constFunctionObj(ezStrSig(InitUtils.StringHint), Domains.Num.inject(Domains.Num.NReal));
     public static final Domains.Object String_prototype_slice_Obj = InitUtils.constFunctionObj(ezStrSig(InitUtils.NumberHint, InitUtils.NumberHint), Domains.Str.inject(Domains.Str.STop));
-    public static final Domains.Object String_prototype_split_Obj = InitUtils.unimplemented("String.prototype.split");//TODO
+    public static final Domains.Object String_prototype_split_Obj = InitUtils.usualFunctionObj(ezStrSig(InitUtils.StringHint, InitUtils.NumberHint), (bvs, store, trace) -> {
+        P3<Domains.BValue, Domains.Store, Option<Domains.EValue>> tmp = InitRegExp.allocUnknownStringArray(store, trace);
+        FHashSet<P2<Domains.Value, Domains.Store>> res = FHashSet.<P2<Domains.Value, Domains.Store>>build(P.p((Domains.Value)tmp._1(), tmp._2()));
+        if (tmp._3().isSome()) {
+            res = res.insert(P.p(tmp._3().some().bv, tmp._2()));
+        }
+        return res;
+    });
     public static final Domains.Object String_prototype_substring_Obj = InitUtils.constFunctionObj(ezStrSig(InitUtils.NumberHint, InitUtils.NumberHint), Domains.Str.inject(Domains.Str.STop));
     public static final Domains.Object String_prototype_substr_Obj = String_prototype_substring_Obj;
     public static final Domains.Object String_prototype_toLowerCase_Obj = InitUtils.constFunctionObj(ezStrSig(), Domains.Str.inject(Domains.Str.STop));

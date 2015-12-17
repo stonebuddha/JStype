@@ -46,4 +46,12 @@ public class StringHelpers {
             );
         }
     }
+
+    public static Domains.Object newArrayBuffer(Domains.BValue length_bv, Domains.Object oldObj) {
+        return new Domains.Object(
+                new Domains.ExternMap(Option.none(), Option.none(), Option.some(Domains.Num.inject(Domains.Num.Zero).merge(Domains.Undef.BV)), FHashMap.build(Domains.Str.alpha("byteLength"), length_bv), FHashMap.empty()),
+                oldObj.intern,
+                oldObj.present.insert(Domains.Str.alpha("byteLength"))
+        );
+    }
 }

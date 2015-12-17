@@ -95,16 +95,17 @@ public class InitArray {
                         return ones.union(notones);
                     }
             ),
-            FHashMap.build(
+            FHashMap.<String, Domains.BValue>build(
                     "prototype", Domains.AddressSpace.Address.inject(Init.Array_prototype_Addr),
-                    "length", Domains.Num.inject(Domains.Num.alpha(1.0)),
-                    "isArray", Domains.AddressSpace.Address.inject(Init.Array_isArray_Addr)),
+                    "length", Domains.Num.inject(Domains.Num.alpha(1.0))).union(
+                    InitUtils.dangleMap(FHashMap.build(
+                            "isArray", Domains.AddressSpace.Address.inject(Init.Array_isArray_Addr)))),
             FHashMap.empty(),
             JSClass.CArray_Obj
     );
 
     public static final Domains.Object Array_prototype_Obj = InitUtils.createInitObj(
-            FHashMap.build(
+            FHashMap.<String, Domains.BValue>build(
                     "constructor",Domains.AddressSpace.Address.inject(Init.Array_Addr),
                     "length", Domains.Num.inject(Domains.Num.alpha(0.0)),
                     "concat",Domains.AddressSpace.Address.inject(Init.Array_prototype_concat_Addr),
@@ -113,11 +114,11 @@ public class InitArray {
                     "lastIndexOf",Domains.AddressSpace.Address.inject(Init.Array_prototype_lastIndexOf_Addr),
                     "pop",Domains.AddressSpace.Address.inject(Init.Array_prototype_pop_Addr),
                     "push",Domains.AddressSpace.Address.inject(Init.Array_prototype_push_Addr),
-                    "reverse",Domains.AddressSpace.Address.inject(Init.Array_prototype_reverse_Addr), // TODO
-                    "shift",Domains.AddressSpace.Address.inject(Init.Array_prototype_shift_Addr), // TODO
+                    "reverse",Domains.AddressSpace.Address.inject(Init.Array_prototype_reverse_Addr),
+                    "shift",Domains.AddressSpace.Address.inject(Init.Array_prototype_shift_Addr),
                     "sort",Domains.AddressSpace.Address.inject(Init.Array_prototype_sort_Addr),
                     "splice",Domains.AddressSpace.Address.inject(Init.Array_prototype_splice_Addr),
-                    "toString",Domains.AddressSpace.Address.inject(Init.Array_prototype_toString_Addr), // TODO
+                    "toString",Domains.AddressSpace.Address.inject(Init.Array_prototype_toString_Addr)).union(InitUtils.dangleMap(FHashMap.build(
                     "every",Domains.AddressSpace.Address.inject(Init.Array_prototype_every_Addr), // TODO
                     "filter",Domains.AddressSpace.Address.inject(Init.Array_prototype_filter_Addr), // TODO
                     "forEach",Domains.AddressSpace.Address.inject(Init.Array_prototype_forEach_Addr), // TODO
@@ -128,7 +129,7 @@ public class InitArray {
                     "some",Domains.AddressSpace.Address.inject(Init.Array_prototype_some_Addr), // TODO
                     "toLocaleString",Domains.AddressSpace.Address.inject(Init.Array_prototype_toLocaleString_Addr), // TODO
                     "unshift",Domains.AddressSpace.Address.inject(Init.Array_prototype_unshift_Addr) // TODO
-            ),
+            ))),
             FHashMap.build(Utils.Fields.classname, JSClass.CArray_prototype_Obj)
     );
 

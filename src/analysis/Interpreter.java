@@ -23,7 +23,7 @@ public class Interpreter {
         public static Boolean lightGC = false;
         public static Boolean fullGC = false;
         public static Boolean pruneStore = false;
-        //public static Boolean dangle = false;
+        public static Boolean dangle = false;
         public static Boolean testing = false;
         public static Boolean print = false;
         //public static Boolean catchExc = false;
@@ -69,7 +69,7 @@ public class Interpreter {
             Mutable.lightGC = true; // set
             Mutable.fullGC = false;
             Mutable.pruneStore = false; // set
-            //Mutable.dangle = false;
+            Mutable.dangle = false;
             Mutable.testing = true; // set
             Mutable.print = true; // set
             //Mutable.catchExc = false;
@@ -102,7 +102,7 @@ public class Interpreter {
         });
 
         Trace initTrace = new Traces.FSCI(0);
-        //Trace initTrace = Traces.StackCFA.apply(2000, 1000);
+        //Trace initTrace = Traces.StackCFA.apply(1, 0);
         //Trace initTrace = Traces.KMNS.apply(100);
         IRStmt ast = readIR(args[0]);
         HashMap<Trace, State> memo = new HashMap<Trace, State>(Equal.anyEqual(), Hash.anyHash());
@@ -621,6 +621,8 @@ public class Interpreter {
                             } else if (x instanceof IRScratch) {
                                 ret = ret.insert(new State(new Domains.StmtTerm(s), env, store, pad.update(((IRScratch) x), uber), ks.push(new Domains.ForKont(uber, x, s)), trace.update(s)));
                             }
+                        } else {
+                            ret = ret.union(advanceBV(Domains.Undef.BV, store, pad, ks));
                         }
                     } else if (stmt instanceof IRMerge) {
                         IRMerge irMerge = (IRMerge) stmt;
@@ -859,8 +861,8 @@ public class Interpreter {
 
                     FHashSet<Domains.KontStack> konts = store3.getKont(a);
                     for (Domains.KontStack ks2 : konts) {
-                        Domains.Env envc = ((Domains.RetKont)ks.top()).env;
-                        Trace tracec = ((Domains.RetKont)ks.top()).trace;
+                        Domains.Env envc = ((Domains.RetKont)ks2.top()).env;
+                        Trace tracec = ((Domains.RetKont)ks2.top()).trace;
                         Domains.Store store4;
                         Domains.Scratchpad pad2;
                         if (Mutable.pruneStore) {

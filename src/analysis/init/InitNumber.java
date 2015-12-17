@@ -65,15 +65,15 @@ public class InitNumber {
     );
 
     public static final Domains.Object Number_prototype_Obj = InitUtils.createInitObj(
-            FHashMap.build(
+            FHashMap.<String, Domains.BValue>build(
                     "constructor", Domains.AddressSpace.Address.inject(Init.Number_Addr),
                     "toString", Domains.AddressSpace.Address.inject(Init.Number_prototype_toString_Addr),
-                    "valueOf", Domains.AddressSpace.Address.inject(Init.Number_prototype_valueOf_Addr),
+                    "valueOf", Domains.AddressSpace.Address.inject(Init.Number_prototype_valueOf_Addr)).union(InitUtils.dangleMap(FHashMap.build(
                     "toLocaleString", Domains.AddressSpace.Address.inject(Init.Number_prototype_toLocaleString_Addr),
                     "toFixed", Domains.AddressSpace.Address.inject(Init.Number_prototype_toFixed_Addr),
                     "toExponential", Domains.AddressSpace.Address.inject(Init.Number_prototype_toExponential_Addr),
                     "toPrecision", Domains.AddressSpace.Address.inject(Init.Number_prototype_toPrecision_Addr)
-            ),
+            ))),
             FHashMap.build(
                     Utils.Fields.classname, JSClass.CNumber_prototype_Obj,
                     Utils.Fields.value, Domains.Num.inject(Domains.Num.Zero)
