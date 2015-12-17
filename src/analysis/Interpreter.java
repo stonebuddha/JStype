@@ -101,8 +101,23 @@ public class Interpreter {
             }
         });
 
-        Trace initTrace = Traces.FSCI.apply();
         IRStmt ast = readIR(args[0]);
+        Trace initTrace;
+        if (args[1] == null) {
+            initTrace = Traces.FSCI.apply();
+        } else {
+            if (args[1].equals("stack")) {
+                initTrace = Traces.StackCFA.apply(Integer.valueOf(args[2]), Integer.valueOf(args[3]));
+            } else if (args[1].equals("obj")) {
+                initTrace = Traces.ObjCFA.apply(Integer.valueOf(args[2]), Integer.valueOf(args[3]));
+            } else if (args[1].equals("ofull")) {
+                initTrace = Traces.ObjFullCFA.apply(Integer.valueOf(args[2]));
+            } else if (args[1].equals("acyclic")) {
+                initTrace = Traces.AcyclicCFA.apply(Integer.valueOf(args[2]));
+            } else {
+                throw new RuntimeException("cannot identify trace");
+            }
+        }
         HashMap<Trace, State> memo = new HashMap<Trace, State>(Equal.anyEqual(), Hash.anyHash());
 
         try {
