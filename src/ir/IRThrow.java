@@ -17,6 +17,11 @@ public final class IRThrow extends IRStmt {
     }
 
     @Override
+    public String toString() {
+        return "throw(" + e + ");\n";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return (obj instanceof IRThrow && e.equals(((IRThrow) obj).e));
     }

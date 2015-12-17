@@ -28,7 +28,7 @@ public final class IRPrint extends IRStmt {
 
     @Override
     public String toString() {
-        return "print(" + e + ");\n";
+        return "print(" + e + ")@" + this.id + ";\n";
     }
 
     @Override

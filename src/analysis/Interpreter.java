@@ -103,7 +103,7 @@ public class Interpreter {
 
         IRStmt ast = readIR(args[0]);
         Trace initTrace;
-        if (args[1] == null) {
+        if (args.length == 1) {
             initTrace = Traces.FSCI.apply();
         } else {
             if (args[1].equals("stack")) {
@@ -202,7 +202,11 @@ public class Interpreter {
                 memo.values().foreachDoEffect(state -> process(state));
             }
             if (Mutable.print) {
-                Mutable.outputMap.toList().foreachDoEffect(t -> {
+                Mutable.outputMap.toList().sort(Ord.ord(p -> {
+                    return q -> {
+                        return Ordering.fromInt(Integer.compare(p._1(), q._1()));
+                    };
+                })).foreachDoEffect(t -> {
                     System.out.println(t._1() + ": " + t._2().mkString(", "));
                 });
             }
@@ -950,7 +954,7 @@ public class Interpreter {
             else if (ks1.top() instanceof Domains.LblKont && ((Domains.LblKont)ks1.top()).lbl.equals(jv.lbl)) {
                 ret = ret.union(advanceBV(jv.bv, store1, pad1, ks1.pop()));
             }
-            else if (ks1.top() != Domains.HaltKont) {
+            else if (!ks1.top().equals(Domains.HaltKont)) {
                 Domains.KontStack ks2 = ks1.toSpecial(jv.lbl);
                 ret = ret.union(advanceJV(jv, store1, pad1, ks2));
             }
