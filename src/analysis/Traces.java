@@ -42,7 +42,7 @@ public class Traces {
                 return a;
             }
             else {
-                return Domains.AddressSpace.Address.apply(a.loc.intValue() + c2off.get(c).some());
+                return new Domains.AddressSpace.Address(a.loc.add(BigInteger.valueOf(c2off.get(c).some())));
             }
         }
 

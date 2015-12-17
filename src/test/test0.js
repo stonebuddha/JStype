@@ -1,4 +1,4 @@
-/*function Person(n) {
+function Person(n) {
     this.setName(n);
     Person.prototype.count++;
 }
@@ -27,7 +27,7 @@ print(a[0]);
 print(a[1]);
 print(a[1 + 1]);
 print(a[0].length);
-print(a[1].length);*/
+print(a[1].length);
 
 function fac(n) {
     if (n == 0) {
@@ -36,12 +36,12 @@ function fac(n) {
         return n * fac(n - 1);
     }
 }
-//print(fac(0)); // 1
-//print(fac(1)); // 1
+print(fac(0)); // 1
+print(fac(1)); // 1
 print(fac(2)); // 2
-//print(fac(3)); // 6
+print(fac(3)); // 6
 
-/*function h() {
+function h() {
     function g() {
         print("in g");
         h();
@@ -55,4 +55,4 @@ print(fac(2)); // 2
     }
     g();
 }
-h();*/
+h();
