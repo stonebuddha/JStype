@@ -1772,11 +1772,11 @@ public class Domains {
 
         public static Option<String> getExact(Str str) {
             if (str instanceof SConstSpl) {
-                return Option.fromString(((SConstSpl) str).str);
+                return Option.some(((SConstSpl) str).str);
             } else if (str instanceof SConstNum) {
-                return Option.fromString(((SConstNum) str).str);
+                return Option.some(((SConstNum) str).str);
             } else if (str instanceof SConstNotSplNorNum) {
-                return Option.fromString(((SConstNotSplNorNum) str).str);
+                return Option.some(((SConstNotSplNorNum) str).str);
             } else {
                 return Option.none();
             }
