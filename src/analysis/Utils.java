@@ -164,7 +164,6 @@ public class Utils {
                         IRStmt s = ((Domains.Clo) clo).m.s;
 
                         if (Interpreter.Mutable.pruneStore) {
-                            // TODO: not right
                             FHashSet<Domains.AddressSpace.Address> vas = envc.addrs();
                             Domains.Store reach_store;
                             Option<Domains.Store> storeOption = memo.get(vas);
@@ -177,15 +176,17 @@ public class Utils {
                             else {
                                 reach_store = storeOption.some();
                             }
-                            Trace trace1 = trace.update(envc, store, bv2as, bv3, s);
-                            Domains.AddressSpace.Address ka = trace1.toAddr();
-                            List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
-                            Domains.Store rstore1 = alloc(reach_store, as, List.list(bv2as, bv3));
-                            Domains.Store rstore2 = alloc(rstore1, ka, ks.push(new Domains.RetKont(x, env, isctor, trace)));
-                            Domains.Env envc1 = envc.extendAll(List.list(self, args).zip(as));
-                            Integer exc = ks.exc.head() != 0 ? 1 : 0;
-
-                            sigmas = sigmas.insert(new Interpreter.State(new Domains.StmtTerm(s), envc1, rstore2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1));
+                            for (Domains.AddressSpace.Address selfAddr : bv2.as) {
+                                Domains.BValue selfBV = Domains.AddressSpace.Address.inject(selfAddr);
+                                Trace trace1 = trace.update(envc, store, selfBV, bv3, s);
+                                Domains.AddressSpace.Address ka = trace1.toAddr();
+                                List<Domains.AddressSpace.Address> as = List.list(trace1.makeAddr(self), trace1.makeAddr(args));
+                                Domains.Store rstore1 = alloc(reach_store, ka, ks.push(new Domains.RetKont(x, env, isctor, trace)));
+                                Domains.Store rstore2 = alloc(rstore1, as, List.list(selfBV, bv3));
+                                Domains.Env envc1 = envc.extendAll(List.list(self, args).zip(as));
+                                Integer exc = ks.exc.head() != 0 ? 1 : 0;
+                                sigmas = sigmas.insert(new Interpreter.State(new Domains.StmtTerm(s), envc1, rstore2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1));
+                            }
                         }
                         else {
                             for (Domains.AddressSpace.Address selfAddr : bv2.as) {

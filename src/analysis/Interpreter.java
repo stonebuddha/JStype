@@ -68,7 +68,7 @@ public class Interpreter {
         public static void clear() {
             Mutable.lightGC = true; // set
             Mutable.fullGC = false;
-            Mutable.pruneStore = false; // set
+            Mutable.pruneStore = true; // set
             Mutable.dangle = false;
             Mutable.testing = true; // set
             Mutable.print = true; // set

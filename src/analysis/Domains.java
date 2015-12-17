@@ -4,6 +4,7 @@ import analysis.init.Init;
 import analysis.Traces.Trace;
 import fj.*;
 import fj.data.*;
+import fj.data.HashSet;
 import fj.data.List;
 import immutable.FHashMap;
 import immutable.FHashSet;
@@ -469,31 +470,40 @@ public class Domains {
         }
 
         public P2<Store, Store> prune(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots) {
-            FHashSet<AddressSpace.Address> todoV = vRoots.union(FHashSet.empty());
-            FHashSet<AddressSpace.Address> doneV = FHashSet.empty();
-            FHashSet<AddressSpace.Address> todoO = oRoots.union(FHashSet.empty());
-            FHashSet<AddressSpace.Address> doneO = FHashSet.empty();
+            HashSet<AddressSpace.Address> todoV = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
+            for (AddressSpace.Address a : vRoots) {
+                todoV.set(a);
+            }
+            HashSet<AddressSpace.Address> doneV = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
+            HashSet<AddressSpace.Address> todoO = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
+            for (AddressSpace.Address a : oRoots) {
+                todoO.set(a);
+            }
+            HashSet<AddressSpace.Address> doneO = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
             FHashSet<AddressSpace.Address> empty = FHashSet.empty();
+
             while (!todoV.isEmpty() || !todoO.isEmpty()) {
                 for (AddressSpace.Address a : todoV) {
                     for (AddressSpace.Address a1 : apply(a).as) {
-                        if (!doneO.member(a1)) {
-                            todoO = todoO.insert(a1);
+                        if (!doneO.contains(a1)) {
+                            todoO.set(a1);
                         }
                     }
                 }
-                doneV = doneV.union(todoV);
-                todoV = FHashSet.empty();
+                for (AddressSpace.Address a : todoV) {
+                    doneV.set(a);
+                }
+                todoV.clear();
                 while (!todoO.isEmpty()) {
-                    AddressSpace.Address a = todoO.head();
-                    todoO = todoO.delete(a);
-                    doneO = doneO.insert(a);
+                    AddressSpace.Address a = todoO.iterator().next();
+                    todoO.delete(a);
+                    doneO.set(a);
                     Object o = getObj(a);
                     FHashSet<BValue> bvs = o.getAllValues();
                     for (BValue bv : bvs) {
                         for (AddressSpace.Address na : bv.as) {
-                            if (!doneO.member(na)) {
-                                todoO = todoO.insert(na);
+                            if (!doneO.contains(na)) {
+                                todoO.set(na);
                             }
                         }
                     }
@@ -501,9 +511,8 @@ public class Domains {
                         if (clo instanceof Clo) {
                             Env env = ((Clo)clo).env;
                             for (AddressSpace.Address na : env.addrs()) {
-                                if (!doneV.member(na)) {
-                                    todoV = todoV.insert(na);
-                                } else {
+                                if (!doneV.contains(na)) {
+                                    todoV.set(na);
                                 }
                             }
                         }
@@ -512,7 +521,7 @@ public class Domains {
             }
             FHashMap<AddressSpace.Address, BValue> reachToValue = FHashMap.empty(), unreachToValue = FHashMap.empty();
             for (AddressSpace.Address a : toValue.keys()) {
-                if (doneV.member(a)) {
+                if (doneV.contains(a)) {
                     reachToValue = reachToValue.set(a, toValue.get(a).some());
                 } else {
                     unreachToValue = unreachToValue.set(a, toValue.get(a).some());
@@ -520,7 +529,7 @@ public class Domains {
             }
             FHashMap<AddressSpace.Address, Object> reachToObject = FHashMap.empty(), unreachToObject = FHashMap.empty();
             for (AddressSpace.Address a : toObject.keys()) {
-                if (doneO.member(a)) {
+                if (doneO.contains(a)) {
                     reachToObject = reachToObject.set(a, toObject.get(a).some());
                 } else {
                     unreachToObject= unreachToObject.set(a, toObject.get(a).some());
@@ -529,7 +538,7 @@ public class Domains {
             FHashMap<AddressSpace.Address, FHashSet<KontStack>> reachToKonts = FHashMap.empty(), unreachToKonts = toKonts;
             FHashSet<AddressSpace.Address> reachWeak = FHashSet.empty(), unreachWeak = FHashSet.empty();
             for (AddressSpace.Address a : weak) {
-                if (doneV.member(a) || doneO.member(a)) {
+                if (doneV.contains(a) || doneO.contains(a)) {
                     reachWeak = reachWeak.insert(a);
                 } else {
                     unreachWeak = unreachWeak.insert(a);
