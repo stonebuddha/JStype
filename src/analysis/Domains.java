@@ -2,6 +2,7 @@ package analysis;
 
 import analysis.init.Init;
 import analysis.Traces.Trace;
+import com.sun.jndi.cosnaming.IiopUrl;
 import fj.*;
 import fj.data.*;
 import fj.data.HashSet;
@@ -351,17 +352,26 @@ public class Domains {
         }
 
         public Store fullGC(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots, FHashSet<AddressSpace.Address> kRoots) {
-            FHashSet<AddressSpace.Address> todoV = vRoots.union(FHashSet.empty());
-            FHashSet<AddressSpace.Address> doneV = FHashSet.empty();
-            FHashSet<AddressSpace.Address> todoO = oRoots.union(FHashSet.empty());
-            FHashSet<AddressSpace.Address> doneO = FHashSet.empty();
-            FHashSet<AddressSpace.Address> todoK = kRoots.union(FHashSet.empty());
-            FHashSet<AddressSpace.Address> doneK = FHashSet.empty();
+            HashSet<AddressSpace.Address> todoV = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
+            for (AddressSpace.Address a : vRoots) {
+                todoV.set(a);
+            }
+            HashSet<AddressSpace.Address> doneV = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
+            HashSet<AddressSpace.Address> todoO = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
+            for (AddressSpace.Address a : oRoots) {
+                todoO.set(a);
+            }
+            HashSet<AddressSpace.Address> doneO = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
+            HashSet<AddressSpace.Address> todoK = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
+            for (AddressSpace.Address a : kRoots) {
+                todoK.set(a);
+            }
+            HashSet<AddressSpace.Address> doneK = new HashSet<AddressSpace.Address>(Equal.anyEqual(), Hash.anyHash());
             FHashSet<AddressSpace.Address> empty = FHashSet.empty();
             while (!todoK.isEmpty()) {
-                AddressSpace.Address a = todoK.head();
-                todoK = todoK.delete(a);
-                doneK = doneK.insert(a);
+                AddressSpace.Address a = todoK.iterator().next();
+                todoK.delete(a);
+                doneK.set(a);
                 FHashSet<AddressSpace.Address> vas, oas, kas;
                 Option<FHashSet<KontStack>> tmp = toKonts.get(a);
                 if (tmp.isSome()) {
@@ -412,31 +422,60 @@ public class Domains {
                         throw new RuntimeException("dangling address in store");
                     }
                 }
-                todoV = todoV.union(vas);
-                todoO = todoO.union(oas);
-                todoK = todoK.union(kas.minus(doneK));
+                for (AddressSpace.Address addr : vas) {
+                    todoV.set(addr);
+                }
+                for (AddressSpace.Address addr : oas) {
+                    todoO.set(addr);
+                }
+                for (AddressSpace.Address addr : kas) {
+                    if (!doneK.contains(addr)) {
+                        todoK.set(addr);
+                    }
+                }
             }
             FHashMap<AddressSpace.Address, FHashSet<KontStack>> _toKonts = FHashMap.empty();
             for (AddressSpace.Address a : toKonts.keys()) {
-                if (doneK.member(a)) {
+                if (doneK.contains(a)) {
                     _toKonts = _toKonts.set(a, toKonts.get(a).some());
                 }
             }
             while (!todoV.isEmpty() || !todoO.isEmpty()) {
                 if (Interpreter.Mutable.pruneStore) {
-                    todoV = todoV.minus(todoV.filter(a-> !toValue.contains(a)));
+                    for (AddressSpace.Address addr : todoV) {
+                        if (!toValue.contains(addr)) {
+                            todoV.delete(addr);
+                        }
+                    }
                 }
-                todoO = todoO.union(todoV.foldLeft((acc, a)-> acc.union(toValue.get(a).some().as), empty)).minus(doneO);
-                doneV = doneV.union(todoV);
-                todoV = FHashSet.empty();
+//                todoO = todoO.union(todoV.foldLeft((acc, a)-> acc.union(toValue.get(a).some().as), empty)).minus(doneO);
+                for (AddressSpace.Address addr : todoV) {
+                    for (AddressSpace.Address i : toValue.get(addr).some().as) {
+                        todoO.set(i);
+                    }
+                }
+                for (AddressSpace.Address addr : todoO) {
+                    if (doneO.contains(addr)) {
+                        todoO.delete(addr);
+                    }
+                }
+                for (AddressSpace.Address addr : todoV) {
+                    doneV.set(addr);
+                }
+                todoV.clear();
                 while (!todoO.isEmpty()) {
-                    AddressSpace.Address a = todoO.head();
-                    todoO = todoO.delete(a);
-                    doneO = doneO.insert(a);
+                    AddressSpace.Address a = todoO.iterator().next();
+                    todoO.delete(a);
+                    doneO.set(a);
                     if (toObject.get(a).isSome()) {
                         Object o = toObject.get(a).some();
                         FHashSet<BValue> bvs = o.getAllValues();
-                        todoO = todoO.union(bvs.foldLeft((acc, bv)-> acc.union(bv.as), empty));
+                        for (BValue bv : bvs) {
+                            for (AddressSpace.Address addr : bv.as) {
+                                todoO.set(addr);
+                            }
+                        }
+/*
                         todoV = todoV.union(o.getCode().foldLeft(
                                 (acc, clo)-> {
                                     if (clo instanceof Clo) {
@@ -447,6 +486,20 @@ public class Domains {
                                     }
                                 }, empty
                         ).minus(doneV));
+*/
+                        for (Closure clo : o.getCode()) {
+                            if (clo instanceof  Clo) {
+                                Env env = ((Clo)clo).env;
+                                for (AddressSpace.Address addr : env.addrs()) {
+                                    todoV.set(addr);
+                                }
+                            }
+                        }
+                        for (AddressSpace.Address addr : todoV) {
+                            if (doneV.contains(addr)) {
+                                todoV.delete(addr);
+                            }
+                        }
                     } else {
                         if (!Interpreter.Mutable.pruneStore) {
                             throw new RuntimeException("dangling address in store");
@@ -456,17 +509,24 @@ public class Domains {
             }
             FHashMap<AddressSpace.Address, BValue> _toValue = FHashMap.empty();
             for (AddressSpace.Address a : toValue.keys()) {
-                if (doneV.member(a)) {
+                if (doneV.contains(a)) {
                     _toValue = _toValue.set(a, toValue.get(a).some());
                 }
             }
             FHashMap<AddressSpace.Address, Object> _toObject = FHashMap.empty();
             for (AddressSpace.Address a : toObject.keys()) {
-                if (doneO.member(a)) {
+                if (doneO.contains(a)) {
                     _toObject = _toObject.set(a, toObject.get(a).some());
                 }
             }
-            return new Store(_toValue, _toObject, _toKonts, weak.intersect(doneV.union(doneO)));
+            FHashSet<AddressSpace.Address> done = FHashSet.empty();
+            for (AddressSpace.Address addr : doneV) {
+                done.insert(addr);
+            }
+            for (AddressSpace.Address addr : doneO) {
+                done.insert(addr);
+            }
+            return new Store(_toValue, _toObject, _toKonts, weak.intersect(done));
         }
 
         public P2<Store, Store> prune(FHashSet<AddressSpace.Address> vRoots, FHashSet<AddressSpace.Address> oRoots) {
