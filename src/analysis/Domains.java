@@ -451,14 +451,18 @@ public class Domains {
 //                todoO = todoO.union(todoV.foldLeft((acc, a)-> acc.union(toValue.get(a).some().as), empty)).minus(doneO);
                 for (AddressSpace.Address addr : todoV) {
                     for (AddressSpace.Address i : toValue.get(addr).some().as) {
-                        todoO.set(i);
+                        if (!doneO.contains(i)) {
+                            todoO.set(i);
+                        }
                     }
                 }
+/*
                 for (AddressSpace.Address addr : todoO) {
                     if (doneO.contains(addr)) {
                         todoO.delete(addr);
                     }
                 }
+*/
                 for (AddressSpace.Address addr : todoV) {
                     doneV.set(addr);
                 }
@@ -472,7 +476,9 @@ public class Domains {
                         FHashSet<BValue> bvs = o.getAllValues();
                         for (BValue bv : bvs) {
                             for (AddressSpace.Address addr : bv.as) {
-                                todoO.set(addr);
+                                if (!doneO.contains(addr)) {
+                                    todoO.set(addr);
+                                }
                             }
                         }
 /*
@@ -491,15 +497,19 @@ public class Domains {
                             if (clo instanceof  Clo) {
                                 Env env = ((Clo)clo).env;
                                 for (AddressSpace.Address addr : env.addrs()) {
-                                    todoV.set(addr);
+                                    if (!doneV.contains(addr)) {
+                                        todoV.set(addr);
+                                    }
                                 }
                             }
                         }
+/*
                         for (AddressSpace.Address addr : todoV) {
                             if (doneV.contains(addr)) {
                                 todoV.delete(addr);
                             }
                         }
+*/
                     } else {
                         if (!Interpreter.Mutable.pruneStore) {
                             throw new RuntimeException("dangling address in store");
