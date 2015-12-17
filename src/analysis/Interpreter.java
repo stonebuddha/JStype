@@ -106,7 +106,9 @@ public class Interpreter {
         if (args.length == 1) {
             initTrace = Traces.FSCI.apply();
         } else {
-            if (args[1].equals("stack")) {
+            if (args[1].equals("fs")) {
+                initTrace = Traces.FSCI.apply();
+            } else if (args[1].equals("stack")) {
                 initTrace = Traces.StackCFA.apply(Integer.valueOf(args[2]), Integer.valueOf(args[3]));
             } else if (args[1].equals("obj")) {
                 initTrace = Traces.ObjCFA.apply(Integer.valueOf(args[2]), Integer.valueOf(args[3]));
