@@ -61,3 +61,6 @@ z = 1.0;
 z = 2.0;
 z = z + z;
 print(z);
+
+var t = z < 5 ? 6 : "orz";
+print(t);
