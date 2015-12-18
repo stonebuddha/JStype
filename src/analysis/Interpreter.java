@@ -134,6 +134,7 @@ public class Interpreter {
                 }
                 work.add(P.p(sigma.order(), sigma.trace));
             }
+            long startTime = System.currentTimeMillis();
             do {
                 while (!work.isEmpty()) {
                     Trace trace = work.poll()._2();
@@ -197,6 +198,13 @@ public class Interpreter {
                 State state = memo.get(tr).some();
                 System.out.println(fs.pp + ":\n" + "  " + state.env + "\n  " + state.store + "\n  " + state.pad);
             }*/
+
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            System.out.println("Elapsed time = " + elapsedTime / 1000.0 + " secs");
+
+            System.gc();
+            long memUsed = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024L * 1024L);
+            System.out.println("Memory in use after the analysis: " + memUsed + " MB");
 
             if (Mutable.testing || Mutable.print) {
                 Mutable.inPostFixpoint = true;
