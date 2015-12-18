@@ -197,7 +197,6 @@ public class Traces {
         static Hash<P3<Integer, Integer, List<Integer>>> hasher = Hash.p3Hash(Hash.anyHash(), Hash.anyHash(), Hash.anyHash());
 
         public ObjFullCFA(Integer k, Integer pp, List<Integer> tr) {
-            assert k > 0 : "k needs to be at least 1";
             this.k = k;
             this.pp = pp;
             this.tr = tr;
@@ -222,17 +221,17 @@ public class Traces {
         @Override
         public Trace update(Domains.Env env, Domains.Store store, Domains.BValue self, Domains.BValue args, IRStmt s) {
             assert self.as.size() == 1;
-            return new ObjFullCFA(k, s.id, TraceUtils.BigIntToSeqInt(self.as.head().loc));
+            return new ObjFullCFA(k, s.id, tr.append(TraceUtils.BigIntToSeqInt(self.as.head().loc)));
         }
 
         @Override
         public Domains.AddressSpace.Address toAddr() {
-            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k - 1).reverse(), pp));
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k).reverse(), pp));
         }
 
         @Override
         public Domains.AddressSpace.Address makeAddr(IRVar x) {
-            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k - 1).reverse(), x.id));
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k).reverse(), x.id));
         }
 
         public static ObjFullCFA apply(Integer k) {

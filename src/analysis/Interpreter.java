@@ -114,6 +114,7 @@ public class Interpreter {
                 initTrace = Traces.ObjCFA.apply(Integer.valueOf(args[2]), Integer.valueOf(args[3]));
             } else if (args[1].equals("ofull")) {
                 initTrace = Traces.ObjFullCFA.apply(Integer.valueOf(args[2]));
+                Mutable.splitStates = true;
             } else if (args[1].equals("acyclic")) {
                 initTrace = Traces.AcyclicCFA.apply(Integer.valueOf(args[2]));
             } else {
