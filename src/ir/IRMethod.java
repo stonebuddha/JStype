@@ -36,7 +36,7 @@ public final class IRMethod extends IRNode {
         this.canEscapeObj = escapeSet._2();
         if (s instanceof IRDecl) {
             List<P2<IRPVar, IRExp>> bind = ((IRDecl) s).bind;
-            this.cannotEscape = FHashSet.build(bind.map(p -> p._1().n)).minus(this.canEscapeVar).insert(self.n).insert(args.n);
+            this.cannotEscape = FHashSet.build(bind.map(p -> p._1().id)).minus(this.canEscapeVar).insert(self.id).insert(args.id);
         } else {
             this.cannotEscape = FHashSet.empty();
         }

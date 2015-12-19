@@ -508,7 +508,7 @@ public class Utils {
                 store1 = store2.putObj(bv2.as.head(), o1);
             }
             else if (sort.equals(Domains.DBool)) {
-                P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Number_Addr), a, store1, trace);
+                P2<Domains.Store, Domains.BValue> res = allocObj(Domains.AddressSpace.Address.inject(Init.Boolean_Addr), a, store1, trace);
                 Domains.Store store2 = res._1();
                 Domains.BValue bv2 = res._2();
                 assert bv2.as.size() == 1;
@@ -658,7 +658,7 @@ public class Utils {
     public static P4<Domains.Store, Domains.Scratchpad, Domains.Store, Domains.Scratchpad> refine(Filters.BVFilter bvf, IRExp e, Domains.Store store, Domains.Env env, Domains.Scratchpad pad) {
         if (e instanceof IRPVar) {
             IRPVar x = ((IRPVar) e);
-            FHashSet<Domains.AddressSpace.Address> as = env.apply(x).orSome(FHashSet.empty());
+            FHashSet<Domains.AddressSpace.Address> as = env.apply(x).some();
             if (as.size() == 1) {
                 P2<Domains.BValue, Domains.BValue> newBVP = store.applyAll(as).filterBy(bvf, store);
                 Domains.BValue newBVT = newBVP._1(), newBVF = newBVP._2();

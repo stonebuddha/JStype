@@ -460,12 +460,13 @@ public class Interpreter {
                         IRVar x = irAssign.x;
                         IRExp e = irAssign.e;
                         Domains.BValue bv = eval(e);
-                        if (x instanceof IRPVar) {
-                            ret = ret.union(advanceBV(bv, store.extend(env.apply(((IRPVar) x)).some(), bv), pad, ks));
-                        } else if (x instanceof IRScratch) {
-                            ret = ret.union(advanceBV(bv, store, pad.update(((IRScratch) x), bv), ks));
+                        if (!bv.equals(Domains.BValue.Bot)) {
+                            if (x instanceof IRPVar) {
+                                ret = ret.union(advanceBV(bv, store.extend(env.apply(((IRPVar) x)).some(), bv), pad, ks));
+                            } else if (x instanceof IRScratch) {
+                                ret = ret.union(advanceBV(bv, store, pad.update(((IRScratch) x), bv), ks));
+                            }
                         }
-
                     } else if (stmt instanceof IRWhile) {
                         IRWhile irWhile = (IRWhile) stmt;
                         IRExp e = irWhile.e;
@@ -517,7 +518,7 @@ public class Interpreter {
                         Domains.BValue bv = sa._2();
                         P2<Domains.Store, Domains.Scratchpad> ss;
                         if (x instanceof IRPVar) {
-                            ss = P.p(store.extend(env.apply(((IRPVar) x)).some(), bv), pad);
+                            ss = P.p(store1.extend(env.apply(((IRPVar) x)).some(), bv), pad);
                         } else {
                             ss = P.p(store1, pad.update(((IRScratch) x), bv));
                         }

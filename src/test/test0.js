@@ -64,3 +64,9 @@ print(z);
 
 var t = (z < 5 && z < 7) ? 6 : "orz";
 print(t);
+
+var orz = undefined;
+print(orz);
+
+var sro = null;
+print(sro);

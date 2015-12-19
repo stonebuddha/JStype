@@ -36,15 +36,15 @@ public class InitUtils {
             Domains.Object o = store.getObj(a);
 
             FHashSet<Domains.BValue> values = valueOf.as.map(av -> {
-                if (av.equals(Init.Number_prototype_toString_Addr)) {
+                if (av.equals(Init.Number_prototype_valueOf_Addr)) {
                     return o.getValue();
-                } else if (av.equals(Init.String_prototype_toString_Addr)) {
+                } else if (av.equals(Init.String_prototype_valueOf_Addr)) {
                     return o.getValue();
-                } else if (av.equals(Init.Boolean_prototype_toString_Addr)) {
+                } else if (av.equals(Init.Boolean_prototype_valueOf_Addr)) {
                     return o.getValue();
-                } else if (av.equals(Init.Date_prototype_toString_Addr)) {
+                } else if (av.equals(Init.Date_prototype_valueOf_Addr)) {
                     return Domains.Num.inject(Domains.Num.NReal);
-                } else if (av.equals(Init.Object_prototype_toString_Addr)) {
+                } else if (av.equals(Init.Object_prototype_valueOf_Addr)) {
                     return Domains.AddressSpace.Address.inject(a);
                 } else if (!store.getObj(av).getCode().isEmpty()) {
                     return Domains.BValue.Bot; // TODO: print a warning

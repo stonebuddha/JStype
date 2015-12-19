@@ -17,6 +17,7 @@ public class InitObject {
     public static final Domains.Object Object_Obj = InitUtils.createInitFunctionObj(
             new Domains.Native(
                     (selfAddr, argArrayAddr, x, env, store, pad, ks, tr) -> {
+                        assert argArrayAddr.defAddr() && argArrayAddr.as.size() == 1;
                         Domains.Object argsObj = store.getObj(argArrayAddr.as.head());
                         Domains.BValue input = argsObj.apply(Domains.Str.alpha("0")).orSome(Domains.Undef.BV);
                         Domains.AddressSpace.Address resAddr = tr.toAddr();
