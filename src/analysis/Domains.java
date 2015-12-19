@@ -163,14 +163,6 @@ public class Domains {
             this.toKonts = toKonts;
             this.weak = weak;
             this.calced = false;
-
-            if (toObject.contains(AddressSpace.Address.apply(-31))) {
-                Object tmp = toObject.get(AddressSpace.Address.apply(-31)).some();
-                Option<BValue> bv = tmp.apply(Utils.Fields.prototype);
-                if (bv.isSome() && bv.some().as.size() == 2) {
-                    int az = 5;
-                }
-            }
         }
 
         @Override
