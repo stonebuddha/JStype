@@ -34,23 +34,23 @@ public class Interpreter {
         public static HashMap<Trace, P3<Trace, IRVar, FHashSet<Domains.AddressSpace.Address>>> prunedInfo = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
         public static HashMap<Integer, FHashSet<Domains.BValue>> outputMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
         public static HashMap<Position, FHashSet<Domains.BValue>> variableMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
-        public static HashMap<Integer, FHashSet<P2<Domains.Value, Option<Location>>>> stats = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
+        public static HashMap<Integer, FHashSet<P3<Domains.Value, Option<Location>, String>>> stats = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
 
         public static void except(Integer id, Domains.Value v) {
-            Option<FHashSet<P2<Domains.Value, Option<Location>>>> tmp = stats.get(id);
+            Option<FHashSet<P3<Domains.Value, Option<Location>, String>>> tmp = stats.get(id);
             if (tmp.isSome()) {
-                stats.set(id, tmp.some().insert(P.p(v, Option.none())));
+                stats.set(id, tmp.some().insert(P.p(v, Option.none(), "")));
             } else {
-                stats.set(id, FHashSet.build(P.p(v, Option.none())));
+                stats.set(id, FHashSet.build(P.p(v, Option.none(), "")));
             }
         }
 
-        public static void except(Integer id, Domains.Value v, Option<Location> loc) {
-            Option<FHashSet<P2<Domains.Value, Option<Location>>>> tmp = stats.get(id);
+        public static void except(Integer id, Domains.Value v, Option<Location> loc, String msg) {
+            Option<FHashSet<P3<Domains.Value, Option<Location>, String>>> tmp = stats.get(id);
             if (tmp.isSome()) {
-                stats.set(id, tmp.some().insert(P.p(v, loc)));
+                stats.set(id, tmp.some().insert(P.p(v, loc, msg)));
             } else {
-                stats.set(id, FHashSet.build(P.p(v, loc)));
+                stats.set(id, FHashSet.build(P.p(v, loc, msg)));
             }
         }
 
@@ -58,16 +58,14 @@ public class Interpreter {
             int typeerr = 0;
             int rangeerr = 0;
             for (int id : stats.keys()) {
-                FHashSet<P2<Domains.Value, Option<Location>>> vs = stats.get(id).some();
-                assert vs.size() <= 2;
-                if (vs.size() == 2) {
-                    typeerr += 1;
-                    rangeerr += 1;
-                } else {
-                    if (vs.head()._1().equals(Utils.Errors.typeError)) {
+                FHashSet<P3<Domains.Value, Option<Location>, String>> vs = stats.get(id).some();
+                for (P3<Domains.Value, Option<Location>, String> p : vs) {
+                    if (p._1().equals(Utils.Errors.typeError)) {
                         typeerr += 1;
-                    } else if (vs.head()._1().equals(Utils.Errors.rangeError)) {
+                    } else if (p._1().equals(Utils.Errors.rangeError)) {
                         rangeerr += 1;
+                    } else if (p._1().equals(Utils.Errors.warningError)) {
+
                     } else {
                         throw new RuntimeException("unexpected error type");
                     }
@@ -76,10 +74,13 @@ public class Interpreter {
                     if (p._2().isSome()) {
                         System.out.print(p._2().some() + ": ");
                         if (p._1().equals(Utils.Errors.typeError)) {
-                            System.out.println("type error");
+                            System.out.print("[type error]");
                         } else if (p._1().equals(Utils.Errors.rangeError)) {
-                            System.out.println("range error");
+                            System.out.print("[range error]");
+                        } else if (p._1().equals(Utils.Errors.warningError)) {
+                            System.out.print("[warning]");
                         }
+                        System.out.println(p._3());
                     }
                 });
             }
@@ -291,7 +292,7 @@ public class Interpreter {
         IRStmt stmt = AST2IR.transform(program);
         //System.err.println(stmt);
         stmt = IR2IR.transform(stmt);
-        //System.err.println(stmt);
+        System.err.println(stmt);
         return stmt;
     }
 
@@ -459,7 +460,20 @@ public class Interpreter {
                         List<IRPVar> xs = bind.map((x) -> x._1());
                         List<IRExp> es = bind.map((x) -> x._2());
                         List<Domains.AddressSpace.Address> as = trace.makeAddrs(xs.map((x) -> ((IRVar) x)));
-                        Domains.Store store1 = Utils.alloc(store, as, es.map((e) -> eval(e)));
+                        List<Domains.BValue> bvs = es.map(e -> eval(e));
+                        if (Mutable.inPostFixpoint) {
+                            xs.zip(bvs).foreachDoEffect(p -> {
+                                if (p._1().loc.isSome()) {
+                                    Option<FHashSet<Domains.BValue>> tmp = Mutable.variableMap.get(p._1().loc.some().getStart());
+                                    if (tmp.isNone()) {
+                                        Mutable.variableMap.set(p._1().loc.some().getStart(), FHashSet.build(p._2()));
+                                    } else {
+                                        Mutable.variableMap.set(p._1().loc.some().getStart(), tmp.some().insert(p._2()));
+                                    }
+                                }
+                            });
+                        }
+                        Domains.Store store1 = Utils.alloc(store, as, bvs);
                         ret = ret.insert(new State(new Domains.StmtTerm(s), env.extendAll(xs.zip(as)), store1, pad, ks, trace.update(s)));
                     } else if (stmt instanceof IRSDecl) {
                         IRSDecl irSDecl = (IRSDecl) stmt;
@@ -491,7 +505,21 @@ public class Interpreter {
                         IRExp e = irAssign.e;
                         Domains.BValue bv = eval(e);
                         if (!bv.equals(Domains.BValue.Bot)) {
+                            if (bv.defUndef()) {
+                                Mutable.except(x.id, Utils.Errors.warningError, x.loc, "maybe non-field");
+                            }
                             if (x instanceof IRPVar) {
+                                if (Mutable.inPostFixpoint) {
+                                    ((IRPVar) x).loc.foreachDoEffect(loc -> {
+                                        Position pos = loc.getStart();
+                                        Option<FHashSet<Domains.BValue>> tmp = Mutable.variableMap.get(pos);
+                                        if (tmp.isNone()) {
+                                            Mutable.variableMap.set(pos, FHashSet.build(bv));
+                                        } else {
+                                            Mutable.variableMap.set(pos, tmp.some().insert(bv));
+                                        }
+                                    });
+                                }
                                 ret = ret.union(advanceBV(bv, store.extend(env.apply(((IRPVar) x)).some(), bv), pad, ks));
                             } else if (x instanceof IRScratch) {
                                 ret = ret.union(advanceBV(bv, store, pad.update(((IRScratch) x), bv), ks));
@@ -529,9 +557,21 @@ public class Interpreter {
                         Domains.Env env1 = env.filter((lamX) -> {
                             return m.freeVars.member(lamX);
                         });
-                        Domains.Store store1 = Utils.allocFun(new Domains.Clo(env1, m), eval(n), a1, store);
+                        Domains.Closure clo = new Domains.Clo(env1, m);
+                        Domains.Store store1 = Utils.allocFun(clo, eval(n), a1, store);
                         Domains.BValue bv1 = Domains.AddressSpace.Address.inject(a1);
                         if (x instanceof IRPVar) {
+                            if (Mutable.inPostFixpoint) {
+                                ((IRPVar) x).loc.foreachDoEffect(loc -> {
+                                    Position pos = loc.getStart();
+                                    Option<FHashSet<Domains.BValue>> tmp = Mutable.variableMap.get(pos);
+                                    if (tmp.isNone()) {
+                                        Mutable.variableMap.set(pos, FHashSet.build(bv1));
+                                    } else {
+                                        Mutable.variableMap.set(pos, tmp.some().insert(bv1));
+                                    }
+                                });
+                            }
                             ret = ret.union(advanceBV(bv1, store1.extend(env.apply(((IRPVar) x)).some(), bv1), pad, ks));
                         } else if (x instanceof IRScratch) {
                             ret = ret.union(advanceBV(bv1, store1, pad.update(((IRScratch) x), bv1), ks));
@@ -548,6 +588,17 @@ public class Interpreter {
                         Domains.BValue bv = sa._2();
                         P2<Domains.Store, Domains.Scratchpad> ss;
                         if (x instanceof IRPVar) {
+                            if (Mutable.inPostFixpoint) {
+                                ((IRPVar) x).loc.foreachDoEffect(loc -> {
+                                    Position pos = loc.getStart();
+                                    Option<FHashSet<Domains.BValue>> tmp = Mutable.variableMap.get(pos);
+                                    if (tmp.isNone()) {
+                                        Mutable.variableMap.set(pos, FHashSet.build(bv));
+                                    } else {
+                                        Mutable.variableMap.set(pos, tmp.some().insert(bv));
+                                    }
+                                });
+                            }
                             ss = P.p(store1.extend(env.apply(((IRPVar) x)).some(), bv), pad);
                         } else {
                             ss = P.p(store1, pad.update(((IRScratch) x), bv));
@@ -556,7 +607,7 @@ public class Interpreter {
                         Domains.Scratchpad pad1 = ss._2();
                         Domains.Store store3 = Utils.setConstr(store2, bv2);
                         if (!bv1.defAddr()) {
-                            Mutable.except(x.id, Utils.Errors.typeError, x.loc);
+                            Mutable.except(x.id, Utils.Errors.typeError, x.loc, "");
                             ret = ret.insert(new State(new Domains.ValueTerm(Utils.Errors.typeError), env, store, pad, ks, trace));
                         }
                         P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e1, store3, env, pad1, Utils.Filters.IsFunc);
@@ -568,7 +619,11 @@ public class Interpreter {
                         IRToObj irToObj = (IRToObj) stmt;
                         IRVar x = irToObj.x;
                         IRExp e = irToObj.e;
-                        P2<Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> st = Utils.toObj(eval(e), x, env, store, pad, trace);
+                        Domains.BValue _bv = eval(e);
+                        if (_bv.isPrim().b.equals(Domains.Bool.True)) {
+                            Mutable.except(e.id, Utils.Errors.warningError, e.loc, "turn prim to object");
+                        }
+                        P2<Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>>, Option<Domains.EValue>> st = Utils.toObj(_bv, x, env, store, pad, trace);
                         Option<P3<Domains.BValue, Domains.Store, Domains.Scratchpad>> noexc = st._1();
                         Option<Domains.EValue> exc = st._2();
                         if (noexc.isSome()) {
@@ -578,11 +633,22 @@ public class Interpreter {
                             P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e, store1, env, pad1, Utils.Filters.IsUndefNull);
                             Domains.Store _store1 = sr._1();
                             Domains.Scratchpad _pad1 = sr._2();
+                            if (x instanceof IRPVar && Mutable.inPostFixpoint) {
+                                ((IRPVar) x).loc.foreachDoEffect(loc -> {
+                                    Position pos = loc.getStart();
+                                    Option<FHashSet<Domains.BValue>> tmp = Mutable.variableMap.get(pos);
+                                    if (tmp.isNone()) {
+                                        Mutable.variableMap.set(pos, FHashSet.build(bv));
+                                    } else {
+                                        Mutable.variableMap.set(pos, tmp.some().insert(bv));
+                                    }
+                                });
+                            }
                             ret = ret.union(advanceBV(bv, _store1, _pad1, ks));
                         }
                         if (exc.isSome()) {
                             Domains.EValue ev = exc.some();
-                            Mutable.except(stmt.id, ev);
+                            Mutable.except(stmt.id, ev, e.loc, "cannot transform to object");
                             ret = ret.union(advanceEV(ev, env, store, pad, ks, trace));
                         }
                     } else if (stmt instanceof IRUpdate) {
@@ -662,7 +728,7 @@ public class Interpreter {
                         IRVar x = irCall.x;
                         Domains.BValue bv1 = eval(e1);
                         if (!bv1.defAddr()) {
-                            Mutable.except(x.id, Utils.Errors.typeError, x.loc);
+                            Mutable.except(x.id, Utils.Errors.typeError, x.loc, "call a non-function");
                             ret = ret.insert(new State(new Domains.ValueTerm(Utils.Errors.typeError), env, store, pad, ks, trace));
                         }
                         P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e1, store, env, pad, Utils.Filters.IsFunc);
@@ -682,6 +748,17 @@ public class Interpreter {
                             }
                             Domains.BValue uber = Domains.Str.inject(acc);
                             if (x instanceof IRPVar) {
+                                if (Mutable.inPostFixpoint) {
+                                    ((IRPVar) x).loc.foreachDoEffect(loc -> {
+                                        Position pos = loc.getStart();
+                                        Option<FHashSet<Domains.BValue>> tmp = Mutable.variableMap.get(pos);
+                                        if (tmp.isNone()) {
+                                            Mutable.variableMap.set(pos, FHashSet.build(uber));
+                                        } else {
+                                            Mutable.variableMap.set(pos, tmp.some().insert(uber));
+                                        }
+                                    });
+                                }
                                 ret = ret.insert(new State(new Domains.StmtTerm(s), env, store.extend(env.apply(((IRPVar) x)).some(), uber), pad, ks.push(new Domains.ForKont(uber, x, s)), trace.update(s)));
                             } else if (x instanceof IRScratch) {
                                 ret = ret.insert(new State(new Domains.StmtTerm(s), env, store, pad.update(((IRScratch) x), uber), ks.push(new Domains.ForKont(uber, x, s)), trace.update(s)));
@@ -766,6 +843,17 @@ public class Interpreter {
                 IRStmt s = fk.s;
                 ret = ret.union(advanceBV(Domains.Undef.BV, store1, pad1, ks1.pop()));
                 if (x instanceof IRPVar) {
+                    if (Mutable.inPostFixpoint) {
+                        ((IRPVar) x).loc.foreachDoEffect(loc -> {
+                            Position pos = loc.getStart();
+                            Option<FHashSet<Domains.BValue>> tmp = Mutable.variableMap.get(pos);
+                            if (tmp.isNone()) {
+                                Mutable.variableMap.set(pos, FHashSet.build(bv1));
+                            } else {
+                                Mutable.variableMap.set(pos, tmp.some().insert(bv1));
+                            }
+                        });
+                    }
                     ret = ret.insert(new State(new Domains.StmtTerm(s), env, store1.extend(env.apply(((IRPVar) x)).some(), bv1), pad1, ks1, trace.update(s)));
                 }
                 else if (x instanceof IRScratch) {
@@ -835,6 +923,17 @@ public class Interpreter {
                         bv1 = Domains.AddressSpace.Addresses.inject(bv.as);
                     }
                     if (x instanceof IRPVar) {
+                        if (Mutable.inPostFixpoint) {
+                            ((IRPVar) x).loc.foreachDoEffect(loc -> {
+                                Position pos = loc.getStart();
+                                Option<FHashSet<Domains.BValue>> tmp = Mutable.variableMap.get(pos);
+                                if (tmp.isNone()) {
+                                    Mutable.variableMap.set(pos, FHashSet.build(bv1));
+                                } else {
+                                    Mutable.variableMap.set(pos, tmp.some().insert(bv1));
+                                }
+                            });
+                        }
                         call = call.insert(new State(new Domains.ValueTerm(bv1),
                                 envc,
                                 store3.extend(envc.apply(((IRPVar) x)).some(), bv1),
@@ -967,6 +1066,17 @@ public class Interpreter {
                     IRPVar x = ((Domains.TryKont) ks2.top()).x;
                     IRStmt s2 = ((Domains.TryKont) ks2.top()).sc;
                     IRStmt s3 = ((Domains.TryKont) ks2.top()).sf;
+                    if (Mutable.inPostFixpoint) {
+                        x.loc.foreachDoEffect(loc -> {
+                            Position pos = loc.getStart();
+                            Option<FHashSet<Domains.BValue>> tmp = Mutable.variableMap.get(pos);
+                            if (tmp.isNone()) {
+                                Mutable.variableMap.set(pos, FHashSet.build(ev.bv));
+                            } else {
+                                Mutable.variableMap.set(pos, tmp.some().insert(ev.bv));
+                            }
+                        });
+                    }
                     ret = ret.insert(new State(new Domains.StmtTerm(s2), env1, store1.extend(env1.apply(x).some(), ev.bv), pad1, ks2.repl(new Domains.CatchKont(s3)), trace1));
                 }
                 else if (ks2.top() instanceof Domains.CatchKont) {

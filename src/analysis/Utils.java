@@ -23,6 +23,7 @@ public class Utils {
         public static final Domains.EValue rangeError = new Domains.EValue(Domains.Str.inject(Domains.Str.alpha("RangeError")));
         public static final Domains.EValue uriError = new Domains.EValue(Domains.Str.inject(Domains.Str.alpha("URIError")));
         public static final Domains.EValue syntaxError = new Domains.EValue(Domains.Str.inject(Domains.Str.alpha("SyntaxError")));
+        public static final Domains.EValue warningError = new Domains.EValue(Domains.Str.inject(Domains.Str.alpha("WarningError")));
     }
 
     public static class Fields {
@@ -237,12 +238,12 @@ public class Utils {
 
         for (Interpreter.State s : sigmas) {
             if (s.t instanceof Domains.ValueTerm && ((Domains.ValueTerm) s.t).v.equals(Errors.typeError)) {
-                Interpreter.Mutable.except(x.id, Errors.typeError, x.loc);
+                Interpreter.Mutable.except(x.id, Errors.typeError, x.loc, "");
             }
         }
 
         if (!bv1.defAddr() || nonfun) {
-            Interpreter.Mutable.except(x.id, Errors.typeError, x.loc);
+            Interpreter.Mutable.except(x.id, Errors.typeError, x.loc, "call a non-function");
         }
 
         if (nonfun) {

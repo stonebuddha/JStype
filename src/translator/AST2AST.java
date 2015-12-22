@@ -409,8 +409,8 @@ public class AST2AST {
             Option<Location> loc = labeledStatement.loc;
             IdentifierExpression label = labeledStatement.getLabel();
             assert label instanceof RealIdentifierExpression;
-            IdentifierExpression label1 = new RealIdentifierExpression("continue_".concat(((RealIdentifierExpression) label).getName()));
             Statement body = labeledStatement.getBody();
+            IdentifierExpression label1 = new RealIdentifierExpression("continue_".concat(((RealIdentifierExpression) label).getName()), body.loc);
             if (body instanceof DoWhileStatement) {
                 Statement body1 = ((DoWhileStatement) body).getBody();
                 Expression test = ((DoWhileStatement) body).getTest();
@@ -477,8 +477,8 @@ public class AST2AST {
                     return new AssignmentExpression("=", left,
                             new BinaryExpression(_operator, left, right.accept(this), loc), loc);
                 } else if (left instanceof MemberExpression) {
-                    ScratchIdentifierExpression temp1 = VariableAllocator.freshScratchVar(Option.none());
-                    ScratchIdentifierExpression temp2 = VariableAllocator.freshScratchVar(Option.none());
+                    ScratchIdentifierExpression temp1 = VariableAllocator.freshScratchVar(loc);
+                    ScratchIdentifierExpression temp2 = VariableAllocator.freshScratchVar(loc);
                     Expression object = ((MemberExpression) left).getObject();
                     Expression property = ((MemberExpression) left).getProperty();
                     List<P2<ScratchIdentifierExpression, Expression>> declarations =
@@ -620,7 +620,7 @@ public class AST2AST {
             BlockStatement _body = new BlockStatement(tmp._2().append(((BlockStatement)tmp._1()).getBody()), ((BlockStatement) tmp._1()).loc);
             return P.p(
                     new ExpressionStatement(new LiteralExpression(new UndefinedLiteral())),
-                    List.list(new FunctionDeclaration(id, params, _body)));
+                    List.list(new FunctionDeclaration(id, params, _body, functionDeclaration.loc)));
         }
 
         @Override
@@ -1157,7 +1157,7 @@ public class AST2AST {
             Set<IdentifierExpression> vars = declarations.foldLeft((s, decl) -> s.insert(decl.getId()), EMPTY);
             List<P2<VariableDeclarator, Set<IdentifierExpression>>> tmp = declarations.map(decl -> decl.accept(this));
             P2<List<VariableDeclarator>, List<Set<IdentifierExpression>>> tmp1 = List.unzip(tmp);
-            Statement stmt1 = new ExpressionStatement(new SequenceExpression(tmp1._1().filter(decl -> decl.getInit().isSome()).map(decl -> new AssignmentExpression("=", decl.getId(), decl.getInit().some())), false, variableDeclaration.loc), variableDeclaration.loc);
+            Statement stmt1 = new ExpressionStatement(new SequenceExpression(tmp1._1().filter(decl -> decl.getInit().isSome()).map(decl -> new AssignmentExpression("=", decl.getId(), decl.getInit().some(), decl.loc)), false, variableDeclaration.loc), variableDeclaration.loc);
             return P.p(stmt1, tmp1._2().foldLeft(HoistVariableDeclarationsV::combine, vars));
         }
 
@@ -1247,13 +1247,13 @@ public class AST2AST {
             assert tmp._1() instanceof BlockStatement;
             List<VariableDeclarator> decls = tmp._2().toList().map(exp -> new VariableDeclarator(exp, Option.some(new LiteralExpression(new UndefinedLiteral()))));
             if (id.isSome()) {
-                RealIdentifierExpression y = VariableAllocator.freshRealVar(Option.none());
+                RealIdentifierExpression y = VariableAllocator.freshRealVar(functionExpression.loc);
                 Statement stmt1 = new VariableDeclaration(decls.cons(new VariableDeclarator(id.some(), Option.some(new LiteralExpression(new UndefinedLiteral())))));
-                BlockStatement _body = new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(new ExpressionStatement(new AssignmentExpression("=", id.some(), y))).cons(stmt1), ((BlockStatement) tmp._1()).loc);
+                BlockStatement _body = new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(new ExpressionStatement(new AssignmentExpression("=", id.some(), y, id.some().loc), id.some().loc)).cons(stmt1), ((BlockStatement) tmp._1()).loc);
                 Expression func = new AssignmentExpression("=", y, new FunctionExpression(id, params, _body, functionExpression.loc), functionExpression.loc);
                 return P.p(func, Set.set(IDENTIFIER_EXPRESSION_ORD, y));
             } else {
-                Statement stmt1 = new VariableDeclaration(decls);
+                Statement stmt1 = new VariableDeclaration(decls, ((BlockStatement) tmp._1()).loc);
                 return P.p(new FunctionExpression(id, params, new BlockStatement(((BlockStatement)tmp._1()).getBody().cons(stmt1), ((BlockStatement) tmp._1()).loc), functionExpression.loc), EMPTY);
             }
         }
@@ -1320,7 +1320,7 @@ public class AST2AST {
             P2<Expression, Set<IdentifierExpression>> tmp = body.accept(this);
             P2<List<ScratchIdentifierExpression>, List<Expression>> tmp1 = List.unzip(declarations);
             P2<List<Expression>, List<Set<IdentifierExpression>>> tmp2 = List.unzip(tmp1._2().map(exp -> exp.accept(this)));
-            Expression exp1 = new SequenceExpression(tmp1._1().zip(tmp2._1()).map(p -> (Expression)new AssignmentExpression("=", p._1(), p._2())).snoc(tmp._1()), false, scratchSequenceExpression.loc);
+            Expression exp1 = new SequenceExpression(tmp1._1().zip(tmp2._1()).map(p -> (Expression)new AssignmentExpression("=", p._1(), p._2(), p._1().loc)).snoc(tmp._1()), false, scratchSequenceExpression.loc);
             return P.p(exp1, tmp2._2().foldLeft(HoistVariableDeclarationsV::combine, tmp._2()));
         }
 
@@ -1498,7 +1498,7 @@ public class AST2AST {
                 if (left instanceof ScratchIdentifierExpression || isInScope((RealIdentifierExpression)left, stack)) {
                     return new AssignmentExpression(operator, left, _right, assignmentExpression.loc);
                 } else {
-                    return new AssignmentExpression(operator, new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), left, false), _right, assignmentExpression.loc);
+                    return new AssignmentExpression(operator, new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), left, false, left.loc), _right, assignmentExpression.loc);
                 }
             } else {
                 Expression _left = left.accept(this);
@@ -1511,7 +1511,7 @@ public class AST2AST {
             if (isInScope(realIdentifierExpression, stack)) {
                 return realIdentifierExpression;
             } else {
-                return new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), realIdentifierExpression, false);
+                return new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), realIdentifierExpression, false, realIdentifierExpression.loc);
             }
         }
 
@@ -1581,11 +1581,11 @@ public class AST2AST {
             BlockStatement _body = (BlockStatement)body.accept(new FunctionDeclarationToExpressionV(false));
             Expression lhs;
             if (isGlobal) {
-                lhs = new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), id, false);
+                lhs = new MemberExpression(new RealIdentifierExpression(AST2IR.PVarMapper.windowName), id, false, id.loc);
             } else {
                 lhs = id;
             }
-            return new ExpressionStatement(new AssignmentExpression("=", lhs, new FunctionExpression(Option.some(id), params, _body, functionDeclaration.loc)));
+            return new ExpressionStatement(new AssignmentExpression("=", lhs, new FunctionExpression(Option.some(id), params, _body, functionDeclaration.loc), lhs.loc));
         }
 
         @Override
@@ -1612,9 +1612,9 @@ public class AST2AST {
         @Override
         public Expression forThisExpression(ThisExpression thisExpression) {
             if (isGlobal) {
-                return new RealIdentifierExpression(AST2IR.PVarMapper.windowName);
+                return new RealIdentifierExpression(AST2IR.PVarMapper.windowName, thisExpression.loc);
             } else {
-                return new RealIdentifierExpression(AST2IR.PVarMapper.selfName);
+                return new RealIdentifierExpression(AST2IR.PVarMapper.selfName, thisExpression.loc);
             }
         }
 
@@ -1663,7 +1663,7 @@ public class AST2AST {
         public P2<CatchClause, Set<IdentifierExpression>> forCatchClause(CatchClause catchClause) {
             IdentifierExpression param = catchClause.getParam();
             BlockStatement body = catchClause.getBody();
-            RealIdentifierExpression y = VariableAllocator.freshRealVar(Option.none());
+            RealIdentifierExpression y = VariableAllocator.freshRealVar(catchClause.loc);
             HandleCatchScopingV v = new HandleCatchScopingV(renaming.set(param, y));
             P2<Statement, Set<IdentifierExpression>> tmp = body.accept(v);
             assert tmp._1() instanceof BlockStatement;
@@ -1687,7 +1687,7 @@ public class AST2AST {
                             exp, Option.some(new LiteralExpression(new UndefinedLiteral()))
                     ))
             );
-            return P.p(new FunctionExpression(id, params, new BlockStatement(tmp1._1().cons(new VariableDeclaration(bindings))), functionExpression.loc), EMPTY);
+            return P.p(new FunctionExpression(id, params, new BlockStatement(tmp1._1().cons(new VariableDeclaration(bindings, body.loc)), body.loc), functionExpression.loc), EMPTY);
         }
 
         @Override

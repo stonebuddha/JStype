@@ -1,4 +1,4 @@
-function Person(n) {
+/*function Person(n) {
     this.setName(n);
     Person.prototype.count++;
 }
@@ -69,4 +69,43 @@ var orz = undefined;
 print(orz);
 
 var sro = null;
-print(sro);
+print(sro);*/
+
+function fun1() {
+    var z;
+    z = 5;
+    z();
+}
+
+function fun2() {
+    var a, b;
+    a = {};
+    b = a.z;
+}
+
+function fun3() {
+    var a, b;
+    b = a.z;
+}
+
+function fun4() {
+    var a, b;
+    a = null;
+    b = a.z;
+}
+
+function fun5() {
+    var b, c;
+    b = true;
+    b.a = "123";
+    c = b.a;
+}
+
+function fun6() {
+    var b, c;
+    b = new Boolean(true);
+    b.a = "123";
+    c = b.a;
+}
+
+fun6();

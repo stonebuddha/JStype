@@ -42,7 +42,7 @@ public class IR2IR {
 
         @Override
         public IRExp forScratch(IRScratch irScratch) {
-            return new IRScratch(irScratch.n);
+            return new IRScratch(irScratch.n, irScratch.loc);
         }
 
         @Override
@@ -313,10 +313,10 @@ public class IR2IR {
         public P2<IRExp, P3<Integer, Integer, TreeMap<Integer, Integer>>> forScratch(IRScratch irScratch) {
             Integer n = irScratch.n;
             if (mapping.contains(n)) {
-                return P.p(new IRScratch(mapping.get(n).some()), P.p(counter, maxScratchMade, mapping));
+                return P.p(new IRScratch(mapping.get(n).some(), irScratch.loc), P.p(counter, maxScratchMade, mapping));
             } else {
                 Integer _counter = counter + 1;
-                return P.p(new IRScratch(counter), P.p(_counter, Math.max(maxScratchMade, _counter), mapping.set(n, counter)));
+                return P.p(new IRScratch(counter, irScratch.loc), P.p(_counter, Math.max(maxScratchMade, _counter), mapping.set(n, counter)));
             }
         }
 

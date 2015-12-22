@@ -154,7 +154,7 @@ public class AST2IR {
                 P3<IRStmt, IRExp, Set<IRPVar>> _e1 = e1.accept(this);
                 P3<IRStmt, IRExp, Set<IRPVar>> _e2 = e2.accept(this);
                 P4<IRStmt, IRExp, IRExp, Set<IRPVar>> tmp1 = accessSetup(_e1._2(), _e2._2());
-                IRScratch y = freshScratch();
+                IRScratch y = freshScratch(lhs.loc);
                 IRStmt inner = new IRSeq(List.list(_e1._1(), _e2._1(), tmp1._1(), new IRUpdate(tmp1._2(), tmp1._3(), y)));
                 P3<IRStmt, IRExp, Set<IRPVar>> tmp = make.f(y, inner);
                 return P.p(tmp._1(), tmp._2(), tmp._3().union(_e1._3()).union(_e2._3()).union(tmp1._4()));
@@ -192,7 +192,7 @@ public class AST2IR {
                 IRExp theLeft = b ? _right._2() : _left._2();
                 IRExp theRight = b ? _left._2() : _right._2();
                 P3<IRStmt, IRExp, Set<IRPVar>> _theLeft = toNumber(theLeft), _theRight = toNumber(theRight);
-                IRScratch y = freshScratch();
+                IRScratch y = freshScratch(right.loc);
                 return withStatements.f(makeIf(
                         new IRBinop(Bop.LogicalAnd,
                                 new IRBinop(Bop.StrictEqual,
@@ -206,7 +206,7 @@ public class AST2IR {
                         y, _theLeft._3().union(_theRight._3()));
             };
             F<IRExp, P3<IRStmt, IRExp, Set<IRPVar>>> logicalHelper = e -> {
-                IRScratch y = freshScratch();
+                IRScratch y = freshScratch(right.loc);
                 return P.p(
                         new IRSeq(List.list(
                                 _left._1(),
@@ -233,7 +233,7 @@ public class AST2IR {
                 }
                 case "+": {
                     P3<IRStmt, IRExp, Set<IRPVar>> e1 = asPrimitive.f(_left._2()), e2 = asPrimitive.f(_right._2());
-                    IRScratch y = freshScratch();
+                    IRScratch y = freshScratch(right.loc);
                     return withStatements.f(new IRSeq(List.list(
                             new IRSeq(interleave(((IRSeq)e1._1()).ss, ((IRSeq)e2._1()).ss)),
                             makeIf(
@@ -317,7 +317,7 @@ public class AST2IR {
             });
             P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _eles = unzip3(eles.map(e -> e.accept(this)));
             P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(List.list());
-            IRScratch y = freshScratch();
+            IRScratch y = freshScratch(arrayExpression.loc);
             List<P2<IRExp, Integer>> tmp = _eles._2().zipIndex();
             return P.p(
                     new IRSeq(List.list(
@@ -409,7 +409,7 @@ public class AST2IR {
                 P3<IRStmt, IRExp, Set<IRPVar>> _object = object.accept(this), _property = property.accept(this);
                 P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _arguments = unzip3(arguments.map(exp -> exp.accept(this)));
                 P4<IRStmt, IRExp, IRExp, Set<IRPVar>> access = accessSetup(_object._2(), _property._2());
-                IRScratch y = freshScratch();
+                IRScratch y = freshScratch(callExpression.loc);
                 P3<IRStmt, IRExp, Set<IRPVar>> tmp = call(y, new IRBinop(Bop.Access, access._2(), access._3()), access._2(), _arguments._2());
                 return P.p(
                         new IRSeq(List.list(_object._1(), _property._1(), new IRSeq(_arguments._1()), access._1(), tmp._1())),
@@ -418,7 +418,7 @@ public class AST2IR {
             } else {
                 P3<IRStmt, IRExp, Set<IRPVar>> _callee = callee.accept(this);
                 P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _arguments = unzip3(arguments.map(exp -> exp.accept(this)));
-                IRScratch y = freshScratch();
+                IRScratch y = freshScratch(callExpression.loc);
                 P3<IRStmt, IRExp, Set<IRPVar>> tmp = call(y, _callee._2(), PVarMapper.global, _arguments._2());
                 return P.p(
                         new IRSeq(List.list(_callee._1(), new IRSeq(_arguments._1()), tmp._1())),
@@ -438,7 +438,7 @@ public class AST2IR {
             Expression consequent = conditionalExpression.getConsequent();
             Expression alternate = conditionalExpression.getAlternate();
             P3<IRStmt, IRExp, Set<IRPVar>> _test = test.accept(this), _consequent = consequent.accept(this), _alternate = alternate.accept(this);
-            IRScratch y = freshScratch();
+            IRScratch y = freshScratch(conditionalExpression.loc);
             return P.p(
                     new IRSeq(List.list(_test._1(), makeIf(toBool(_test._2()), new IRSeq(List.list(_consequent._1(), new IRAssign(y, _consequent._2()))), new IRSeq(List.list(_alternate._1(), new IRAssign(y, _alternate._2())))))),
                     y,
@@ -509,8 +509,8 @@ public class AST2IR {
             List<P2<IRPVar, IRExp>> tmpBind = ss.toList().map(y -> P.p(y, new IRUndef()));
             IRDecl decl = new IRDecl(declParams.append(declLocal).append(tmpBind), new IRLbl(":RETURN:", new IRSeq(List.list(new IRMerge(), new IRSeq(_tail._1())))));
             IRMethod method = new IRMethod(PVarMapper.selfVar, args, decl);
-            IRScratch yProto = freshScratch();
-            IRScratch yRes = freshScratch();
+            IRScratch yProto = freshScratch(functionExpression.loc);
+            IRScratch yRes = freshScratch(functionExpression.loc);
             return P.p(
                     new IRSeq(List.list(new IRNewfun(yRes, method, new IRNum((double)params.length())), tmp._1(), makeNew(yProto, PVarMapper.objectVar, tmp._2()), new IRUpdate(yRes, new IRStr("prototype"), yProto))),
                     yRes,
@@ -550,7 +550,7 @@ public class AST2IR {
             Expression right = logicalExpression.getRight();
             P3<IRStmt, IRExp, Set<IRPVar>> _left = left.accept(this), _right = right.accept(this);
             F<IRExp, P3<IRStmt, IRExp, Set<IRPVar>>> logicalHelper = e -> {
-                IRScratch y = freshScratch();
+                IRScratch y = freshScratch(logicalExpression.loc);
                 return P.p(
                         new IRSeq(List.list(
                                 _left._1(),
@@ -598,7 +598,7 @@ public class AST2IR {
             Option<Boolean> _ = staticIsPrim(_callee._2());
             if (_.isNone()) {
                 P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(_arguments._2());
-                IRScratch y = freshScratch();
+                IRScratch y = freshScratch(newExpression.loc);
                 return P.p(new IRSeq(List.list(pred, makeIf(
                         new IRUnop(Uop.IsPrim, _callee._2()),
                         throwTypeError,
@@ -610,7 +610,7 @@ public class AST2IR {
                     return P.p(new IRSeq(List.list(pred, throwTypeError)), new IRUndef(), ys);
                 } else {
                     P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(_arguments._2());
-                    IRScratch y = freshScratch();
+                    IRScratch y = freshScratch(newExpression.loc);
                     return P.p(new IRSeq(List.list(pred, args._1(), makeNew(y, _callee._2(), args._2()))), y, ys.union(args._3()));
                 }
             }
@@ -636,7 +636,7 @@ public class AST2IR {
                 return P.p(new IRStr(key), _value._1(), _value._2(), _value._3());
             }));
             P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(List.list());
-            IRScratch y = freshScratch();
+            IRScratch y = freshScratch(objectExpression.loc);
             List<P2<IRExp, IRExp>> _ = tmp._1().zip(tmp._3());
             Set<IRPVar> _ss = tmp._4().foldLeft((a, b) -> a.union(b), EMPTY);
             return P.p(
@@ -672,7 +672,7 @@ public class AST2IR {
         @Override
         public P3<IRStmt, IRExp, Set<IRPVar>> forRegExpLiteral(RegExpLiteral regExpLiteral) {
             P3<IRStmt, IRExp, Set<IRPVar>> args = makeArguments(List.list(new IRStr(regExpLiteral.getPattern()), new IRStr(regExpLiteral.getFlags())));
-            IRScratch y = freshScratch();
+            IRScratch y = freshScratch(regExpLiteral.loc);
             return P.p(new IRSeq(List.list(args._1(), makeNew(y, PVarMapper.regexpVar, args._2()))), y, args._3());
         }
 
@@ -831,7 +831,7 @@ public class AST2IR {
                         P3<IRStmt, IRExp, Set<IRPVar>> _object = object.accept(this);
                         P3<IRStmt, IRExp, Set<IRPVar>> _property = property.accept(this);
                         P3<IRStmt, IRExp, Set<IRPVar>> _field = AST2IR.toString(_property._2());
-                        IRScratch y = freshScratch();
+                        IRScratch y = freshScratch(unaryExpression.loc);
                         return P.p(
                                 new IRSeq(List.list(_object._1(), _property._1(), _field._1(),
                                         makeIf(
@@ -996,7 +996,7 @@ public class AST2IR {
     static P3<IRStmt, IRExp, Set<IRPVar>> postfixVarHelper(IdentifierExpression id, Double inc) {
         IRVar x = PVarMapper.getVar(id);
         P3<IRStmt, IRExp, Set<IRPVar>> _x = toNumber(x);
-        IRScratch y = freshScratch();
+        IRScratch y = freshScratch(id.loc);
         return P.p(new IRSeq(List.list(_x._1(), new IRAssign(y, _x._2()), new IRAssign(x, new IRBinop(Bop.Plus, y, new IRNum(inc))))), y, _x._3());
     }
 
@@ -1005,7 +1005,7 @@ public class AST2IR {
         P3<IRStmt, IRExp, Set<IRPVar>> _e2 = e2.accept(new TranslateV());
         P4<IRStmt, IRExp, IRExp, Set<IRPVar>> _access = accessSetup(_e1._2(), _e2._2());
         P3<IRStmt, IRExp, Set<IRPVar>> _num = toNumber(new IRBinop(Bop.Access, _access._2(), _access._3()));
-        IRScratch y = freshScratch();
+        IRScratch y = freshScratch(e1.loc);
         return P.p(
                 new IRSeq(List.list(_e1._1(), _e2._1(), _access._1(), _num._1(), new IRAssign(y, new IRBinop(Bop.Plus, _num._2(), new IRNum(inc))), new IRUpdate(_access._2(), _access._3(), y))),
                 y,
@@ -1018,7 +1018,7 @@ public class AST2IR {
         P3<IRStmt, IRExp, Set<IRPVar>> _e2 = e2.accept(new TranslateV());
         P4<IRStmt, IRExp, IRExp, Set<IRPVar>> _access = accessSetup(_e1._2(), _e2._2());
         P3<IRStmt, IRExp, Set<IRPVar>> _num = toNumber(new IRBinop(Bop.Access, _access._2(), _access._3()));
-        IRScratch y = freshScratch();
+        IRScratch y = freshScratch(e1.loc);
         return P.p(
                 new IRSeq(List.list(_e1._1(), _e2._1(), _access._1(), _num._1(), new IRAssign(y, _num._2()), new IRUpdate(_access._2(), _access._3(), new IRBinop(Bop.Plus, y, new IRNum(inc))))),
                 y,
@@ -1027,7 +1027,7 @@ public class AST2IR {
     }
 
     static P3<IRStmt, IRExp, Set<IRPVar>> whileHelper(IRStmt beforeLoop, IRExp initialTest, IRExp normalTest, IRStmt body, IRStmt afterBody) {
-        IRScratch y = freshScratch();
+        IRScratch y = freshScratch(Option.none());
         return P.p(
                 makeLbl(
                         ":BREAK:",
@@ -1049,7 +1049,7 @@ public class AST2IR {
         if (e.equals(PVarMapper.window)) {
             return nopStmt(e);
         } else {
-            IRScratch y = freshScratch();
+            IRScratch y = freshScratch(Option.none());
             return P.p(new IRToObj(y, e), y, EMPTY);
         }
     }
@@ -1060,7 +1060,7 @@ public class AST2IR {
 
     static P3<IRStmt, IRExp, Set<IRPVar>> toSomething(IRExp e, F<IRExp, IRExp> ifPrim, F2<IRVar, IRExp, P3<IRStmt, IRExp, Set<IRPVar>>> ifNotPrim) {
         F<Unit, P3<IRStmt, IRExp, Set<IRPVar>>> notPrim = (unit) -> {
-            IRScratch y = freshScratch();
+            IRScratch y = freshScratch(Option.none());
             P3<IRStmt, IRExp, Set<IRPVar>> tmp = ifNotPrim.f(y, e);
             return P.p(tmp._1(), y, tmp._3());
         };
@@ -1077,7 +1077,7 @@ public class AST2IR {
     }
 
     static P3<IRStmt, IRExp, Set<IRPVar>> makeArguments(List<IRExp> args) {
-        IRScratch y = freshScratch();
+        IRScratch y = freshScratch(Option.none());
         List<P2<IRExp, Integer>> tmp = args.zipIndex();
         List<IRStmt> _tmp = tmp.map(p -> new IRUpdate(y, new IRStr(p._2().toString()), p._1()));
         IRStmt _s = new IRSeq(List.list(
@@ -1177,10 +1177,10 @@ public class AST2IR {
 
     static Integer nextScratch = 0;
 
-    static IRScratch freshScratch() {
+    static IRScratch freshScratch(Option<Location> loc) {
         Integer res = nextScratch;
         nextScratch += 1;
-        return new IRScratch(res);
+        return new IRScratch(res, loc);
     }
 
     public static IRStmt transform(Program ast) {

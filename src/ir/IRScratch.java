@@ -1,6 +1,8 @@
 package ir;
 
+import ast.Location;
 import fj.P2;
+import fj.data.Option;
 import immutable.FHashSet;
 
 /**
@@ -12,6 +14,12 @@ public final class IRScratch extends IRVar {
 
     public IRScratch(Integer n) {
         this.n = n;
+        this.recordHash = n;
+    }
+
+    public IRScratch(Integer n, Option<Location> loc) {
+        this.n = n;
+        this.loc = loc;
         this.recordHash = n;
     }
 
@@ -27,7 +35,7 @@ public final class IRScratch extends IRVar {
 
     @Override
     public String toString() {
-        return "SCRATCH[" + n + "]";
+        return "SCRATCH[" + n + "]@" + loc.map(l -> l.toString()).orSome("null");
     }
 
     @Override
