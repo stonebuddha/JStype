@@ -294,7 +294,7 @@ public class Utils {
                             else {
                                 reach_store = storeOption.some();
                             }
-                            sigmas = FHashSet.build(bv2.as.map(
+                            sigmas = sigmas.union(FHashSet.build(bv2.as.map(
                                     selfAddr -> {
                                         Domains.BValue selfBV = Domains.AddressSpace.Address.inject(selfAddr);
                                         Trace trace1 = trace.update(envc, store, selfBV, bv3, s);
@@ -305,10 +305,10 @@ public class Utils {
                                         Domains.Env envc1 = envc.extendAll(List.list(self, args).zip(as));
                                         Integer exc = ks.exc.head() != 0 ? 1 : 0;
                                         return new Interpreter.State(new Domains.StmtTerm(s), envc1, rstore2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1);
-                                    }));
+                                    })));
                         }
                         else {
-                            sigmas = FHashSet.build(bv2.as.map(
+                            sigmas = sigmas.union(FHashSet.build(bv2.as.map(
                                     selfAddr -> {
                                         Domains.BValue selfBV = Domains.AddressSpace.Address.inject(selfAddr);
                                         Trace trace1 = trace.update(envc, store, selfBV, bv3, s);
@@ -320,13 +320,13 @@ public class Utils {
                                         Integer exc = ks.exc.head() != 0 ? 1 : 0;
                                         Interpreter.PruneScratch.update(trace, pad);
                                         return new Interpreter.State(new Domains.StmtTerm(s), envc1, store2, Domains.Scratchpad.apply(0), new Domains.KontStack(List.list(new Domains.AddrKont(ka, m)), List.list(exc)), trace1);
-                                    }));
+                                    })));
                         }
                     }
                     else if (clo instanceof Domains.Native) {
-                        sigmas = bv2.as.bind(
+                        sigmas = sigmas.union(bv2.as.bind(
                                 selfAddr -> ((Domains.Native) clo).f.f(Domains.AddressSpace.Address.inject(selfAddr), bv3, x, env, store, pad, ks, trace)
-                                );
+                                ));
                     }
                 }
             }

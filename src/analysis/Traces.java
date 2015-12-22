@@ -157,7 +157,7 @@ public class Traces {
 
         @Override
         public boolean equals(Object obj) {
-            return (obj instanceof ObjCFA && k == ((ObjCFA) obj).k && h == ((ObjCFA) obj).h && pp == ((ObjCFA) obj).pp && tr.equals(((ObjCFA) obj).tr));
+            return (obj instanceof ObjCFA && k.equals(((ObjCFA) obj).k) && h.equals(((ObjCFA) obj).h) && pp.equals(((ObjCFA) obj).pp) && tr.equals(((ObjCFA) obj).tr));
         }
 
         @Override
@@ -205,7 +205,7 @@ public class Traces {
 
         @Override
         public boolean equals(Object obj) {
-            return (obj instanceof ObjFullCFA && k == ((ObjFullCFA) obj).k && pp == ((ObjFullCFA) obj).pp && tr.equals(((ObjFullCFA) obj).tr));
+            return (obj instanceof ObjFullCFA && k.equals(((ObjFullCFA) obj).k) && pp.equals(((ObjFullCFA) obj).pp) && tr.equals(((ObjFullCFA) obj).tr));
         }
 
         @Override
@@ -221,17 +221,17 @@ public class Traces {
         @Override
         public Trace update(Domains.Env env, Domains.Store store, Domains.BValue self, Domains.BValue args, IRStmt s) {
             assert self.as.size() == 1;
-            return new ObjFullCFA(k, s.id, tr.append(TraceUtils.BigIntToSeqInt(self.as.head().loc)));
+            return new ObjFullCFA(k, s.id, TraceUtils.BigIntToSeqInt(self.as.head().loc));
         }
 
         @Override
         public Domains.AddressSpace.Address toAddr() {
-            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k).reverse(), pp));
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k - 1).reverse(), pp));
         }
 
         @Override
         public Domains.AddressSpace.Address makeAddr(IRVar x) {
-            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k).reverse(), x.id));
+            return new Domains.AddressSpace.Address(TraceUtils.IntsToBigInt(tr.reverse().take(k - 1).reverse(), x.id));
         }
 
         public static ObjFullCFA apply(Integer k) {
@@ -254,7 +254,7 @@ public class Traces {
 
         @Override
         public boolean equals(Object obj) {
-            return (obj instanceof AcyclicCFA && h == ((AcyclicCFA) obj).h && pp == ((AcyclicCFA) obj).pp && tr.equals(((AcyclicCFA) obj).tr));
+            return (obj instanceof AcyclicCFA && h.equals(((AcyclicCFA) obj).h) && pp.equals(((AcyclicCFA) obj).pp) && tr.equals(((AcyclicCFA) obj).tr));
         }
 
         @Override
