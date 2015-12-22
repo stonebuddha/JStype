@@ -5,12 +5,18 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 public class ExpressionStatement extends Statement {
     Expression expression;
 
     public ExpressionStatement(Expression expression) {
         this.expression = expression;
+    }
+
+    public ExpressionStatement(Expression expression, Option<Location> loc) {
+        this.expression = expression;
+        this.loc = loc;
     }
 
     public Expression getExpression() {

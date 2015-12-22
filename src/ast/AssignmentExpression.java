@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/10/15.
@@ -14,6 +15,13 @@ public class AssignmentExpression extends Expression {
         this.operator = operator;
         this.left = left;
         this.right = right;
+    }
+
+    public AssignmentExpression(String operator, Expression left, Expression right, Option<Location> loc) {
+        this.operator = operator;
+        this.left = left;
+        this.right = right;
+        this.loc = loc;
     }
 
     public String getOperator() {

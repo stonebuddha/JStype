@@ -18,6 +18,13 @@ public class FunctionExpression extends Expression {
         this.body = body;
     }
 
+    public FunctionExpression(Option<IdentifierExpression> id, List<IdentifierExpression> params, BlockStatement body, Option<Location> loc) {
+        this.id = id;
+        this.params = params;
+        this.body = body;
+        this.loc = loc;
+    }
+
     public Option<IdentifierExpression> getId() {
         return id;
     }

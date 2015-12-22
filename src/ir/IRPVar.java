@@ -1,6 +1,8 @@
 package ir;
 
+import ast.Location;
 import fj.P2;
+import fj.data.Option;
 import immutable.FHashSet;
 
 /**
@@ -15,6 +17,12 @@ public final class IRPVar extends IRVar {
         this.recordHash = n;
     }
 
+    public IRPVar(Integer n, Option<Location> loc) {
+        this.n = n;
+        this.loc = loc;
+        this.recordHash = n;
+    }
+
     @Override
     public FHashSet<IRPVar> free() {
         return FHashSet.build(this);
@@ -22,7 +30,7 @@ public final class IRPVar extends IRVar {
 
     @Override
     public String toString() {
-        return "VAR[" + n.toString() + "]";
+        return "VAR[" + n.toString() + "]@" + loc.map(l -> l.toString()).orSome("null");
     }
 
     @Override

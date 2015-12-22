@@ -2,6 +2,7 @@ package ast;
 
 import fj.P2;
 import fj.data.List;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/10/15.
@@ -18,6 +19,12 @@ public class SequenceExpression extends Expression {
     public SequenceExpression(List<Expression> expressions, Boolean isOrig) {
         this.expressions = expressions;
         this.isOrig = isOrig;
+    }
+
+    public SequenceExpression(List<Expression> expressions, Boolean isOrig, Option<Location> loc) {
+        this.expressions = expressions;
+        this.isOrig = isOrig;
+        this.loc = loc;
     }
 
     public Boolean getOrig() {

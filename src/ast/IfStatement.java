@@ -18,6 +18,13 @@ public class IfStatement extends Statement {
         this.alternate = alternate;
     }
 
+    public IfStatement(Expression test, Statement consequent, Option<Statement> alternate, Option<Location> loc) {
+        this.test = test;
+        this.consequent = consequent;
+        this.alternate = alternate;
+        this.loc = loc;
+    }
+
     public Expression getTest() {
         return test;
     }

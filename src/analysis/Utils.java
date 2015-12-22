@@ -237,12 +237,12 @@ public class Utils {
 
         for (Interpreter.State s : sigmas) {
             if (s.t instanceof Domains.ValueTerm && ((Domains.ValueTerm) s.t).v.equals(Errors.typeError)) {
-                Interpreter.Mutable.except(x.id, Errors.typeError);
+                Interpreter.Mutable.except(x.id, Errors.typeError, x.loc);
             }
         }
 
         if (!bv1.defAddr() || nonfun) {
-            Interpreter.Mutable.except(x.id, Errors.typeError);
+            Interpreter.Mutable.except(x.id, Errors.typeError, x.loc);
         }
 
         if (nonfun) {

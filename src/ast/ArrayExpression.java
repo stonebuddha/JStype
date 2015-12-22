@@ -14,6 +14,11 @@ public class ArrayExpression extends Expression {
         this.elements = elements;
     }
 
+    public ArrayExpression(List<Option<Expression>> elements, Option<Location> loc) {
+        this.elements = elements;
+        this.loc = loc;
+    }
+
     public List<Option<Expression>> getElements() {
         return elements;
     }

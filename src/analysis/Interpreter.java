@@ -1,5 +1,7 @@
 package analysis;
 
+import ast.Location;
+import ast.Position;
 import ast.Program;
 import fj.*;
 import fj.data.*;
@@ -31,14 +33,24 @@ public class Interpreter {
         public static Boolean splitStates = false;
         public static HashMap<Trace, P3<Trace, IRVar, FHashSet<Domains.AddressSpace.Address>>> prunedInfo = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
         public static HashMap<Integer, FHashSet<Domains.BValue>> outputMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
-        public static HashMap<Integer, FHashSet<Domains.Value>> stats = new HashMap<Integer, FHashSet<Domains.Value>>(Equal.anyEqual(), Hash.anyHash());
+        public static HashMap<Position, FHashSet<Domains.BValue>> variableMap = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
+        public static HashMap<Integer, FHashSet<P2<Domains.Value, Option<Location>>>> stats = new HashMap<>(Equal.anyEqual(), Hash.anyHash());
 
         public static void except(Integer id, Domains.Value v) {
-            Option<FHashSet<Domains.Value>> tmp = stats.get(id);
+            Option<FHashSet<P2<Domains.Value, Option<Location>>>> tmp = stats.get(id);
             if (tmp.isSome()) {
-                stats.set(id, tmp.some().insert(v));
+                stats.set(id, tmp.some().insert(P.p(v, Option.none())));
             } else {
-                stats.set(id, FHashSet.build(v));
+                stats.set(id, FHashSet.build(P.p(v, Option.none())));
+            }
+        }
+
+        public static void except(Integer id, Domains.Value v, Option<Location> loc) {
+            Option<FHashSet<P2<Domains.Value, Option<Location>>>> tmp = stats.get(id);
+            if (tmp.isSome()) {
+                stats.set(id, tmp.some().insert(P.p(v, loc)));
+            } else {
+                stats.set(id, FHashSet.build(P.p(v, loc)));
             }
         }
 
@@ -46,20 +58,30 @@ public class Interpreter {
             int typeerr = 0;
             int rangeerr = 0;
             for (int id : stats.keys()) {
-                FHashSet<Domains.Value> vs = stats.get(id).some();
+                FHashSet<P2<Domains.Value, Option<Location>>> vs = stats.get(id).some();
                 assert vs.size() <= 2;
                 if (vs.size() == 2) {
                     typeerr += 1;
                     rangeerr += 1;
                 } else {
-                    if (vs.head().equals(Utils.Errors.typeError)) {
+                    if (vs.head()._1().equals(Utils.Errors.typeError)) {
                         typeerr += 1;
-                    } else if (vs.head().equals(Utils.Errors.rangeError)) {
+                    } else if (vs.head()._1().equals(Utils.Errors.rangeError)) {
                         rangeerr += 1;
                     } else {
                         throw new RuntimeException("unexpected error type");
                     }
                 }
+                vs.toList().foreachDoEffect(p -> {
+                    if (p._2().isSome()) {
+                        System.out.print(p._2().some() + ": ");
+                        if (p._1().equals(Utils.Errors.typeError)) {
+                            System.out.println("type error");
+                        } else if (p._1().equals(Utils.Errors.rangeError)) {
+                            System.out.println("range error");
+                        }
+                    }
+                });
             }
             System.out.println("Number of Type Errors: " + typeerr);
             System.out.println("Number of Range Errors: " + rangeerr);
@@ -77,6 +99,7 @@ public class Interpreter {
             Mutable.splitStates = false;
             Mutable.prunedInfo.clear();
             Mutable.outputMap.clear();
+            Mutable.variableMap.clear();
             Mutable.stats.clear();
         }
     }
@@ -220,6 +243,13 @@ public class Interpreter {
                 })).foreachDoEffect(t -> {
                     System.out.println(t._1() + ": " + t._2().mkString(", "));
                 });
+                Mutable.variableMap.toList().sort(Ord.ord(p -> {
+                    return q -> {
+                        return Ordering.fromInt(Integer.compare(p._1().getLine(), q._1().getLine()));
+                    };
+                })).foreachDoEffect(t -> {
+                    System.out.println(t._1() + ": " + t._2().mkString(", "));
+                });
             }
 
             Mutable.report();
@@ -261,7 +291,7 @@ public class Interpreter {
         IRStmt stmt = AST2IR.transform(program);
         //System.err.println(stmt);
         stmt = IR2IR.transform(stmt);
-        System.err.println(stmt);
+        //System.err.println(stmt);
         return stmt;
     }
 
@@ -526,7 +556,7 @@ public class Interpreter {
                         Domains.Scratchpad pad1 = ss._2();
                         Domains.Store store3 = Utils.setConstr(store2, bv2);
                         if (!bv1.defAddr()) {
-                            Mutable.except(x.id, Utils.Errors.typeError);
+                            Mutable.except(x.id, Utils.Errors.typeError, x.loc);
                             ret = ret.insert(new State(new Domains.ValueTerm(Utils.Errors.typeError), env, store, pad, ks, trace));
                         }
                         P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e1, store3, env, pad1, Utils.Filters.IsFunc);
@@ -632,7 +662,7 @@ public class Interpreter {
                         IRVar x = irCall.x;
                         Domains.BValue bv1 = eval(e1);
                         if (!bv1.defAddr()) {
-                            Mutable.except(x.id, Utils.Errors.typeError);
+                            Mutable.except(x.id, Utils.Errors.typeError, x.loc);
                             ret = ret.insert(new State(new Domains.ValueTerm(Utils.Errors.typeError), env, store, pad, ks, trace));
                         }
                         P2<Domains.Store, Domains.Scratchpad> sr = Utils.refineExc(e1, store, env, pad, Utils.Filters.IsFunc);

@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/10/15.
@@ -14,6 +15,13 @@ public class UpdateExpression extends Expression {
         this.operator = operator;
         this.argument = argument;
         this.prefix = prefix;
+    }
+
+    public UpdateExpression(String operator, Expression argument, Boolean prefix, Option<Location> loc) {
+        this.operator = operator;
+        this.argument = argument;
+        this.prefix = prefix;
+        this.loc = loc;
     }
 
     public String getOperator() {

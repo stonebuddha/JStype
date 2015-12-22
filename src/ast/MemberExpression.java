@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/10/15.
@@ -18,6 +19,17 @@ public class MemberExpression extends Expression {
             this.property = property;
         }
         this.computed = computed;
+    }
+
+    public MemberExpression(Expression object, Expression property, Boolean computed, Option<Location> loc) {
+        this.object = object;
+        if (property instanceof RealIdentifierExpression && !computed) {
+            this.property = new LiteralExpression(new StringLiteral(((RealIdentifierExpression) property).getName()));
+        } else {
+            this.property = property;
+        }
+        this.computed = computed;
+        this.loc = loc;
     }
 
     public Expression getObject() {

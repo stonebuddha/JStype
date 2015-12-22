@@ -2,6 +2,7 @@ package ast;
 
 import fj.P2;
 import fj.data.List;
+import fj.data.Option;
 
 /**
  * Created by wayne on 10/15/15.
@@ -11,6 +12,11 @@ public class VariableDeclaration extends Declaration {
 
     public VariableDeclaration(List<VariableDeclarator> declarations) {
         this.declarations = declarations;
+    }
+
+    public VariableDeclaration(List<VariableDeclarator> declarations, Option<Location> loc) {
+        this.declarations = declarations;
+        this.loc = loc;
     }
 
     public List<VariableDeclarator> getDeclarations() {

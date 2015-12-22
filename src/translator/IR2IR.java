@@ -37,7 +37,7 @@ public class IR2IR {
 
         @Override
         public IRExp forPVar(IRPVar irPVar) {
-            return new IRPVar(irPVar.n);
+            return new IRPVar(irPVar.n, irPVar.loc);
         }
 
         @Override

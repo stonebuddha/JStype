@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/10/15.
@@ -10,6 +11,11 @@ public class NumberLiteral extends Literal {
 
     public NumberLiteral(Number value) {
         this.value = value;
+    }
+
+    public NumberLiteral(Number value, Option<Location> loc) {
+        this.value = value;
+        this.loc = loc;
     }
 
     public Number getValue() {

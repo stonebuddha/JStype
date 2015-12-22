@@ -5,6 +5,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 public class LabeledStatement extends Statement {
     IdentifierExpression label;
@@ -13,6 +14,12 @@ public class LabeledStatement extends Statement {
     public LabeledStatement(IdentifierExpression label, Statement body) {
         this.label = label;
         this.body = body;
+    }
+
+    public LabeledStatement(IdentifierExpression label, Statement body, Option<Location> loc) {
+        this.label = label;
+        this.body = body;
+        this.loc = loc;
     }
 
     public IdentifierExpression getLabel() {

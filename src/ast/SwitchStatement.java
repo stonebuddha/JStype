@@ -2,6 +2,7 @@ package ast;
 
 import fj.P2;
 import fj.data.List;
+import fj.data.Option;
 
 /**
  * Created by Hwhitetooth on 15/10/14.
@@ -14,6 +15,12 @@ public class SwitchStatement extends Statement {
     public SwitchStatement(Expression discriminant, List<SwitchCase> cases) {
         this.discriminant = discriminant;
         this.cases = cases;
+    }
+
+    public SwitchStatement(Expression discriminant, List<SwitchCase> cases, Option<Location> loc) {
+        this.discriminant = discriminant;
+        this.cases = cases;
+        this.loc = loc;
     }
 
     public Expression getDiscriminant() {

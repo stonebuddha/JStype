@@ -6,12 +6,18 @@ package ast;
 
 import fj.P2;
 import fj.data.List;
+import fj.data.Option;
 
 public class BlockStatement extends Statement {
     List<Statement> body;
 
     public BlockStatement(List<Statement> body) {
         this.body = body;
+    }
+
+    public BlockStatement(List<Statement> body, Option<Location> loc) {
+        this.body = body;
+        this.loc = loc;
     }
 
     public List<Statement> getBody() {

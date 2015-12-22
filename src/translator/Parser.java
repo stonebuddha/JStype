@@ -32,7 +32,7 @@ public class Parser {
     }
 
     public static String rawParse(String code, String name) {
-        return ScriptUtils.parse(code, name, false);
+        return ScriptUtils.parse(code, name, true);
     }
 
     public static Program parse(String code, String name) {
@@ -46,18 +46,36 @@ public class Parser {
     private static Program parseProgram(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         JsonArray array = object.get("body").getAsJsonArray();
-        return new Program(List.list(array).map(Parser::parseStatement));
+        return new Program(List.list(array).map(Parser::parseStatement), parseLocation(object.get("loc")));
+    }
+
+    private static Option<Location> parseLocation(JsonElement element) {
+        if (element.isJsonNull()) {
+            return Option.none();
+        } else {
+            JsonObject object = element.getAsJsonObject();
+            String source = object.get("source").getAsString();
+            int line, column;
+            line = object.get("start").getAsJsonObject().get("line").getAsInt();
+            column = object.get("start").getAsJsonObject().get("column").getAsInt();
+            Position start = new Position(line, column);
+            line = object.get("end").getAsJsonObject().get("line").getAsInt();
+            column = object.get("end").getAsJsonObject().get("column").getAsInt();
+            Position end = new Position(line, column);
+            return Option.some(new Location(source, start, end));
+        }
     }
 
     private static Statement parseStatement(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         String type = object.get("type").getAsString();
+        Option<Location> loc = parseLocation(object.get("loc"));
         if (type.equals("EmptyStatement")) {
-            return new EmptyStatement();
+            return new EmptyStatement(loc);
         } else if (type.equals("BlockStatement")) {
             if (object.has("body")) {
                 JsonArray array = object.get("body").getAsJsonArray();
-                return new BlockStatement(List.list(array).map(Parser::parseStatement));
+                return new BlockStatement(List.list(array).map(Parser::parseStatement), loc);
             } else {
                 JsonElement ele = object.get("block");
                 return parseStatement(ele);
@@ -65,7 +83,7 @@ public class Parser {
         } else if (type.equals("ExpressionStatement")) {
             JsonElement ele = object.get("expression");
             Expression expression = parseExpression(ele);
-            return new ExpressionStatement(expression);
+            return new ExpressionStatement(expression, loc);
         } else if (type.equals("IfStatement")) {
             JsonElement ele1 = object.get("test");
             JsonElement ele2 = object.get("consequent");
@@ -78,13 +96,13 @@ public class Parser {
             } else {
                 alternate = Option.some(parseStatement(ele3));
             }
-            return new IfStatement(test, consequent, alternate);
+            return new IfStatement(test, consequent, alternate, loc);
         } else if (type.equals("LabeledStatement")) {
             JsonElement ele1 = object.get("label");
             IdentifierExpression label = (IdentifierExpression)parseExpression(ele1);
             JsonElement ele2 = object.get("body");
             Statement body = parseStatement(ele2);
-            return new LabeledStatement(label, body);
+            return new LabeledStatement(label, body, loc);
         } else if (type.equals("BreakStatement")) {
             JsonElement ele = object.get("label");
             Option<IdentifierExpression> label;
@@ -93,7 +111,7 @@ public class Parser {
             } else {
                 label = Option.some((IdentifierExpression)parseExpression(ele));
             }
-            return new BreakStatement(label);
+            return new BreakStatement(label, loc);
         } else if (type.equals("ContinueStatement")) {
             JsonElement ele = object.get("label");
             Option<IdentifierExpression> label;
@@ -102,18 +120,18 @@ public class Parser {
             } else {
                 label = Option.some((IdentifierExpression)parseExpression(ele));
             }
-            return new ContinueStatement(label);
+            return new ContinueStatement(label, loc);
         } else if (type.equals("WithStatement")) {
             JsonElement ele1 = object.get("object");
             JsonElement ele2 = object.get("body");
             Expression obj = parseExpression(ele1);
             Statement body = parseStatement(ele2);
-            return new WithStatement(obj, body);
+            return new WithStatement(obj, body, loc);
         } else if (type.equals("SwitchStatement")) {
             JsonElement ele1 = object.get("discriminant");
             JsonArray array = object.get("cases").getAsJsonArray();
             Expression discriminant = parseExpression(ele1);
-            return new SwitchStatement(discriminant, List.list(array).map(Parser::parseSwitchCase));
+            return new SwitchStatement(discriminant, List.list(array).map(Parser::parseSwitchCase), loc);
         } else if (type.equals("ReturnStatement")) {
             JsonElement ele = object.get("argument");
             Option<Expression> argument;
@@ -122,11 +140,11 @@ public class Parser {
             } else {
                 argument = Option.some(parseExpression(ele));
             }
-            return new ReturnStatement(argument);
+            return new ReturnStatement(argument, loc);
         } else if (type.equals("ThrowStatement")) {
             JsonElement ele = object.get("argument");
             Expression argument = parseExpression(ele);
-            return new ThrowStatement(argument);
+            return new ThrowStatement(argument, loc);
         } else if (type.equals("TryStatement")) {
             JsonElement ele1 = object.get("block");
             JsonElement ele2 = object.get("handler");
@@ -144,19 +162,19 @@ public class Parser {
             } else {
                 finalizer = Option.some((BlockStatement)parseStatement(ele4));
             }
-            return new TryStatement(block, handler, finalizer);
+            return new TryStatement(block, handler, finalizer, loc);
         } else if (type.equals("WhileStatement")) {
             JsonElement ele1 = object.get("test");
             JsonElement ele2 = object.get("body");
             Expression test = parseExpression(ele1);
             Statement body = parseStatement(ele2);
-            return new WhileStatement(test, body);
+            return new WhileStatement(test, body, loc);
         } else if (type.equals("DoWhileStatement")) {
             JsonElement ele1 = object.get("body");
             JsonElement ele2 = object.get("test");
             Statement body = parseStatement(ele1);
             Expression test = parseExpression(ele2);
-            return new DoWhileStatement(body, test);
+            return new DoWhileStatement(body, test, loc);
         } else if (type.equals("ForStatement")) {
             JsonElement ele1 = object.get("init");
             Option<Node> init;
@@ -186,7 +204,7 @@ public class Parser {
             }
             JsonElement ele4 = object.get("body");
             Statement body = parseStatement(ele4);
-            return new ForStatement(init, test, update, body);
+            return new ForStatement(init, test, update, body, loc);
         } else if (type.equals("ForInStatement")) {
             JsonElement ele1 = object.get("left");
             String type1 = ele1.getAsJsonObject().get("type").getAsString();
@@ -200,9 +218,9 @@ public class Parser {
             Expression right = parseExpression(ele2);
             JsonElement ele3 = object.get("body");
             Statement body = parseStatement(ele3);
-            return new ForInStatement(left, right, body);
+            return new ForInStatement(left, right, body, loc);
         } else if (type.equals("DebuggerStatement")) {
-            return new DebuggerStatement();
+            return new DebuggerStatement(loc);
         } else {
             return parseDeclaration(element);
         }
@@ -211,8 +229,9 @@ public class Parser {
     private static Expression parseExpression(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         String type = object.get("type").getAsString();
+        Option<Location> loc = parseLocation(object.get("loc"));
         if (type.equals("ThisExpression")) {
-            return new ThisExpression();
+            return new ThisExpression(loc);
         } else if (type.equals("ArrayExpression")) {
             JsonElement ele1 = object.get("elements");
             return new ArrayExpression(List.list(ele1.getAsJsonArray()).map(ele -> {
@@ -221,10 +240,10 @@ public class Parser {
                 } else {
                     return Option.some(parseExpression(ele));
                 }
-            }));
+            }), loc);
         } else if (type.equals("ObjectExpression")) {
             JsonElement ele1 = object.get("properties");
-            return new ObjectExpression(List.list(ele1.getAsJsonArray()).map(Parser::parseProperty));
+            return new ObjectExpression(List.list(ele1.getAsJsonArray()).map(Parser::parseProperty), loc);
         } else if (type.equals("FunctionExpression")) {
             JsonElement ele1 = object.get("id");
             Option<IdentifierExpression> id;
@@ -239,10 +258,11 @@ public class Parser {
             return new FunctionExpression(
                     id,
                     List.list(ele2.getAsJsonArray()).map(ele -> (IdentifierExpression)parseExpression(ele)),
-                    body);
+                    body,
+                    loc);
         } else if (type.equals("SequenceExpression")) {
             JsonElement ele1 = object.get("expressions");
-            return new SequenceExpression(List.list(ele1.getAsJsonArray()).map(Parser::parseExpression));
+            return new SequenceExpression(List.list(ele1.getAsJsonArray()).map(Parser::parseExpression), true, loc);
         } else if (type.equals("UnaryExpression")) {
             JsonElement ele1 = object.get("operator");
             String operator = ele1.getAsString();
@@ -250,7 +270,7 @@ public class Parser {
             boolean prefix = ele2.getAsBoolean();
             JsonElement ele3 = object.get("argument");
             Expression argument = parseExpression(ele3);
-            return new UnaryExpression(operator, prefix, argument);
+            return new UnaryExpression(operator, prefix, argument, loc);
         } else if (type.equals("BinaryExpression")) {
             JsonElement ele1 = object.get("operator");
             String operator = ele1.getAsString();
@@ -258,7 +278,7 @@ public class Parser {
             Expression left = parseExpression(ele2);
             JsonElement ele3 = object.get("right");
             Expression right = parseExpression(ele3);
-            return new BinaryExpression(operator, left, right);
+            return new BinaryExpression(operator, left, right, loc);
         } else if (type.equals("AssignmentExpression")) {
             JsonElement ele1 = object.get("operator");
             String operator = ele1.getAsString();
@@ -266,7 +286,7 @@ public class Parser {
             Expression left = parseExpression(ele2);
             JsonElement ele3 = object.get("right");
             Expression right = parseExpression(ele3);
-            return new AssignmentExpression(operator, left, right);
+            return new AssignmentExpression(operator, left, right, loc);
         } else if (type.equals("UpdateExpression")) {
             JsonElement ele1 = object.get("operator");
             String operator = ele1.getAsString();
@@ -274,7 +294,7 @@ public class Parser {
             Expression argument = parseExpression(ele2);
             JsonElement ele3 = object.get("prefix");
             boolean prefix = ele3.getAsBoolean();
-            return new UpdateExpression(operator, argument, prefix);
+            return new UpdateExpression(operator, argument, prefix, loc);
         } else if (type.equals("LogicalExpression")) {
             JsonElement ele1 = object.get("operator");
             String operator = ele1.getAsString();
@@ -282,7 +302,7 @@ public class Parser {
             Expression left = parseExpression(ele2);
             JsonElement ele3 = object.get("right");
             Expression right = parseExpression(ele3);
-            return new LogicalExpression(operator, left, right);
+            return new LogicalExpression(operator, left, right, loc);
         } else if (type.equals("ConditionalExpression")) {
             JsonElement ele1 = object.get("test");
             Expression test = parseExpression(ele1);
@@ -290,21 +310,21 @@ public class Parser {
             Expression alternate = parseExpression(ele2);
             JsonElement ele3 = object.get("consequent");
             Expression consequent = parseExpression(ele3);
-            return new ConditionalExpression(test, consequent, alternate);
+            return new ConditionalExpression(test, consequent, alternate, loc);
         } else if (type.equals("CallExpression")) {
             JsonElement ele1 = object.get("callee");
             Expression callee = parseExpression(ele1);
             JsonElement ele2 = object.get("arguments");
             if (callee instanceof RealIdentifierExpression && ((RealIdentifierExpression) callee).getName().equals("print")) {
-                return new PrintExpression(parseExpression(ele2.getAsJsonArray().get(0)));
+                return new PrintExpression(parseExpression(ele2.getAsJsonArray().get(0)), loc);
             } else {
-                return new CallExpression(callee, List.list(ele2.getAsJsonArray()).map(Parser::parseExpression));
+                return new CallExpression(callee, List.list(ele2.getAsJsonArray()).map(Parser::parseExpression), loc);
             }
         } else if (type.equals("NewExpression")) {
             JsonElement ele1 = object.get("callee");
             Expression callee = parseExpression(ele1);
             JsonElement ele2 = object.get("arguments");
-            return new NewExpression(callee, List.list(ele2.getAsJsonArray()).map(Parser::parseExpression));
+            return new NewExpression(callee, List.list(ele2.getAsJsonArray()).map(Parser::parseExpression), loc);
         } else if (type.equals("MemberExpression")) {
             JsonElement ele1 = object.get("object");
             Expression obj = parseExpression(ele1);
@@ -312,13 +332,13 @@ public class Parser {
             Expression property = parseExpression(ele2);
             JsonElement ele3 = object.get("computed");
             boolean computed = ele3.getAsBoolean();
-            return new MemberExpression(obj, property, computed);
+            return new MemberExpression(obj, property, computed, loc);
         } else if (type.equals("Identifier")) {
             JsonElement ele1 = object.get("name");
             String name = ele1.getAsString();
-            return new RealIdentifierExpression(name);
+            return new RealIdentifierExpression(name, loc);
         } else if (type.equals("Literal")) {
-            return new LiteralExpression(parseLiteral(element));
+            return new LiteralExpression(parseLiteral(element), loc);
         } else {
             throw new RuntimeException("Cannot Parse Expression");
         }
@@ -327,6 +347,7 @@ public class Parser {
     private static Declaration parseDeclaration(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
         String type = object.get("type").getAsString();
+        Option<Location> loc = parseLocation(object.get("loc"));
         if (type.equals("FunctionDeclaration")) {
             JsonElement ele1 = object.get("id");
             IdentifierExpression id = (IdentifierExpression)parseExpression(ele1);
@@ -336,9 +357,10 @@ public class Parser {
             return new FunctionDeclaration(
                     id,
                     List.list(ele2.getAsJsonArray()).map(ele -> (IdentifierExpression)parseExpression(ele)),
-                    body);
+                    body,
+                    loc);
         } else if (type.equals("VariableDeclaration")) {
-            return new VariableDeclaration(List.list(object.get("declarations").getAsJsonArray()).map(Parser::parseVariableDeclarator));
+            return new VariableDeclaration(List.list(object.get("declarations").getAsJsonArray()).map(Parser::parseVariableDeclarator), loc);
         } else {
             throw new RuntimeException("Cannot Parse Declaration");
         }
@@ -346,6 +368,7 @@ public class Parser {
 
     private static SwitchCase parseSwitchCase(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
+        Option<Location> loc = parseLocation(object.get("loc"));
         JsonElement ele1 = object.get("test");
         Option<Expression> test;
         if (ele1.isJsonNull()) {
@@ -354,20 +377,22 @@ public class Parser {
             test = Option.some(parseExpression(ele1));
         }
         JsonElement ele2 = object.get("consequent");
-        return new SwitchCase(test, List.list(ele2.getAsJsonArray()).map(Parser::parseStatement));
+        return new SwitchCase(test, List.list(ele2.getAsJsonArray()).map(Parser::parseStatement), loc);
     }
 
     private static CatchClause parseCatchClause(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
+        Option<Location> loc = parseLocation(object.get("loc"));
         JsonElement ele1 = object.get("param");
         IdentifierExpression param = (IdentifierExpression)parseExpression(ele1);
         JsonElement ele2 = object.get("body");
         BlockStatement body = (BlockStatement)parseStatement(ele2);
-        return new CatchClause(param, body);
+        return new CatchClause(param, body, loc);
     }
 
     private static VariableDeclarator parseVariableDeclarator(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
+        Option<Location> loc = parseLocation(object.get("loc"));
         IdentifierExpression id = (IdentifierExpression)parseExpression(object.get("id"));
         Option<Expression> init;
         JsonElement ele = object.get("init");
@@ -376,11 +401,12 @@ public class Parser {
         } else {
             init = Option.some(parseExpression(ele));
         }
-        return new VariableDeclarator(id, init);
+        return new VariableDeclarator(id, init, loc);
     }
 
     private static Property parseProperty(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
+        Option<Location> loc = parseLocation(object.get("loc"));
         JsonElement ele1 = object.get("key");
         String key;
         if (ele1.getAsJsonObject().get("type").getAsString().equals("Identifier")) {
@@ -400,30 +426,31 @@ public class Parser {
         Expression value = parseExpression(ele2);
         JsonElement ele3 = object.get("kind");
         String kind = ele3.getAsString();
-        return new Property(key, value, kind);
+        return new Property(key, value, kind, loc);
     }
 
     private static Literal parseLiteral(JsonElement element) {
         JsonObject object = element.getAsJsonObject();
+        Option<Location> loc = parseLocation(object.get("loc"));
         JsonElement ele = object.get("value");
         if (ele.isJsonPrimitive()) {
             JsonPrimitive prim = ele.getAsJsonPrimitive();
             if (prim.isBoolean()) {
-                return new BooleanLiteral(prim.getAsBoolean());
+                return new BooleanLiteral(prim.getAsBoolean(), loc);
             } else if (prim.isNumber()) {
-                return new NumberLiteral(prim.getAsNumber());
+                return new NumberLiteral(prim.getAsNumber(), loc);
             } else if (prim.isString()) {
-                return new StringLiteral(prim.getAsString().substring(1));
+                return new StringLiteral(prim.getAsString().substring(1), loc);
             } else {
                 throw new RuntimeException("Cannot Parse Literal");
             }
         } else if (ele.isJsonNull()) {
-            return new NullLiteral();
+            return new NullLiteral(loc);
         } else if (ele.isJsonObject()) {
             JsonObject obj = ele.getAsJsonObject();
             String pattern = obj.get("pattern").getAsString();
             String flags = obj.get("flags").getAsString();
-            return new RegExpLiteral(pattern, flags);
+            return new RegExpLiteral(pattern, flags, loc);
         } else {
             throw new RuntimeException("Cannot Parse Literal");
         }

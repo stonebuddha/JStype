@@ -23,7 +23,7 @@ public class AST2IR {
 
         public static final IRPVar window = newMangledVar(WINDOW_NAME);
         public static final String windowName = getName(window);
-        public static final IRPVar unmangledWindow = getPVar(WINDOW_NAME);
+        public static final IRPVar unmangledWindow = getPVar(WINDOW_NAME, Option.none());
 
         public static final IRPVar global = window;
         public static final IRPVar dummy = newMangledVar("dummy");
@@ -54,17 +54,19 @@ public class AST2IR {
             return new IRBinop(Bop.Access, window, new IRStr(str));
         }
 
-        public static IRPVar getPVar(String name) {
+        public static IRPVar getPVar(String name, Option<Location> loc) {
             if (nameToNum.contains(name)) {
-                return new IRPVar(nameToNum.get(name).some());
+                IRPVar res = new IRPVar(nameToNum.get(name).some());
+                res.loc = loc;
+                return res;
             } else {
-                return newPVar(name);
+                return newPVar(name, loc);
             }
         }
 
         public static IRVar getVar(IdentifierExpression x) {
             if (x instanceof RealIdentifierExpression) {
-                return getPVar(((RealIdentifierExpression) x).getName());
+                return getPVar(((RealIdentifierExpression) x).getName(), ((RealIdentifierExpression) x).loc);
             } else {
                 return new IRScratch(((ScratchIdentifierExpression)x).getNum());
             }
@@ -78,12 +80,14 @@ public class AST2IR {
             return getName(x.n);
         }
 
-        static IRPVar newPVar(String name) {
+        static IRPVar newPVar(String name, Option<Location> loc) {
             Integer res = counter;
             counter += 1;
             numToName.set(res, name);
             nameToNum.set(name, res);
-            return new IRPVar(res);
+            IRPVar tmp = new IRPVar(res);
+            tmp.loc = loc;
+            return tmp;
         }
 
         static IRPVar freshPVar() {
@@ -91,7 +95,7 @@ public class AST2IR {
         }
 
         public static IRPVar newMangledVar(String name) {
-            return getPVar("`" + name + "`" + counter);
+            return getPVar("`" + name + "`" + counter, Option.none());
         }
     }
 
@@ -480,11 +484,11 @@ public class AST2IR {
             assert params.length() == Set.set(AST2AST.IDENTIFIER_EXPRESSION_ORD, params).size();
             List<Statement> tail = body.tail();
             P3<List<IRStmt>, List<IRExp>, List<Set<IRPVar>>> _tail = unzip3(tail.map(stmt -> stmt.accept(this)));
-            IRPVar args = PVarMapper.getPVar(PVarMapper.ARGUMENTS_NAME);
+            IRPVar args = PVarMapper.getPVar(PVarMapper.ARGUMENTS_NAME, Option.none());
             List<P2<IRPVar, IRExp>> declParams = params.zipIndex().map(p -> {
                 RealIdentifierExpression id = (RealIdentifierExpression)p._1();
                 Integer num = p._2();
-                return P.p(PVarMapper.getPVar(id.getName()), new IRBinop(Bop.Access, args, new IRStr(num.toString())));
+                return P.p(PVarMapper.getPVar(id.getName(), id.loc), new IRBinop(Bop.Access, args, new IRStr(num.toString())));
             });
             List<VariableDeclarator> bind = declaration.getDeclarations();
             List<P2<IRPVar, IRExp>> declLocal = bind.map(decl -> {
@@ -498,7 +502,7 @@ public class AST2IR {
                 } else {
                     throw new RuntimeException("ast2ast error");
                 }
-                return P.p(PVarMapper.getPVar(id.getName()), rhs);
+                return P.p(PVarMapper.getPVar(id.getName(), id.loc), rhs);
             });
             P3<IRStmt, IRExp, Set<IRPVar>> tmp = makeArguments(List.list());
             Set<IRPVar> ss = _tail._3().foldLeft((a, b) -> a.union(b), EMPTY);
@@ -649,7 +653,7 @@ public class AST2IR {
             assert body.isNotEmpty();
             assert body.head() instanceof VariableDeclaration;
             VariableDeclaration declaration = (VariableDeclaration)body.head();
-            List<P2<IRPVar, IRExp>> bind1 = declaration.getDeclarations().map(decl -> P.p(PVarMapper.getPVar(((RealIdentifierExpression) decl.getId()).getName()), new IRUndef()));
+            List<P2<IRPVar, IRExp>> bind1 = declaration.getDeclarations().map(decl -> P.p(PVarMapper.getPVar(((RealIdentifierExpression) decl.getId()).getName(), decl.getId().loc), new IRUndef()));
             P3<IRStmt, IRExp, Set<IRPVar>> tmp = new BlockStatement(body.tail()).accept(this);
             List<P2<IRPVar, IRExp>> bind2 = tmp._3().toList().map(x -> P.p(x, new IRUndef()));
             return P.p(new IRDecl(bind1.append(bind2), tmp._1()), new IRUndef(), EMPTY);
@@ -777,7 +781,7 @@ public class AST2IR {
                 RealIdentifierExpression id = (RealIdentifierExpression)cc.getParam();
                 BlockStatement body = cc.getBody();
                 P3<IRStmt, IRExp, Set<IRPVar>> _body = body.accept(this);
-                _catch = P.p(PVarMapper.getPVar(id.getName()), _body._1(), _body._3());
+                _catch = P.p(PVarMapper.getPVar(id.getName(), id.loc), _body._1(), _body._3());
             }
             P3<IRStmt, IRExp, Set<IRPVar>> _finalizer = theFinalizer.accept(this);
             return P.p(makeTry(_block._1(), _catch._1(), _catch._2(), _finalizer._1()), new IRUndef(), _block._3().union(_catch._3()).union(_finalizer._3()));

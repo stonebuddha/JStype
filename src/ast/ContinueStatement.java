@@ -14,6 +14,11 @@ public class ContinueStatement extends Statement {
         this.label = label;
     }
 
+    public ContinueStatement(Option<IdentifierExpression> label, Option<Location> loc) {
+        this.label = label;
+        this.loc = loc;
+    }
+
     public Option<IdentifierExpression> getLabel() {
         return label;
     }

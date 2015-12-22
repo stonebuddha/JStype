@@ -2,6 +2,7 @@ package ast;
 
 import fj.P;
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/11/9.
@@ -11,6 +12,11 @@ public class ScratchIdentifierExpression extends IdentifierExpression {
 
     public ScratchIdentifierExpression(Integer num) {
         this.num = num;
+    }
+
+    public ScratchIdentifierExpression(Integer num, Option<Location> loc) {
+        this.num = num;
+        this.loc = loc;
     }
 
     @Override

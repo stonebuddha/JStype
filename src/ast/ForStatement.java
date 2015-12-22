@@ -19,6 +19,14 @@ public class ForStatement extends Statement {
         this.body = body;
     }
 
+    public ForStatement(Option<Node> init, Option<Expression> test, Option<Expression> update, Statement body, Option<Location> loc) {
+        this.init = init;
+        this.test = test;
+        this.update = update;
+        this.body = body;
+        this.loc = loc;
+    }
+
     public Option<Node> getInit() {
         return init;
     }

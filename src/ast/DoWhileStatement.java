@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by Hwhitetooth on 15/10/14.
@@ -12,6 +13,12 @@ public class DoWhileStatement extends Statement {
     public DoWhileStatement(Statement body, Expression test) {
         this.body = body;
         this.test = test;
+    }
+
+    public DoWhileStatement(Statement body, Expression test, Option<Location> loc) {
+        this.body = body;
+        this.test = test;
+        this.loc = loc;
     }
 
     public Statement getBody() {

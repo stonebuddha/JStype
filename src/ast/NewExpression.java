@@ -2,6 +2,7 @@ package ast;
 
 import fj.P2;
 import fj.data.List;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/10/15.
@@ -9,6 +10,10 @@ import fj.data.List;
 public class NewExpression extends CallExpression {
     public NewExpression(Expression callee, List<Expression> arguments) {
         super(callee, arguments);
+    }
+
+    public NewExpression(Expression callee, List<Expression> arguments, Option<Location> loc) {
+        super(callee, arguments, loc);
     }
 
     @Override

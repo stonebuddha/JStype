@@ -1,6 +1,9 @@
 package analysis;
 
+import ast.Location;
+import ast.Position;
 import fj.*;
+import fj.data.Option;
 import immutable.FHashSet;
 import ir.*;
 
@@ -198,7 +201,17 @@ public class Eval {
             }
             @Override
             public Domains.BValue forPVar(IRPVar irPVar) {
-                return store.applyAll(env.apply(irPVar).some());
+                Domains.BValue bv = store.applyAll(env.apply(irPVar).some());
+                if (Interpreter.Mutable.inPostFixpoint && irPVar.loc.isSome()) {
+                    Position loc = irPVar.loc.some().getStart();
+                    Option<FHashSet<Domains.BValue>> tmp = Interpreter.Mutable.variableMap.get(loc);
+                    if (tmp.isNone()) {
+                        Interpreter.Mutable.variableMap.set(loc, FHashSet.build(bv));
+                    } else {
+                        Interpreter.Mutable.variableMap.set(loc, tmp.some().insert(bv));
+                    }
+                }
+                return bv;
             }
             @Override
             public Domains.BValue forScratch(IRScratch irScratch) {

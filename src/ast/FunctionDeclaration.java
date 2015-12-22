@@ -2,6 +2,7 @@ package ast;
 
 import fj.P2;
 import fj.data.List;
+import fj.data.Option;
 
 /**
  * Created by wayne on 10/15/15.
@@ -15,6 +16,13 @@ public class FunctionDeclaration extends Declaration {
         this.id = id;
         this.params = params;
         this.body = body;
+    }
+
+    public FunctionDeclaration(IdentifierExpression id, List<IdentifierExpression> params, BlockStatement body, Option<Location> loc) {
+        this.id = id;
+        this.params = params;
+        this.body = body;
+        this.loc = loc;
     }
 
     public IdentifierExpression getId() {

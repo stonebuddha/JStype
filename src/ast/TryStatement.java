@@ -20,6 +20,13 @@ public class TryStatement extends Statement {
         this.finalizer = finalizer;
     }
 
+    public TryStatement(BlockStatement block, Option<CatchClause> handler, Option<BlockStatement> finalizer, Option<Location> loc) {
+        this.block = block;
+        this.handler = handler;
+        this.finalizer = finalizer;
+        this.loc = loc;
+    }
+
     public BlockStatement getBlock() {
         return block;
     }

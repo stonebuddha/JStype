@@ -8,9 +8,9 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="org.functionaljava:functionaljava:4.4" level="project" />
-    <orderEntry type="library" name="com.google.code.gson:gson:2.4" level="project" />
     <orderEntry type="library" name="org.functionaljava:functionaljava-java8:4.4" level="project" />
-    <orderEntry type="library" name="org.functionaljava:functionaljava-java8:4.41" level="project" />
     <orderEntry type="library" name="clj-ds" level="project" />
+    <orderEntry type="library" name="com.google.guava:guava:18.0" level="project" />
+    <orderEntry type="library" name="com.google.code.gson:gson:2.4" level="project" />
   </component>
 </module>

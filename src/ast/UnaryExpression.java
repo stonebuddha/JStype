@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/10/15.
@@ -14,6 +15,13 @@ public class UnaryExpression extends Expression {
         this.operator = operator;
         this.prefix = prefix;
         this.argument = argument;
+    }
+
+    public UnaryExpression(String operator, Boolean prefix, Expression argument, Option<Location> loc) {
+        this.operator = operator;
+        this.prefix = prefix;
+        this.argument = argument;
+        this.loc = loc;
     }
 
     public String getOperator() {

@@ -5,6 +5,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 public class WithStatement extends Statement {
     Expression object;
@@ -13,6 +14,12 @@ public class WithStatement extends Statement {
     public WithStatement(Expression object, Statement body) {
         this.object = object;
         this.body = body;
+    }
+
+    public WithStatement(Expression object, Statement body, Option<Location> loc) {
+        this.object = object;
+        this.body = body;
+        this.loc = loc;
     }
 
     public Expression getObject() {

@@ -16,6 +16,12 @@ public class SwitchCase extends Node {
         this.consequent = consequent;
     }
 
+    public SwitchCase(Option<Expression> test, List<Statement> consequent, Option<Location> loc) {
+        this.test = test;
+        this.consequent = consequent;
+        this.loc = loc;
+    }
+
     public Option<Expression> getTest() {
         return test;
     }

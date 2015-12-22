@@ -15,6 +15,12 @@ public class VariableDeclarator extends Node {
         this.init = init;
     }
 
+    public VariableDeclarator(IdentifierExpression id, Option<Expression> init, Option<Location> loc) {
+        this.id = id;
+        this.init = init;
+        this.loc = loc;
+    }
+
     public IdentifierExpression getId() {
         return id;
     }

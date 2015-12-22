@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/10/15.
@@ -14,6 +15,13 @@ public class ConditionalExpression extends Expression {
         this.test = test;
         this.alternate = alternate;
         this.consequent = consequent;
+    }
+
+    public ConditionalExpression(Expression test, Expression consequent, Expression alternate, Option<Location> loc) {
+        this.test = test;
+        this.alternate = alternate;
+        this.consequent = consequent;
+        this.loc = loc;
     }
 
     public Expression getTest() {

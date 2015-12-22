@@ -1,5 +1,7 @@
 package ir;
 
+import ast.Location;
+import fj.data.Option;
 import fj.data.Set;
 import fj.P2;
 import immutable.FHashSet;
@@ -9,6 +11,7 @@ import immutable.FHashSet;
  */
 public abstract class IRNode {
     public Integer id;
+    public Option<Location> loc = Option.none();
 
     public IRNode() {
         this.id = IRNode.id(this);

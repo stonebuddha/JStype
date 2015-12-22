@@ -13,6 +13,11 @@ public class ReturnStatement extends Statement {
         this.argument = argument;
     }
 
+    public ReturnStatement(Option<Expression> argument, Option<Location> loc) {
+        this.argument = argument;
+        this.loc = loc;
+    }
+
     public Option<Expression> getArgument() {
         return argument;
     }

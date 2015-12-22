@@ -2,6 +2,7 @@ package ast;
 
 import fj.P;
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/11/9.
@@ -13,6 +14,12 @@ public class RealIdentifierExpression extends IdentifierExpression {
     public RealIdentifierExpression(String name) {
         this.name = name;
         this.recordHash = name.hashCode();
+    }
+
+    public RealIdentifierExpression(String name, Option<Location> loc) {
+        this.name = name;
+        this.recordHash = name.hashCode();
+        this.loc = loc;
     }
 
     @Override

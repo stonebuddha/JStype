@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 15/10/15.
@@ -14,6 +15,13 @@ public class Property extends Node {
         this.key = key;
         this.value = value;
         this.kind = kind;
+    }
+
+    public Property(String key, Expression value, String kind, Option<Location> loc) {
+        this.key = key;
+        this.value = value;
+        this.kind = kind;
+        this.loc = loc;
     }
 
     public String getKey() {

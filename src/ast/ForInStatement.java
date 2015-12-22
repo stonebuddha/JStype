@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by wayne on 10/15/15.
@@ -14,6 +15,13 @@ public class ForInStatement extends Statement {
         this.left = left;
         this.right = right;
         this.body = body;
+    }
+
+    public ForInStatement(Node left, Expression right, Statement body, Option<Location> loc) {
+        this.left = left;
+        this.right = right;
+        this.body = body;
+        this.loc = loc;
     }
 
     public Node getLeft() {

@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by Hwhitetooth on 15/10/14.
@@ -12,6 +13,12 @@ public class WhileStatement extends Statement {
     public WhileStatement(Expression test, Statement body) {
         this.test = test;
         this.body = body;
+    }
+
+    public WhileStatement(Expression test, Statement body, Option<Location> loc) {
+        this.test = test;
+        this.body = body;
+        this.loc = loc;
     }
 
     public Expression getTest() {

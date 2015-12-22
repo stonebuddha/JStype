@@ -1,6 +1,7 @@
 package ast;
 
 import fj.P2;
+import fj.data.Option;
 
 /**
  * Created by Hwhitetooth on 15/10/14.
@@ -10,6 +11,11 @@ public class ThrowStatement extends Statement {
 
     public ThrowStatement(Expression argument) {
         this.argument = argument;
+    }
+
+    public ThrowStatement(Expression argument, Option<Location> loc) {
+        this.argument = argument;
+        this.loc = loc;
     }
 
     public Expression getArgument() {
