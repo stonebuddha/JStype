@@ -292,7 +292,7 @@ public class Interpreter {
         IRStmt stmt = AST2IR.transform(program);
         //System.err.println(stmt);
         stmt = IR2IR.transform(stmt);
-        System.err.println(stmt);
+        //System.err.println(stmt);
         return stmt;
     }
 
